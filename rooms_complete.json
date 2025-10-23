@@ -1,0 +1,159 @@
+[
+  {
+    "id": "white room",
+    "intro": "You find yourself in a small, empty white room.",
+    "description": "The room is quite small, and empty aside from a single wooden bench fixed in the centre. \nThe bench looks old, weathered and rickety, contrasting oddly with the blank sterility of the rest of the room. \nYou're not sure it would take your full weight.\nThe ceiling is pretty high, and there are some carvings around the top of the walls. \nYou wouldn't mind getting a closer look at them. Maybe you could jump up there?\nThere is no exit that you can see.",
+    "exits": {
+      "north": "glass corridor",
+      "east": "fossil exhibit"
+    }
+  },
+  {
+    "id": "fossil exhibit",
+    "intro": "You find yourself in a cavernous room, filled with ancient fossils.",
+    "description": "It's a massive room, filled with all kinds of interesting fossils and fascinating displays. \nYou could wander here for hours, but first you'd like to find a way out.\nThere's a door to the east, and a door to the north. The west door leads back to the white room.\nThere are several piles of books stacked in a corner, along with scattered bits of paper. \nIt looks like someone was busy studying the fossils, but they're not here right now.",
+    "exits": {
+      "west": "white room",
+      "east": "gift shop",
+      "north": "red corridor",
+      "south": "secret room"
+    }
+  },
+  {
+    "id": "gift shop",
+    "intro": "You are in a small room full of random knick-knacks. It looks like a closed gift shop.",
+    "description": "A pretty standard gift shop, the shelves full of little trinkets and things, all coated in a fine layer of dust. \nIt looks as if it's been closed for a while. Despite the sorry state of the place, a few of the items might be worth examining.\nThe west door leads back to the fossil exhibit. There is no other door here.",
+    "exits": {
+      "west": "fossil exhibit"
+    }
+  },
+  {
+    "id": "red corridor",
+    "intro": "You're in a long corridor. It's painted a very bright red.",
+    "description": "The corridor is long, narrow, and painted a migraine-inducing shade of red. \nThe floor and ceiling match the walls.\nYou see a door to the east, and a door to the north. \nThe door to the south leads back to the fossil exhibit. Not much else is here.",
+    "exits": {
+      "south": "fossil exhibit",
+      "east": "cleaners' store",
+      "north": "art gallery"
+    }
+  },
+  {
+    "id": "cleaners' store",
+    "intro": "It's a small cupboard. Looks like the cleaning stores are kept here.",
+    "description": "It's just a cleaning cupboard. A few brooms lean against one wall, and some spray bottles are lined up on the shelves. \nThere's a smattering of rust across the shelf lining the east wall.\nThe west door leads back to the red corridor.",
+    "exits": {
+      "west": "red corridor",
+      "east": "hidden store"
+    }
+  },
+  {
+    "id": "art gallery",
+    "intro": "You find yourself in a brightly lit art gallery. The paintings seem to be staring at you.",
+    "description": "It's an elaborate art gallery, full of paintings and sculptures. \nNone of them are ones you could name, yet there's something hauntingly familiar about them. \nThe eyes of the portraits seem to be watching you.\nThere's a door to the east, and another door to the west. The south door leads back to the red corridor.",
+    "exits": {
+      "north": "secret lab",
+      "south": "red corridor",
+      "east": "blue corridor",
+      "west": "workshop"
+    }
+  },
+  {
+    "id": "workshop",
+    "intro": "There's a workshop here. It looks well equipped and maintained.",
+    "description": "A decent workshop, if a little messy. There's a toolbox on a workbench, and plenty of woodworking supplies, \nif the fancy to build something strikes you.\nYou can see a small yard through an open door to the west, and the door leading back to the art gallery is to the east.",
+    "exits": {
+      "east": "art gallery",
+      "west": "yard"
+    }
+  },
+  {
+    "id": "yard",
+    "intro": "There's a small yard out here. A mesh roof keeps you inside, but it's nice to feel some fresh air.",
+    "description": "It looks like extra scrap for the workshop is stored here. \nPiles are stacked precariously, looking as if they could fall over any minute. Best not disturb them.\nThe open door to the east leads back to the workshop.",
+    "exits": {
+      "east": "workshop"
+    }
+  },
+  {
+    "id": "blue corridor",
+    "intro": "You're in a wide corridor, painted a soothing shade of blue. There's someone with a broom at the other end.",
+    "description": "A wide, airy corridor decorated in soothing blue tones. \nA few cushioned seats line the walls, and well-maintained pot plants give the room a homely feel.\nSomeone is sweeping the floor, and they smile at you as they pass by. \nMaybe they know something useful about this strange place?\nThere are doors to the south west, south, south east, north east, and north.",
+    "exits": {
+      "south west": "art gallery",
+      "south": "bathroom",
+      "south east": "garden",
+      "north east": "cafe",
+      "north": "observatory",
+      "north west": "secret lab"
+    }
+  },
+  {
+    "id": "bathroom",
+    "intro": "There's a bathroom here. It looks pretty clean.",
+    "description": "It's a bathroom. It looks clean and tidy, but there's not much else to remark on.\nYou could probably relieve yourself or wash your hands if you feel the need to.\nThe door to the north leads back to the blue corridor.",
+    "exits": {
+      "north": "blue corridor"
+    }
+  },
+  {
+    "id": "cafe",
+    "intro": "You enter a cozy cafe. It looks as if nobody has been here in a while.",
+    "description": "This would probably be a cozy, bustling little cafe if it didn't feel so abandoned. \nThe tables and chairs are highly polished, as if expecting customers any minute, but the display counter is empty.\nThere are some canned drinks and pre-packaged snacks left on a shelf behind the counter, and a small first aid box on the wall.\nThe door to the west leads back to the blue corridor. \nGrimy windows and a glass door line the south wall, and you can just about see a garden through them.",
+    "exits": {
+      "west": "blue corridor",
+      "south": "garden"
+    }
+  },
+  {
+    "id": "observatory",
+    "intro": "There's an elaborate observatory here. Some interesting mechanisms are installed along one wall.",
+    "description": "This is an old fashioned observatory. Antique telescopes are set up to look out of skylights far above, \nand there's one huge, intricate mechanism that operates the main telescope in the middle.\nAlong the west wall, there are several smaller bits of machinery. \nMost look as if they're too clogged with old dust and grime to work, but one seems cleaner than the others.\nA door to the south east leads back to the blue corridor.",
+    "exits": {
+      "south east": "blue corridor"
+    }
+  },
+  {
+    "id": "garden",
+    "intro": "You go into the garden.",
+    "description": "This garden has definitely seen better days, but some of the flowers have managed to thrive amongst the sprawling weeds. \nThere's a slightly rusted wrought iron bench under a rather poorly-looking tree.\nA door to the north leads into the cafe, and the door to the west leads back to the blue corridor.",
+    "exits": {
+      "north": "cafe",
+      "west": "blue corridor"
+    }
+  },
+  {
+    "id": "secret lab",
+    "intro": "You go through the secret door. It looks like someone hid a very fancy science lab here.",
+    "description": "You would never have suspected there was a high-tech science lab hidden behind that wall. \nThere's all kinds of weird, sciency stuff in here, and you have no idea what any of it does.\nThe north door leads back to the observatory. \nThere's a door to the east that goes to the blue corridor, and a door to the south that leads to the art gallery.",
+    "exits": {
+      "north": "observatory",
+      "east": "blue corridor",
+      "south": "art gallery"
+    }
+  },
+  {
+    "id": "hidden store",
+    "intro": "You open the concealed door and enter a hidden storeroom. There are dusty shelves lining the walls.",
+    "description": "The shelves tower over you, reaching all the way to the ceiling. \nThere are unlabelled boxes of all sizes stacked on each shelf. \nThe door to the west leads back to the cleaners' store.",
+    "exits": {
+      "west": "cleaners' store"
+    }
+  },
+  {
+    "id": "glass corridor",
+    "intro": "You go through the newly-revealed door, into a sparkling glass corridor.",
+    "description": "The light sparkles through the glass walls, shining bright colours everywhere. \nYou feel as if you're caught inside a prism. \nThere's a door on the west wall, which has a huge sign over it reading 'EXIT'.\nThe door to the south leads back to the white room you first woke up in.",
+    "exits": {
+      "south": "white room",
+      "west": "exit"
+    }
+  },
+  {
+    "id": "secret room",
+    "intro": "The secret room is tiny, with only a few thin pedestals arranged in a circle.\n",
+    "description": "The room is quite small, with a high ceiling. Six narrow pedestals ring one wider stand in the centre, all but one with a sparkling coloured gem on top. Looking at the colours of the rest, you guess the empty pedestal is supposed to hold a green gem.",
+    "exits": {
+      "north": "fossil exhibit"
+    }
+  }
+]

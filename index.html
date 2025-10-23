@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Escape the Complex — Prototype</title>
+  <!-- Link the stylesheet (I'll provide style.css next) -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!--
+    Main container: retro terminal look planned.
+    Place rooms_complete.json in the same folder; engine.js will load it.
+  -->
+  <main class="container" role="main">
+    <header class="header">
+      <h1>Escape the Complex</h1>
+      <div class="subtitle">Browser prototype — retro terminal interface</div>
+    </header>
+
+    <section id="game" class="game">
+      <!-- Output area: scrollable, preserves line-breaks -->
+      <div id="output" class="output" aria-live="polite" role="log"></div>
+
+      <!-- Controls: compass + typed input -->
+      <div class="controls">
+        <div id="compass" class="compass" role="group" aria-label="Movement">
+          <button class="dir" data-cmd="go north west" aria-label="northwest">NW</button>
+          <button class="dir" data-cmd="go north" aria-label="north">N</button>
+          <button class="dir" data-cmd="go north east" aria-label="northeast">NE</button>
+
+          <button class="dir" data-cmd="go west" aria-label="west">W</button>
+          <div class="center">Move</div>
+          <button class="dir" data-cmd="go east" aria-label="east">E</button>
+
+          <button class="dir" data-cmd="go south west" aria-label="southwest">SW</button>
+          <button class="dir" data-cmd="go south" aria-label="south">S</button>
+          <button class="dir" data-cmd="go south east" aria-label="southeast">SE</button>
+        </div>
+
+        <div class="input-row">
+          <input id="cmd" class="cmd-input" placeholder="Type a command (e.g. look, go north, take key)" autocomplete="off" />
+          <button id="send" class="btn">Send</button>
+          <button id="help" class="btn secondary">Help</button>
+        </div>
+      </div>
+
+      <!-- Optional help panel -->
+      <aside id="helpPanel" class="panel hidden" aria-hidden="true">
+        <h2>Commands (prototype)</h2>
+        <ul>
+          <li><code>look</code> — reprints the current room description</li>
+          <li><code>go &lt;direction&gt;</code> — move (north, south, east, west, north east ...)</li>
+          <li><code>take &lt;item&gt;</code> — pick up an item</li>
+          <li><code>leave &lt;item&gt;</code> — drop an item</li>
+          <li><code>inventory</code> — show inventory</li>
+          <li><code>use &lt;item&gt;</code> — attempt to use an item</li>
+          <li><code>give &lt;item&gt; to &lt;npc&gt;</code> — give an item</li>
+          <li><code>talk to &lt;npc&gt;</code> — talk to caretaker / barista / scientist / puppy</li>
+          <li><code>build &lt;thing&gt;</code> — build in the workshop (cart, birdhouse, shelf)</li>
+        </ul>
+        <button id="closeHelp" class="btn">Close</button>
+      </aside>
+    </section>
+
+    <footer class="footer">Prototype — gameplay logic will be in <code>engine.js</code>.</footer>
+  </main>
+
+  <!-- engine.js will power the game (I'll provide it next). -->
+  <script src="engine.js" defer></script>
+</body>
+</html>
+

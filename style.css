@@ -1,0 +1,231 @@
+/* Escape the Complex - Browser Prototype Stylesheet
+   Retro terminal theme (dark background, amber text)
+*/
+
+:root {
+  --bg: #111;
+  --text: #ffcc66;
+  --text-dim: #cc9955;
+  --accent: #ffaa33;
+  --border: #333;
+  --btn-bg: #222;
+  --btn-hover: #333;
+  --font: "Courier New", monospace;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  height: 100%;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ---- Header ---- */
+.header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  letter-spacing: 2px;
+  color: var(--accent);
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+/* ---- Game area ---- */
+.game {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  background: #000;
+  box-shadow: 0 0 15px rgba(255, 170, 51, 0.15);
+}
+
+.output {
+  flex: 1;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  padding: 0.75rem;
+  background-color: #000;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+  font-size: 0.95rem;
+}
+
+/* Add a subtle CRT-style glow */
+.output, .cmd-input {
+  text-shadow: 0 0 2px rgba(255, 204, 102, 0.6);
+}
+
+/* ---- Controls ---- */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cmd-input {
+  flex: 1;
+  background-color: var(--btn-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.4rem 0.6rem;
+  font-family: var(--font);
+  font-size: 0.95rem;
+}
+
+.cmd-input:focus {
+  outline: 1px solid var(--accent);
+}
+
+/* ---- Buttons ---- */
+.btn, .dir {
+  background-color: var(--btn-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn:hover, .dir:hover {
+  background-color: var(--btn-hover);
+  color: var(--accent);
+}
+
+.btn.secondary {
+  opacity: 0.8;
+}
+
+.btn.secondary:hover {
+  opacity: 1;
+}
+
+/* ---- Compass Layout ---- */
+.compass {
+  display: grid;
+  grid-template-columns: repeat(3, 50px);
+  grid-template-rows: repeat(3, 50px);
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.dir {
+  font-size: 1rem;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.center {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* ---- Help Panel ---- */
+.panel {
+  background-color: #111;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  color: var(--text);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  max-height: 80%;
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(255, 204, 102, 0.3);
+  z-index: 10;
+}
+
+.hidden {
+  display: none;
+}
+
+.panel h2 {
+  margin-top: 0;
+  text-align: center;
+  color: var(--accent);
+}
+
+.panel ul {
+  padding-left: 1.2rem;
+}
+
+.panel li {
+  margin-bottom: 0.5rem;
+}
+
+.panel code {
+  color: var(--accent);
+}
+
+/* ---- Footer ---- */
+.footer {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+/* Optional scanline overlay (CRT vibe) */
+body::after {
+  content: "";
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.05) 0px,
+    rgba(0, 0, 0, 0.1) 2px
+  );
+  opacity: 0.15;
+  z-index: 999;
+}
+
