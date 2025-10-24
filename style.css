@@ -99,7 +99,7 @@ html, body {
   margin-top: 0.5rem;
 }
 
-.cmd-input {
+.cmdInput {
   flex: 1;
   background-color: var(--btn-bg);
   color: var(--text);
