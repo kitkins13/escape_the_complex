@@ -181,6 +181,7 @@ function processCommand(input) {
   } else {
     appendMessage("You can't do that right now.");
   }
+  appendMessage(`[Debug] You are currently in: ${player.location}`);
 }
 
 // Game state
@@ -264,14 +265,22 @@ function describeRoom(showIntro = true) {
 
 // Move between rooms
 function goDirection(dir) {
-  const room = rooms[currentRoom];
-  if (!room.exits || !room.exits[dir]) {
-    print(`You can't go ${dir} from here.`);
+  const currentRoom = rooms.find(r => r.name === player.location);
+  if (!currentRoom.exits || !currentRoom.exits[dir]) {
+    appendMessage("You can't go that way.");
     return;
   }
-  currentRoom = room.exits[dir];
-  player.location = currentRoom;
-  describeRoom(true);
+
+  const nextRoomName = currentRoom.exits[dir];
+  const nextRoom = rooms.find(r => r.name === nextRoomName);
+
+  if (nextRoom) {
+    player.location = nextRoom.name; // ✅ This is the key fix
+    appendMessage(`You move ${dir} into the ${nextRoom.name}.`);
+    appendMessage(nextRoom.description);
+  } else {
+    appendMessage("That direction doesn't seem to go anywhere.");
+  }
 }
 
 // Parse and execute commands
@@ -364,7 +373,7 @@ function executeCommand(input) {
       break;
 
     default:
-      print("You can’t do that right now.");
+      print("Sorry, that doesn't work :( You can see the list of valid commands by entering 'help'.");
       break;
   }
 
