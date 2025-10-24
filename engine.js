@@ -166,7 +166,7 @@ function handlePoke() {
 }
 
 // Command handler map
-const commands = {
+/*const commands = {
   sit: () => handleSit(),
   jump: () => handleJump(),
   examine: () => handleExamine(),
@@ -181,8 +181,7 @@ function processCommand(input) {
   } else {
     appendMessage("You can't do that right now.");
   }
-  appendMessage(`[Debug] You are currently in: ${player.location}`);
-}
+}*/
 
 // Game state
 let rooms = {};
@@ -265,22 +264,20 @@ function describeRoom(showIntro = true) {
 
 // Move between rooms
 function goDirection(dir) {
-  const currentRoom = rooms.find(r => r.name === player.location);
-  if (!currentRoom.exits || !currentRoom.exits[dir]) {
-    appendMessage("You can't go that way.");
+  const room = rooms[currentRoom];
+  if (!room.exits || !room.exits[dir]) {
+    print(`You can't go ${dir} from here.`);
     return;
   }
 
-  const nextRoomName = currentRoom.exits[dir];
-  const nextRoom = rooms.find(r => r.name === nextRoomName);
+  // Update currentRoom index/key
+  currentRoom = room.exits[dir];
+  const nextRoom = rooms[currentRoom]; // <- get the new room object
 
-  if (nextRoom) {
-    player.location = nextRoom.name; // ✅ This is the key fix
-    appendMessage(`You move ${dir} into the ${nextRoom.name}.`);
-    appendMessage(nextRoom.description);
-  } else {
-    appendMessage("That direction doesn't seem to go anywhere.");
-  }
+  // ✅ Store the actual name string in player.location
+  player.location = nextRoom.name.toLowerCase();
+
+  describeRoom(true);
 }
 
 // Parse and execute commands
