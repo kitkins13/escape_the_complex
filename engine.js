@@ -264,7 +264,7 @@ function describeRoom(showIntro = true) {
 
 // Move between rooms
 function goDirection(dir) {
-  const room = rooms.find(r => r.id === currentRoom);
+  const room = rooms[currentRoom];
   if (!room) {
     print("Error: currentRoom not found!");
     return;
@@ -275,22 +275,24 @@ function goDirection(dir) {
     return;
   }
 
-  const nextRoomId = room.exits[dir];
-  const nextRoom = rooms.find(r => r.id === nextRoomId);
+  // get next room name string
+  const nextRoomName = room.exits[dir];
+  const nextRoom = rooms[nextRoomName];
 
   if (!nextRoom) {
-    print("That direction doesn't seem to go anywhere.");
+    print(`That direction doesn't seem to go anywhere.`);
     return;
   }
 
-  // ✅ Update the state
-  currentRoom = nextRoom.id;
-  player.location = nextRoom.id.toLowerCase();
+  // ✅ Update both trackers
+  currentRoom = nextRoomName;
+  player.location = nextRoom.name.toLowerCase();
 
-  // ✅ Show the new room
-  print(`You move ${dir} into the ${nextRoom.id}.`);
+  // ✅ Print the new room description
+  print(`You move ${dir} into the ${nextRoom.name}.`);
   print(nextRoom.description);
 }
+
 
 
 // Parse and execute commands
