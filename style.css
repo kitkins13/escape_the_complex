@@ -73,6 +73,7 @@ html, body {
   background-color: #000;
   border: 1px solid var(--border);
   border-radius: 6px;
+  height: 450px;
   margin-bottom: 1rem;
   line-height: 1.4;
   font-size: 0.95rem;
