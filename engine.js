@@ -174,7 +174,6 @@ const commands = {
 };
 
 // Main command processor - do I need this? there's a command switch further down... not sure which is working
-// Apparently I do
 function processCommand(input) {
   const cmd = input.trim().toLowerCase();
   if (commands[cmd]) {
@@ -265,21 +264,34 @@ function describeRoom(showIntro = true) {
 
 // Move between rooms
 function goDirection(dir) {
-  const room = rooms[currentRoom];
+  const room = rooms.find(r => r.id === currentRoom);
+  if (!room) {
+    print("Error: currentRoom not found!");
+    return;
+  }
+
   if (!room.exits || !room.exits[dir]) {
     print(`You can't go ${dir} from here.`);
     return;
   }
 
-  // Update currentRoom index/key
-  currentRoom = room.exits[dir];
-  const nextRoom = rooms[currentRoom]; // <- get the new room object
+  const nextRoomId = room.exits[dir];
+  const nextRoom = rooms.find(r => r.id === nextRoomId);
 
-  // ✅ Store the actual name string in player.location
-  player.location = nextRoom.name.toLowerCase();
+  if (!nextRoom) {
+    print("That direction doesn't seem to go anywhere.");
+    return;
+  }
 
-  describeRoom(true);
+  // ✅ Update the state
+  currentRoom = nextRoom.id;
+  player.location = nextRoom.id.toLowerCase();
+
+  // ✅ Show the new room
+  print(`You move ${dir} into the ${nextRoom.id}.`);
+  print(nextRoom.description);
 }
+
 
 // Parse and execute commands
 function executeCommand(input) {
