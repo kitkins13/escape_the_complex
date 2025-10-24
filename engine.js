@@ -256,9 +256,11 @@ function goDirection(dir) {
   const room = rooms[currentRoom];
   if (!room.exits || !room.exits[dir]) {
     print(`You can't go ${dir} from here.`);
+    print(`You are in ${room}.`);
     return;
   }
   currentRoom = room.exits[dir];
+  print(`You are in ${room}.`);
   describeRoom(true);
 }
 
