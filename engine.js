@@ -225,6 +225,14 @@ function executeCommand(input) {
     case "clear":
       output.innerHTML = "";
       break;
+     
+    case "jump":
+      handleJump();
+      break;
+
+    case "sit":
+      handleSit();
+      break;
 
     default:
       print("You can’t do that right now.");
