@@ -19,6 +19,12 @@ function appendMessage(text) {
     return;
   }
 
+  const p = document.createElement("p");
+  p.textContent = text;
+  log.appendChild(p);
+  log.scrollTop = log.scrollHeight; // auto-scroll
+}
+
 // Sit command
 function handleSit() {
   const loc = player.location;
