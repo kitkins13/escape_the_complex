@@ -11,6 +11,52 @@ const helpBtn = document.getElementById("help");
 const helpPanel = document.getElementById("helpPanel");
 const closeHelp = document.getElementById("closeHelp");
 
+// Sit command
+function handleSit() {
+  const loc = player.location;
+
+  if (loc === "white room") {
+    appendMessage("You sit on the bench gingerly. It creaks, but holds up. The old wood is a bit splintery, though. Probably best not to stay sat for too long.");
+    if (player.hasPuppy) {
+      appendMessage("Digger barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole.");
+      player.smallKeyholeRevealed = true;
+    }
+  } else if (loc === "blue corridor") {
+    appendMessage("You sit down on one of the cushioned benches. It's nice to take a break after all the exploring you've been doing.");
+  } else if (loc === "cafe") {
+    appendMessage("You pull out one of the chairs and sit for a minute.");
+  } else if (loc === "garden") {
+    appendMessage("The wrought iron bench doesn't look all that comfy, but it's better than the damp grass. Barely.");
+  } else if (loc === "bathroom") {
+    appendMessage("You sit on one of the toilets. Hey, when the lid's down, it's a chair!");
+  } else {
+    appendMessage("There are no seats here, but you're exhausted enough to sit on the floor for a moment.");
+  }
+}
+
+// Jump command
+function handleJump() {
+  const loc = player.location;
+
+  if (loc === "white room") {
+    appendMessage("You jump as high as you can, and spot a button near the ceiling. You press it quickly, and a hidden door opens in the east wall.");
+    player.wrExitOpen = true;
+  } else if (loc === "hidden store") {
+    appendMessage("As you jump, you spot a tiny key on one of the high shelves. You jump up again and grab it.\nThere's a scratched up tag attached to it with the words 'white room - exit' written on.");
+    player.hasSmallKey = true;
+  } else if (loc === "cleaners' store" || loc === "secret lab") {
+    appendMessage("You can't jump here, the ceiling is too low.");
+  } else if (loc === "fossil exhibit" && !player.note1Found) {
+    appendMessage("You spot a note stuck to the triceratops skull. You carefully reach up and take it.");
+    player.note1Found = true;
+  } else if (loc === "garden" && !player.note4Found) {
+    appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.");
+    player.note4Found = true;
+  } else {
+    appendMessage("You jump, but nothing unusual happens.");
+  }
+}
+
 // Command handler map
 const commands = {
   sit: () => handleSit(),
@@ -104,52 +150,6 @@ function goDirection(dir) {
   }
   currentRoom = room.exits[dir];
   describeRoom(true);
-}
-
-// Sit command
-function handleSit() {
-  const loc = player.location;
-
-  if (loc === "white room") {
-    appendMessage("You sit on the bench gingerly. It creaks, but holds up. The old wood is a bit splintery, though. Probably best not to stay sat for too long.");
-    if (player.hasPuppy) {
-      appendMessage("Digger barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole.");
-      player.smallKeyholeRevealed = true;
-    }
-  } else if (loc === "blue corridor") {
-    appendMessage("You sit down on one of the cushioned benches. It's nice to take a break after all the exploring you've been doing.");
-  } else if (loc === "cafe") {
-    appendMessage("You pull out one of the chairs and sit for a minute.");
-  } else if (loc === "garden") {
-    appendMessage("The wrought iron bench doesn't look all that comfy, but it's better than the damp grass. Barely.");
-  } else if (loc === "bathroom") {
-    appendMessage("You sit on one of the toilets. Hey, when the lid's down, it's a chair!");
-  } else {
-    appendMessage("There are no seats here, but you're exhausted enough to sit on the floor for a moment.");
-  }
-}
-
-// Jump command
-function handleJump() {
-  const loc = player.location;
-
-  if (loc === "white room") {
-    appendMessage("You jump as high as you can, and spot a button near the ceiling. You press it quickly, and a hidden door opens in the east wall.");
-    player.wrExitOpen = true;
-  } else if (loc === "hidden store") {
-    appendMessage("As you jump, you spot a tiny key on one of the high shelves. You jump up again and grab it.\nThere's a scratched up tag attached to it with the words 'white room - exit' written on.");
-    player.hasSmallKey = true;
-  } else if (loc === "cleaners' store" || loc === "secret lab") {
-    appendMessage("You can't jump here, the ceiling is too low.");
-  } else if (loc === "fossil exhibit" && !player.note1Found) {
-    appendMessage("You spot a note stuck to the triceratops skull. You carefully reach up and take it.");
-    player.note1Found = true;
-  } else if (loc === "garden" && !player.note4Found) {
-    appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.");
-    player.note4Found = true;
-  } else {
-    appendMessage("You jump, but nothing unusual happens.");
-  }
 }
 
 // Parse and execute commands
