@@ -274,8 +274,11 @@ function executeCommand(input) {
 
   switch (cmd) {
     case "look":
-    case "examine":
       describeRoom(false);
+      break;
+    
+    case "examine":
+      handleExamine();
       break;
 
     case "go":
@@ -342,6 +345,10 @@ function executeCommand(input) {
 
     case "sit":
       handleSit();
+      break;
+
+    case "poke":
+      handlePoke();
       break;
 
     default:
