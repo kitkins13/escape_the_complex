@@ -71,13 +71,109 @@ function handleJump() {
   }
 }
 
+function handleExamine() {
+  const loc = player.location;
+
+  if (loc === "gift shop") {
+    appendMessage("You look at the things on the shelves.");
+    if (!player.hasKeyring) appendMessage("A plain leather keyring catches your eye.");
+    if (!player.hasDogToy) appendMessage("There's a squeaky dog toy sitting alone in a battered box.");
+    if (!player.hasSnowglobe) appendMessage("A small snowglobe sparkles away on a corner shelf. The little cottage inside reminds you of home, somehow.");
+  }
+
+  else if (loc === "art gallery") {
+    appendMessage("You take a good look at some of the paintings. They're even creepier up close.");
+    if (!player.note2Found) {
+      appendMessage("One of the surreal landscapes has a note tucked into the frame. You take it gently, trying to avoid disturbing the artwork.");
+      player.note2Found = true;
+    }
+  }
+
+  else if (loc === "yard") {
+    appendMessage("The junk piles seem even more rusty and decrepit the closer you look at them. Who dumped all this mess here, anyway?");
+    if (!player.note3Found) {
+      appendMessage("You spot a slightly damp note under a big stone beside one pile. Careful not to nudge the teetering junk, you take the note.");
+      player.note3Found = true;
+    }
+  }
+
+  else if (loc === "observatory") {
+    if (!player.discoveredLab) {
+      appendMessage("You go and take a better look at those mechanisms. Most seem to operate the big telescope, but one isn't connected to anything you can see. It's missing its lever... maybe the caretaker knows something about it?");
+    }
+  }
+
+  else if (loc === "fossil exhibit") {
+    const fossilFacts = [
+      "The word 'fossil' comes from the Latin 'fossilis', meaning 'dug up.'",
+      "Most fossils form in sedimentary rock, created by layers of sediment compressing over time.",
+      "Fossilization can take thousands to millions of years.",
+      "Paleontologists use brushes and chisels to carefully excavate fossils.",
+      "The first dinosaur fossil was discovered in 1824 by English geologist William Buckland.",
+      "The 'Bone Wars' was a rivalry between paleontologists Marsh and Cope in the late 1800s.",
+      "Not all organisms fossilize — soft-bodied ones rarely do.",
+      "Transitional fossils show intermediate stages between species, like Tiktaalik.",
+    ];
+    const fact = fossilFacts[Math.floor(Math.random() * fossilFacts.length)];
+    appendMessage(`A nearby sign reads: ${fact}`);
+  }
+
+  else if (loc === "secret room") {
+    appendMessage("On closer inspection, the pedestals each have small gems set into the top. Red, blue, yellow, purple, orange and white. One is empty, with a divot where a gem might be placed.");
+    if (player.hasTeleGem) appendMessage("The green gem you picked up might fit there.");
+  }
+
+  else if (loc === "workshop") {
+    appendMessage("Several design sketches are strewn across the workbench. Most are beyond you, but a few look interesting: a simple birdhouse, a tall bookshelf, and a handcart. You could probably make those, looking at the careful detail put into the drawings.");
+  }
+
+  else {
+    appendMessage("There's nothing interesting enough to examine here.");
+  }
+}
+
+function handlePoke() {
+  const loc = player.location;
+
+  if (loc === "secret lab") {
+    appendMessage("You poke some of the equipment on the bench, wondering what it does. Something starts reacting violently...");
+    appendMessage("The lab explodes in a chain reaction, and you perish in the destruction.");
+    player.isDead = true;
+    appendMessage("*** GAME OVER ***");
+  }
+
+  else if (loc === "yard") {
+    appendMessage("You prod at the heaps of junk. Something dislodges, causing a small collapse. You jump back but get a cut on your arm.");
+    player.isInjured = true;
+  }
+
+  else if (loc === "gift shop") {
+    appendMessage("You poke at the little trinkets on the shelves. A couple of them fall off and roll around the floor.");
+  }
+
+  else if (loc === "fossil exhibit") {
+    appendMessage("You poke some of the fossil displays. It's great fun, until the jawbone falls off a skeleton. You wedge it back in place and stop touching the exhibits.");
+  }
+
+  else if (loc === "workshop") {
+    appendMessage("You poke the things on the workbench. One of the half-built whatnots slides across, revealing a scrap of paper underneath it. You take the note.");
+    player.note5Found = true;
+  }
+
+  else {
+    appendMessage("You walk around the room poking things. Nothing interesting happens.");
+  }
+}
+
 // Command handler map
 const commands = {
   sit: () => handleSit(),
   jump: () => handleJump(),
+  examine: () => handleExamine(),
+  poke: () => handlePoke(),
 };
 
-// Main command processor
+// Main command processor - do I need this? there's a command switch further down... not sure which is working
 function processCommand(input) {
   const cmd = input.trim().toLowerCase();
   if (commands[cmd]) {
@@ -303,4 +399,3 @@ async function startGame() {
 
 // Start when ready
 window.addEventListener("DOMContentLoaded", startGame);
-

@@ -80,7 +80,7 @@ html, body {
 }
 
 /* Add a subtle CRT-style glow */
-.output, .cmd-input {
+.output, .cmdInput {
   text-shadow: 0 0 2px rgba(255, 204, 102, 0.6);
 }
 
@@ -110,7 +110,7 @@ html, body {
   font-size: 0.95rem;
 }
 
-.cmd-input:focus {
+.cmdInput:focus {
   outline: 1px solid var(--accent);
 }
 
@@ -229,4 +229,3 @@ body::after {
   opacity: 0.15;
   z-index: 999;
 }
-
