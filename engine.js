@@ -166,7 +166,7 @@ function handlePoke() {
 }
 
 // Command handler map
-/*const commands = {
+const commands = {
   sit: () => handleSit(),
   jump: () => handleJump(),
   examine: () => handleExamine(),
@@ -174,6 +174,7 @@ function handlePoke() {
 };
 
 // Main command processor - do I need this? there's a command switch further down... not sure which is working
+// Apparently I do
 function processCommand(input) {
   const cmd = input.trim().toLowerCase();
   if (commands[cmd]) {
@@ -181,7 +182,7 @@ function processCommand(input) {
   } else {
     appendMessage("You can't do that right now.");
   }
-}*/
+}
 
 // Game state
 let rooms = {};
