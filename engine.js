@@ -196,7 +196,18 @@ const player = {
   smallKeyholeRevealed: false,
   hasSmallKey: false,
   note1Found: false,
+  note2Found: false,
+  note3Found: false,
   note4Found: false,
+  note5Found: false,
+  hasKeyring: false,
+  hasDogToy: false,
+  hasSnowglobe: false,
+  hasTeleGem: false,
+  discoveredLab: false,
+  isInjured: false,
+  isDead: false,
+
 };
 
 // Utility: print text to output box
@@ -256,11 +267,10 @@ function goDirection(dir) {
   const room = rooms[currentRoom];
   if (!room.exits || !room.exits[dir]) {
     print(`You can't go ${dir} from here.`);
-    print(`You are in ${room}.`);
     return;
   }
   currentRoom = room.exits[dir];
-  print(`You are in ${room}.`);
+  player.location = currentRoom;
   describeRoom(true);
 }
 
