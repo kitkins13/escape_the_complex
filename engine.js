@@ -11,6 +11,14 @@ const helpBtn = document.getElementById("help");
 const helpPanel = document.getElementById("helpPanel");
 const closeHelp = document.getElementById("closeHelp");
 
+// Append message function
+function appendMessage(text) {
+  const log = document.getElementById("output");
+  if (!log) {
+    console.warn("Game log element not found!");
+    return;
+  }
+
 // Sit command
 function handleSit() {
   const loc = player.location;
