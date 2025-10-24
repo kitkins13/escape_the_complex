@@ -11,12 +11,6 @@ const helpBtn = document.getElementById("help");
 const helpPanel = document.getElementById("helpPanel");
 const closeHelp = document.getElementById("closeHelp");
 
-// Command handler map
-const commands = {
-  sit: () => handleSit(),
-  jump: () => handleJump(),
-};
-
 // Game state
 let rooms = {};
 let currentRoom = null;
