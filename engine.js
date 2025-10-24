@@ -17,16 +17,6 @@ const commands = {
   jump: () => handleJump(),
 };
 
-// Main command processor
-function processCommand(input) {
-  const cmd = input.trim().toLowerCase();
-  if (commands[cmd]) {
-    commands[cmd]();
-  } else {
-    appendMessage("You can't do that right now.");
-  }
-}
-
 // Game state
 let rooms = {};
 let currentRoom = null;
