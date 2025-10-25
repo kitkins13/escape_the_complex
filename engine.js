@@ -71,6 +71,7 @@ function handleJump() {
   }
 }
 
+// Examine command
 function handleExamine() {
   const loc = player.location;
 
@@ -132,6 +133,7 @@ function handleExamine() {
   }
 }
 
+// Poke command
 function handlePoke() {
   const loc = player.location;
 
@@ -165,12 +167,112 @@ function handlePoke() {
   }
 }
 
+function build(item) {
+  if (player.location !== "workshop") {
+    print("You can’t build anything here.");
+    return;
+  }
+
+  if (!item) {
+    print("What do you want to build?");
+    return;
+  }
+
+  const thing = item.toLowerCase();
+
+  switch (thing) {
+    case "cart":
+    case "handcart":
+      if (!player.builtCart) {
+        print("You build a simple, yet sturdy cart.");
+        player.builtCart = true;
+      } else {
+        print("You already built a cart.");
+      }
+      break;
+
+    case "birdhouse":
+      if (!player.builtBirdhouse) {
+        print("You build a small, standing birdhouse. It might look pretty in a garden.");
+        player.builtBirdhouse = true;
+      } else {
+        print("You already built a birdhouse.");
+      }
+      break;
+
+    case "shelf":
+    case "bookshelf":
+      if (!player.builtShelf) {
+        print("You build a tall shelving unit. It would be good for books, or someone could make a display on it.");
+        player.builtShelf = true;
+      } else {
+        print("You already built a shelf.");
+      }
+      break;
+
+    default:
+      print("You don’t see the right equipment to make that.");
+  }
+}
+
+function useLever() {
+  if (player.location !== "observatory") {
+    print("There’s nowhere to use a lever here.");
+    return;
+  }
+
+  if (player.hasLever && !player.leverPlaced) {
+    print("You put the lever back in the mechanism, hearing a satisfying click as it finds its place.");
+    player.hasLever = false;
+    player.leverPlaced = true;
+  } else if (player.leverPlaced && !player.discoveredLab) {
+    print("You pull the newly placed lever. Clicking and grinding noises travel through the walls — a hidden panel swings open in the southwest corner.");
+    player.discoveredLab = true;
+    // Optional: unlock the secret lab exit
+    const obs = rooms["observatory"];
+    obs.exits["southwest"] = "secret lab";
+  } else if (player.discoveredLab) {
+    print("The lever’s already done its job.");
+  } else {
+    print("You don’t have a lever to use.");
+  }
+}
+
+function moveShelf() {
+  if (player.location !== "cleaners' store") {
+    print("There are no shelves here to move.");
+    return;
+  }
+
+  if (player.shelvesMoved) {
+    print("You already moved the shelves.");
+    return;
+  }
+
+  if (player.isInjured) {
+    print("You try to push the shelves aside, but your injured arm lets you down. Maybe there’s a first aid kit around somewhere?");
+    return;
+  }
+
+  if (!player.hasIronKey) {
+    print("There's no reason to move those yet.");
+    return;
+  }
+
+  print("You push the shelf aside, revealing a hidden door with an iron keyhole. The key fits perfectly, and you unlock the door.");
+  player.shelvesMoved = true;
+
+  // Optional: open a new path in your map
+  const store = rooms["cleaners' store"];
+  store.exits["east"] = "hidden store";
+}
+
 // Command handler map
 const commands = {
   sit: () => handleSit(),
   jump: () => handleJump(),
   examine: () => handleExamine(),
-  poke: () => handlePoke(),
+  poke: () => handlePoke()
 };
 
 // Main command processor - do I need this? there's a command switch further down... not sure which is working
@@ -178,6 +280,13 @@ function processCommand(input) {
   const cmd = input.trim().toLowerCase();
   if (commands[cmd]) {
     commands[cmd]();
+  } else if (cmd.startsWith("build")) {
+    const parts = cmd.split(" ");
+    build(parts[1]);
+  } else if (cmd === "use lever") {
+    useLever();
+  } else if (cmd === "move shelf" || cmd === "move shelves") {
+    moveShelf();
   } else {
     appendMessage("You can't do that right now.");
   }
@@ -379,14 +488,34 @@ function executeCommand(input) {
       break;
 
     case "poke":
+    case "poke things":
+    case "poke stuff":
       handlePoke();
       break;
+    
+    /*case "build":
+    case "build cart":
+    case "build handcart":
+    case "build shelf":
+    case "build bookshelf":
+    case "build birdhouse":
+      build();
+      break;
+
+    case "use lever":
+    case "place lever":
+    case "pull lever":
+      useLever();
+      break;
+    
+    case "move shelves":
+      moveShelf();*/
 
     default:
       print("Sorry, that doesn't work :( You can see the list of valid commands by entering 'help'.");
       break;
   }
-
+  
   br();
 }
 
