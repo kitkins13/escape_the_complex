@@ -275,9 +275,9 @@ function goDirection(dir) {
     return;
   }
 
-  // get next room name string
-  const nextRoomName = room.exits[dir];
-  const nextRoom = rooms[nextRoomName];
+  // Get the next room ID string from exits
+  const nextRoomId = room.exits[dir];
+  const nextRoom = rooms[nextRoomId];
 
   if (!nextRoom) {
     print(`That direction doesn't seem to go anywhere.`);
@@ -285,15 +285,13 @@ function goDirection(dir) {
   }
 
   // ✅ Update both trackers
-  currentRoom = nextRoomName;
-  player.location = nextRoom.name.toLowerCase();
+  currentRoom = nextRoomId;
+  player.location = nextRoomId.toLowerCase();
 
   // ✅ Print the new room description
-  print(`You move ${dir} into the ${nextRoom.name}.`);
-  print(nextRoom.description);
+  print(`You move ${dir} into the ${nextRoomId}.`);
+  describeRoom(true);
 }
-
-
 
 // Parse and execute commands
 function executeCommand(input) {
