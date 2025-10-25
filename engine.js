@@ -275,7 +275,7 @@ function goDirection(dir) {
     return;
   }
 
-  // Get the next room ID string from exits
+  // get next room name string
   const nextRoomId = room.exits[dir];
   const nextRoom = rooms[nextRoomId];
 
@@ -289,8 +289,8 @@ function goDirection(dir) {
   player.location = nextRoomId.toLowerCase();
 
   // ✅ Print the new room description
-  print(`You move ${dir} into the ${nextRoomId}.`);
-  describeRoom(true);
+  print(`You move ${dir} into the ${nextRoom.id}.`);
+  print(nextRoom.description);
 }
 
 // Parse and execute commands
