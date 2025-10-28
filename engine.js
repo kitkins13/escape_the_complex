@@ -267,7 +267,7 @@ function moveShelf() {
   store.exits["east"] = "hidden store";
 }
 
-// Command handler map
+/*// Command handler map
 const commands = {
   sit: () => handleSit(),
   jump: () => handleJump(),
@@ -280,17 +280,10 @@ function processCommand(input) {
   const cmd = input.trim().toLowerCase();
   if (commands[cmd]) {
     commands[cmd]();
-  } else if (cmd.startsWith("build")) {
-    const parts = cmd.split(" ");
-    build(parts[1]);
-  } else if (cmd === "use lever") {
-    useLever();
-  } else if (cmd === "move shelf" || cmd === "move shelves") {
-    moveShelf();
   } else {
     appendMessage("You can't do that right now.");
   }
-}
+}*/
 
 // Game state
 let rooms = {};
@@ -402,7 +395,7 @@ function goDirection(dir) {
   print(nextRoom.description);
 }
 
-// Parse and execute commands
+/*/ Parse and execute commands
 function executeCommand(input) {
   const raw = input.trim().toLowerCase();
   if (!raw) return;
@@ -493,7 +486,7 @@ function executeCommand(input) {
       handlePoke();
       break;
     
-    /*case "build":
+    case "build":
     case "build cart":
     case "build handcart":
     case "build shelf":
@@ -509,7 +502,7 @@ function executeCommand(input) {
       break;
     
     case "move shelves":
-      moveShelf();*/
+      moveShelf();
 
     default:
       print("Sorry, that doesn't work :( You can see the list of valid commands by entering 'help'.");
@@ -517,6 +510,33 @@ function executeCommand(input) {
   }
   
   br();
+}*/
+
+//new command handler
+function handleCommand(input) {
+  cmd = input.trim().toLowerCase();
+
+  if (cmd.startsWith("go ")) {
+    const dir = cmd.split(" ")[1];
+    goDirection(dir);
+  } else if (cmd === "sit") {
+    sit();
+  } else if (cmd === "jump") {
+    jump();
+  } else if (cmd === "examine") {
+    examine();
+  } else if (cmd === "poke" || cmd === "poke stuff") {
+    pokeStuff();
+  } else if (cmd.startsWith("build")) {
+    const parts = cmd.split(" ");
+    build(parts[1]);
+  } else if (cmd === "use lever") {
+    useLever();
+  } else if (cmd === "move shelf" || cmd === "move shelves") {
+    moveShelf();
+  } else {
+    print("You can't do that.");
+  }
 }
 
 // Toggle help panel
