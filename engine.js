@@ -513,8 +513,8 @@ function executeCommand(input) {
 }*/
 
 //new command handler
-function handleCommand(input) {
-  cmd = input.trim().toLowerCase();
+function handleCommand(cmdInput) {
+  cmd = cmdInput.trim().toLowerCase();
 
   if (cmd.startsWith("go ")) {
     const dir = cmd.split(" ")[1];
