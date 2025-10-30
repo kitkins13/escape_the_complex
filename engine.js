@@ -513,8 +513,8 @@ function executeCommand(input) {
 }*/
 
 //new command handler
-function handleCommand(cmdInput) {
-  cmd = cmdInput.trim().toLowerCase();
+function handleCommand(input) {
+  cmd = input.trim().toLowerCase();
 
   if (cmd.startsWith("go ")) {
     const dir = cmd.split(" ")[1];
@@ -549,7 +549,7 @@ function toggleHelp(show) {
 sendBtn.addEventListener("click", () => {
   const input = cmdInput.value;
   cmdInput.value = "";
-  executeCommand(input);
+  handleCommand(input);
   cmdInput.focus();
 });
 
@@ -565,7 +565,7 @@ compass.addEventListener("click", (e) => {
   const btn = e.target.closest(".dir");
   if (!btn) return;
   const cmd = btn.dataset.cmd;
-  executeCommand(cmd);
+  handleCommand(cmd);
 });
 
 helpBtn.addEventListener("click", () => toggleHelp(true));
