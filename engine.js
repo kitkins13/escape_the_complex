@@ -129,7 +129,7 @@ function handleExamine() {
   }
 
   else {
-    appendMessage("There's nothing interesting enough to examine here.");
+    appendMessage("There's nothing interesting enough to examine here.\n");
   }
 }
 
@@ -145,20 +145,20 @@ function handlePoke() {
   }
 
   else if (loc === "yard") {
-    appendMessage("You prod at the heaps of junk. Something dislodges, causing a small collapse. You jump back but get a cut on your arm.");
+    appendMessage("You prod at the heaps of junk. Something dislodges, causing a small collapse. You jump back but get a cut on your arm.\n");
     player.isInjured = true;
   }
 
   else if (loc === "gift shop") {
-    appendMessage("You poke at the little trinkets on the shelves. A couple of them fall off and roll around the floor.");
+    appendMessage("You poke at the little trinkets on the shelves. A couple of them fall off and roll around the floor.\n");
   }
 
   else if (loc === "fossil exhibit") {
-    appendMessage("You poke some of the fossil displays. It's great fun, until the jawbone falls off a skeleton. You wedge it back in place and stop touching the exhibits.");
+    appendMessage("You poke some of the fossil displays. It's great fun, until the jawbone falls off a skeleton. You wedge it back in place and stop touching the exhibits.\n");
   }
 
   else if (loc === "workshop") {
-    appendMessage("You poke the things on the workbench. One of the half-built whatnots slides across, revealing a scrap of paper underneath it. You take the note.");
+    appendMessage("You poke the things on the workbench. One of the half-built whatnots slides across, revealing a scrap of paper underneath it. You take the note.\n");
     player.note5Found = true;
   }
 
@@ -228,7 +228,7 @@ function useLever() {
   } else if (player.leverPlaced && !player.discoveredLab) {
     print("You pull the newly placed lever. Clicking and grinding noises travel through the walls — a hidden panel swings open in the southwest corner.");
     player.discoveredLab = true;
-    // Optional: unlock the secret lab exit
+    // unlocks the secret lab exit
     const obs = rooms["observatory"];
     obs.exits["southwest"] = "secret lab";
   } else if (player.discoveredLab) {
@@ -238,52 +238,35 @@ function useLever() {
   }
 }
 
+// player moves the shelves in the cleaners' store
 function moveShelf() {
   if (player.location !== "cleaners' store") {
-    print("There are no shelves here to move.");
+    print("There are no shelves here to move.\n");
     return;
   }
 
   if (player.shelvesMoved) {
-    print("You already moved the shelves.");
+    print("You already moved the shelves.\n");
     return;
   }
 
   if (player.isInjured) {
-    print("You try to push the shelves aside, but your injured arm lets you down. Maybe there’s a first aid kit around somewhere?");
+    print("You try to push the shelves aside, but your injured arm lets you down. Maybe there’s a first aid kit around somewhere?\n");
     return;
   }
 
   if (!player.hasIronKey) {
-    print("There's no reason to move those yet.");
+    print("There's no reason to move those yet.\n");
     return;
   }
 
-  print("You push the shelf aside, revealing a hidden door with an iron keyhole. The key fits perfectly, and you unlock the door.");
+  print("You push the shelf aside, revealing a hidden door with an iron keyhole. The key fits perfectly, and you unlock the door.\n");
   player.shelvesMoved = true;
 
-  // Optional: open a new path in your map
+  // opens the hidden store exit
   const store = rooms["cleaners' store"];
   store.exits["east"] = "hidden store";
 }
-
-/*// Command handler map
-const commands = {
-  sit: () => handleSit(),
-  jump: () => handleJump(),
-  examine: () => handleExamine(),
-  poke: () => handlePoke()
-};
-
-// Main command processor - do I need this? there's a command switch further down... not sure which is working
-function processCommand(input) {
-  const cmd = input.trim().toLowerCase();
-  if (commands[cmd]) {
-    commands[cmd]();
-  } else {
-    appendMessage("You can't do that right now.");
-  }
-}*/
 
 // Game state
 let rooms = {};
@@ -347,7 +330,7 @@ async function loadRooms() {
 function describeRoom(showIntro = true) {
   const room = rooms[currentRoom];
   if (!room) {
-    print("You're lost in the void. (Room not found!)");
+    print("You're lost in the void. (Room not found!)\n");
     return;
   }
 
@@ -359,7 +342,7 @@ function describeRoom(showIntro = true) {
   if (exits.length > 0) {
     print("Exits: " + exits.join(", "));
   } else {
-    print("There are no visible exits.");
+    print("There are no visible exits.\n");
   }
   br();
 }
@@ -368,12 +351,12 @@ function describeRoom(showIntro = true) {
 function goDirection(dir) {
   const room = rooms[currentRoom];
   if (!room) {
-    print("Error: currentRoom not found!");
+    print("Error: currentRoom not found!\n");
     return;
   }
 
   if (!room.exits || !room.exits[dir]) {
-    print(`You can't go ${dir} from here.`);
+    print("You can't go ${dir} from here.\n");
     return;
   }
 
@@ -382,17 +365,18 @@ function goDirection(dir) {
   const nextRoom = rooms[nextRoomId];
 
   if (!nextRoom) {
-    print(`That direction doesn't seem to go anywhere.`);
+    print("That direction doesn't seem to go anywhere.\n");
     return;
   }
 
-  // ✅ Update both trackers
+  // Update both trackers
   currentRoom = nextRoomId;
   player.location = nextRoomId.toLowerCase();
 
-  // ✅ Print the new room description
-  print(`You move ${dir} into the ${nextRoom.id}.`);
+  // Print the new room description
+  print("You move ${dir} into the ${nextRoom.id}.");
   print(nextRoom.description);
+  print("\n");
 }
 
 /*/ Parse and execute commands
@@ -519,14 +503,16 @@ function handleCommand(input) {
   if (cmd.startsWith("go ")) {
     const dir = cmd.split(" ")[1];
     goDirection(dir);
+  } elseif (cmd.startsWith("look ")) {
+    describeRoom(false);
   } else if (cmd === "sit") {
-    sit();
+    handleSit();
   } else if (cmd === "jump") {
-    jump();
+    handleJump();
   } else if (cmd === "examine") {
-    examine();
+    handleExamine();
   } else if (cmd === "poke" || cmd === "poke stuff") {
-    pokeStuff();
+    handlePoke();
   } else if (cmd.startsWith("build")) {
     const parts = cmd.split(" ");
     build(parts[1]);
