@@ -494,7 +494,7 @@ function goDirection(dir) {
   print("\n");
 }
 
-/*/ Parse and execute commands
+/*/ old command switch - may return to this one if new handler won't play nice
 function executeCommand(input) {
   const raw = input.trim().toLowerCase();
   if (!raw) return;
@@ -613,12 +613,16 @@ function executeCommand(input) {
 
 //new command handler
 function handleCommand(cmdInput) {
-  cmd = cmdInput.trim().toLowerCase();
+  const cmd = cmdInput.trim().toLowerCase(); // Normalize input: remove whitespace and lowercase
 
   if (cmd.startsWith("go ")) {
-    const dir = cmd.split(" ")[1];
-    goDirection(dir);
-  } elseif (cmd.startsWith("look ")) {
+    const dir = cmd.substring(3).trim(); // Extract direction, removing "go " prefix and any extra whitespace
+    if (dir) { // Check if a direction was actually provided
+      goDirection(dir);
+    } else {
+      print("Go where?"); // Provide feedback if no direction is given
+    }
+  } else if (cmd === "look around") {
     describeRoom(false);
   } else if (cmd === "sit") {
     handleSit();
@@ -628,9 +632,13 @@ function handleCommand(cmdInput) {
     handleExamine();
   } else if (cmd === "poke" || cmd === "poke stuff") {
     handlePoke();
-  } else if (cmd.startsWith("build")) {
-    const parts = cmd.split(" ");
-    build(parts[1]);
+  } else if (cmd.startsWith("build ")) { // Added space to ensure a build target exists
+    const target = cmd.substring(6).trim(); // Extract build target, removing "build " prefix and extra whitespace
+    if (target) { // Check if a build target was actually provided
+      build(target);
+    } else {
+      print("Build what?"); // Provide feedback if no target is given
+    }
   } else if (cmd === "use lever") {
     useLever();
   } else if (cmd === "move shelf" || cmd === "move shelves") {
@@ -638,11 +646,19 @@ function handleCommand(cmdInput) {
   } else if (cmd === "look" || cmd === "search") {
     lookForItem();
   } else if (cmd.startsWith("take ")) {
-    const item = cmd.slice(5);
-    takeItem(item);
+    const item = cmd.substring(5).trim(); // Extract item, removing "take " prefix and extra whitespace
+    if (item) { // Check if an item was actually provided
+      takeItem(item);
+    } else {
+      print("Take what?"); // Provide feedback if no item is given
+    }
   } else if (cmd.startsWith("drop ")) {
-    const item = cmd.slice(5);
-    dropItem(item);
+    const item = cmd.substring(5).trim(); // Extract item, removing "drop " prefix and extra whitespace
+    if (item) { // Check if an item was actually provided
+      dropItem(item);
+    } else {
+      print("Drop what?"); // Provide feedback if no item is given
+    }
   } else if (cmd === "inventory" || cmd === "check bag") {
     showInventory();
   } else {
