@@ -167,6 +167,67 @@ function handlePoke() {
   }
 }
 
+// obtainable items (TEMP - will put in a json file eventually)
+const items = {
+  lever: {
+    id: "lever",
+    name: "Metal Lever",
+    description: "A sturdy lever that probably belongs to some machinery.",
+    location: "workshop",
+    pickupable: true,
+    usable: true,
+  },
+  dogToy: {
+    id: "dogToy",
+    name: "Squeaky Dog Toy",
+    description: "A slightly chewed dog toy. It might make a certain puppy very happy.",
+    location: "gift shop",
+    pickupable: true,
+    usable: false,
+  },
+  snowglobe: {
+    id: "snowglobe",
+    name: "Snowglobe",
+    description: "A small and intricate snowglobe. The cottage inside reminds you of home, somehow.",
+    location: "gift shop",
+    pickupable: true,
+    usable: false,
+  },
+  smallKey: {
+    id: "smallKey",
+    name: "Small Key",
+    description: "A tiny tarnished key. There's a faint label: 'White Room - Exit'.",
+    location: "hidden store",
+    pickupable: true,
+    usable: true,
+  },
+  brassKey: {
+    id: "brassKey",
+    name: "Brass Key",
+    description: "A heavy brass key. There's a tag on it that reads: 'Garden.'",
+    location: "secret lab",
+    pickupable: true,
+    usable: true,
+  },
+  ironKey: {
+    id: "ironKey",
+    name: "Iron Key",
+    description: "A plain iron key. A label attached says: 'Stockroom'",
+    location: "garden",
+    pickupable: true,
+    usable: true,
+  },
+  teleGem: {
+    id: "teleGem",
+    name: "Green Gem",
+    description: "It glows faintly with a mysterious energy. Might fit somewhere important.",
+    location: "secret room",
+    pickupable: true,
+    usable: true,
+  }
+};
+
+// build items in the workshop
 function build(item) {
   if (player.location !== "workshop") {
     print("You can’t build anything here.");
@@ -215,15 +276,16 @@ function build(item) {
   }
 }
 
+// use the lever in the observatory
 function useLever() {
   if (player.location !== "observatory") {
     print("There’s nowhere to use a lever here.");
     return;
   }
 
-  if (player.hasLever && !player.leverPlaced) {
+  if (inventory.includes("lever") && !player.leverPlaced) {
     print("You put the lever back in the mechanism, hearing a satisfying click as it finds its place.");
-    player.hasLever = false;
+    inventory = inventory.filter(i => i !== "lever");
     player.leverPlaced = true;
   } else if (player.leverPlaced && !player.discoveredLab) {
     print("You pull the newly placed lever. Clicking and grinding noises travel through the walls — a hidden panel swings open in the southwest corner.");
@@ -268,6 +330,57 @@ function moveShelf() {
   store.exits["east"] = "hidden store";
 }
 
+// player inventory functions
+// check items in current room 
+function lookForItem() {
+  const foundItems = Object.values(items).filter(i => i.location === player.location);
+
+  if (foundItems.length === 0) {
+    print("You don’t see anything useful here.");
+  } else {
+    print("You notice:");
+    foundItems.forEach(i => print(` - ${i.name}: ${i.description}`));
+  }
+}
+
+// player takes item
+function takeItem(name) {
+  const found = Object.values(items).find(
+    i => i.location === player.location && i.name.toLowerCase() === name.toLowerCase()
+  );
+
+  if (!found) {
+    print("You don’t see that here.");
+    return;
+  }
+
+  if (!found.pickupable) {
+    print("You can’t take that.");
+    return;
+  }
+
+  inventory.push(found.id);
+  found.location = "inventory";
+  print(`You take the ${found.name}.`);
+}
+
+// player drops item
+function dropItem(name) {
+  const index = inventory.findIndex(
+    id => items[id].name.toLowerCase() === name.toLowerCase()
+  );
+
+  if (index === -1) {
+    print("You don’t have that.");
+    return;
+  }
+
+  const item = items[inventory[index]];
+  item.location = player.location;
+  inventory.splice(index, 1);
+  print(`You drop the ${item.name}.`);
+}
+
 // Game state
 let rooms = {};
 let currentRoom = null;
@@ -309,6 +422,8 @@ function br() {
   div.innerHTML = "&nbsp;";
   output.appendChild(div);
 }
+
+
 
 // Load rooms JSON
 async function loadRooms() {
@@ -497,8 +612,8 @@ function executeCommand(input) {
 }*/
 
 //new command handler
-function handleCommand(input) {
-  cmd = input.trim().toLowerCase();
+function handleCommand(cmdInput) {
+  cmd = cmdInput.trim().toLowerCase();
 
   if (cmd.startsWith("go ")) {
     const dir = cmd.split(" ")[1];
@@ -520,6 +635,16 @@ function handleCommand(input) {
     useLever();
   } else if (cmd === "move shelf" || cmd === "move shelves") {
     moveShelf();
+  } else if (cmd === "look" || cmd === "search") {
+    lookForItem();
+  } else if (cmd.startsWith("take ")) {
+    const item = cmd.slice(5);
+    takeItem(item);
+  } else if (cmd.startsWith("drop ")) {
+    const item = cmd.slice(5);
+    dropItem(item);
+  } else if (cmd === "inventory" || cmd === "check bag") {
+    showInventory();
   } else {
     print("You can't do that.");
   }
