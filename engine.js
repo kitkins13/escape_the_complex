@@ -53,21 +53,27 @@ function handleJump() {
   const loc = player.location;
 
   if (loc === "white room") {
-    appendMessage("You jump as high as you can, and spot a button near the ceiling. You press it quickly, and a hidden door opens in the east wall.");
-    player.wrExitOpen = true;
+    if (!player.wrExitOpen) {
+      appendMessage("You jump as high as you can, and spot a button near the ceiling. You press it quickly, and a hidden door opens in the east wall.\n");
+      const wr = rooms["white room"];
+      wr.exits["east"] = "fossil exhibit";
+      player.wrExitOpen = true;
+    } else {
+      appendMessage("You jump again, but nothing else happens.\n")
+    }
   } else if (loc === "hidden store") {
-    appendMessage("As you jump, you spot a tiny key on one of the high shelves. You jump up again and grab it.\nThere's a scratched up tag attached to it with the words 'white room - exit' written on.");
+    appendMessage("As you jump, you spot a tiny key on one of the high shelves. You jump up again and grab it.\nThere's a scratched up tag attached to it with the words 'white room - exit' written on.\n");
     player.hasSmallKey = true;
   } else if (loc === "cleaners' store" || loc === "secret lab") {
-    appendMessage("You can't jump here, the ceiling is too low.");
+    appendMessage("You can't jump here, the ceiling is too low.\n");
   } else if (loc === "fossil exhibit" && !player.note1Found) {
     appendMessage("You spot a note stuck to the triceratops skull. You carefully reach up and take it.");
     player.note1Found = true;
   } else if (loc === "garden" && !player.note4Found) {
-    appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.");
+    appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.\n");
     player.note4Found = true;
   } else {
-    appendMessage("You jump, but nothing unusual happens.");
+    appendMessage("You jump, but nothing unusual happens.\n");
   }
 }
 
@@ -179,11 +185,11 @@ const items = {
   },
   dogToy: {
     id: "dogToy",
-    name: "Squeaky Dog Toy",
-    description: "A slightly chewed dog toy. It might make a certain puppy very happy.",
+    name: "Dog Toy",
+    description: "A brightly coloured squeaky dog toy. If there's a dog around here, this might come in handy.",
     location: "gift shop",
     pickupable: true,
-    usable: false,
+    usable: true,
   },
   snowglobe: {
     id: "snowglobe",
@@ -221,7 +227,7 @@ const items = {
     id: "teleGem",
     name: "Green Gem",
     description: "It glows faintly with a mysterious energy. Might fit somewhere important.",
-    location: "secret room",
+    location: "bathroom",
     pickupable: true,
     usable: true,
   }
@@ -318,7 +324,7 @@ function moveShelf() {
   }
 
   if (!player.hasIronKey) {
-    print("There's no reason to move those yet.\n");
+    print("There's no reason to move those.\n");
     return;
   }
 
@@ -378,7 +384,16 @@ function dropItem(name) {
   const item = items[inventory[index]];
   item.location = player.location;
   inventory.splice(index, 1);
-  print(`You drop the ${item.name}.`);
+  print(`You leave the ${item.name} behind.`);
+}
+
+// show player inventory
+function showInventory() {
+  if (inventory.length === 0) {
+        print("You’re not carrying anything.");
+      } else {
+        print("You’re carrying: " + inventory.join(", "));
+      }
 }
 
 // Game state
@@ -471,7 +486,7 @@ function goDirection(dir) {
   }
 
   if (!room.exits || !room.exits[dir]) {
-    print("You can't go ${dir} from here.\n");
+    print(`You can't go ${dir} from here.\n`);
     return;
   }
 
@@ -489,7 +504,7 @@ function goDirection(dir) {
   player.location = nextRoomId.toLowerCase();
 
   // Print the new room description
-  print("You move ${dir} into the ${nextRoom.id}.");
+  print(`You move ${dir} into the ${nextRoom.id}.\n`);
   print(nextRoom.description);
   print("\n");
 }

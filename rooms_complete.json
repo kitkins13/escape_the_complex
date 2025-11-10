@@ -4,8 +4,7 @@
     "intro": "You find yourself in a small, empty white room.",
     "description": "The room is quite small, and empty aside from a single wooden bench fixed in the centre. \nThe bench looks old, weathered and rickety, contrasting oddly with the blank sterility of the rest of the room. \nYou're not sure it would take your full weight.\nThe ceiling is pretty high, and there are some carvings around the top of the walls. \nYou wouldn't mind getting a closer look at them. Maybe you could jump up there?\nThere is no exit that you can see.",
     "exits": {
-      "north": "glass corridor",
-      "east": "fossil exhibit"
+      
     }
   },
   {
@@ -15,8 +14,7 @@
     "exits": {
       "west": "white room",
       "east": "gift shop",
-      "north": "red corridor",
-      "south": "secret room"
+      "north": "red corridor"
     }
   },
   {
@@ -42,8 +40,7 @@
     "intro": "It's a small cupboard. Looks like the cleaning stores are kept here.",
     "description": "It's just a cleaning cupboard. A few brooms lean against one wall, and some spray bottles are lined up on the shelves. \nThere's a smattering of rust across the shelf lining the east wall.\nThe west door leads back to the red corridor.",
     "exits": {
-      "west": "red corridor",
-      "east": "hidden store"
+      "west": "red corridor"
     }
   },
   {
@@ -51,7 +48,6 @@
     "intro": "You find yourself in a brightly lit art gallery. The paintings seem to be staring at you.",
     "description": "It's an elaborate art gallery, full of paintings and sculptures. \nNone of them are ones you could name, yet there's something hauntingly familiar about them. \nThe eyes of the portraits seem to be watching you.\nThere's a door to the east, and another door to the west. The south door leads back to the red corridor.",
     "exits": {
-      "north": "secret lab",
       "south": "red corridor",
       "east": "blue corridor",
       "west": "workshop"
@@ -83,8 +79,7 @@
       "south": "bathroom",
       "south east": "garden",
       "north east": "cafe",
-      "north": "observatory",
-      "north west": "secret lab"
+      "north": "observatory"
     }
   },
   {
@@ -124,7 +119,7 @@
   {
     "id": "secret lab",
     "intro": "You go through the secret door. It looks like someone hid a very fancy science lab here.",
-    "description": "You would never have suspected there was a high-tech science lab hidden behind that wall. \nThere's all kinds of weird, sciency stuff in here, and you have no idea what any of it does.\nThe north door leads back to the observatory. \nThere's a door to the east that goes to the blue corridor, and a door to the south that leads to the art gallery.",
+    "description": "You would never have suspected there was a high-tech science lab hidden behind that wall. \nThere's all kinds of weird, sciency stuff in here, and you have no idea what any of it does.\nThe north door leads back to the observatory. \nThere's a door to the east that goes to the blue corridor, and a door to the south that leads to the art gallery. Both only seem to open from this side.",
     "exits": {
       "north": "observatory",
       "east": "blue corridor",
@@ -142,7 +137,7 @@
   {
     "id": "glass corridor",
     "intro": "You go through the newly-revealed door, into a sparkling glass corridor.",
-    "description": "The light sparkles through the glass walls, shining bright colours everywhere. \nYou feel as if you're caught inside a prism. \nThere's a door on the west wall, which has a huge sign over it reading 'EXIT'.\nThe door to the south leads back to the white room you first woke up in.",
+    "description": "The light sparkles through the glass walls, shining bright colours everywhere. \nYou feel as if you're caught inside a prism. \nThere's a door on the west wall, which has a huge sign over it reading 'EXIT'.\nThe door to the south leads back to the white room you first woke up in.\n",
     "exits": {
       "south": "white room",
       "west": "exit"
@@ -151,9 +146,15 @@
   {
     "id": "secret room",
     "intro": "The secret room is tiny, with only a few thin pedestals arranged in a circle.\n",
-    "description": "The room is quite small, with a high ceiling. Six narrow pedestals ring one wider stand in the centre, all but one with a sparkling coloured gem on top. Looking at the colours of the rest, you guess the empty pedestal is supposed to hold a green gem.",
+    "description": "The room is quite small, with a high ceiling. Six narrow pedestals ring one wider stand in the centre, all but one with a sparkling coloured gem on top.\nLooking at the colours of the rest, you guess the empty pedestal is supposed to hold a green gem.",
     "exits": {
-      "north": "fossil exhibit"
+      "north": "fossil exhibit",
+      "teleport": "exit"
     }
+  },
+  {
+    "id": "exit",
+    "intro": "You made it out!\n",
+    "description": "The sunlight dazzles you as you stand in the fresh air outside. "
   }
 ]
