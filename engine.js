@@ -133,6 +133,14 @@ function handleExamine() {
   else if (loc === "workshop") {
     appendMessage("Several design sketches are strewn across the workbench. Most are beyond you, but a few look interesting: a simple birdhouse, a tall bookshelf, and a handcart. You could probably make those, looking at the careful detail put into the drawings.");
   }
+  
+  else if (loc === "cleaners' store") {
+    appendMessage("You take a closer look at those shelves, intrigued by the scattered, flaky rust. You can just make out a thin crack in the wall behind them, and a rusted up keyhole mostly hidden by the edge of one shelf.");
+  }
+  
+  else if (loc === "secret lab") {
+    appendMessage("There's a lot of scientific equipment here, both familiar and unfamiliar. Beakers of strange fluids are lined up along one side of the bench. Some are emitting steam, despite being nowhere near a heat source. Probably best to leave them alone.");
+  }
 
   else {
     appendMessage("There's nothing interesting enough to examine here.\n");
@@ -202,7 +210,7 @@ const items = {
   smallKey: {
     id: "smallKey",
     name: "Small Key",
-    description: "A tiny tarnished key. There's a faint label: 'White Room - Exit'.",
+    description: "A tiny tarnished key. There's a faded, dusty label: 'White Room - Exit'.",
     location: "hidden store",
     pickupable: true,
     usable: true,
@@ -210,7 +218,7 @@ const items = {
   brassKey: {
     id: "brassKey",
     name: "Brass Key",
-    description: "A heavy brass key. There's a tag on it that reads: 'Garden.'",
+    description: "A heavy brass key. There's a tag on it that reads: 'Garden'.",
     location: "secret lab",
     pickupable: true,
     usable: true,
@@ -218,8 +226,16 @@ const items = {
   ironKey: {
     id: "ironKey",
     name: "Iron Key",
-    description: "A plain iron key. A label attached says: 'Stockroom'",
+    description: "A plain iron key. A label attached says: 'Stockroom'.",
     location: "garden",
+    pickupable: true,
+    usable: true,
+  },
+  firstAidKit: {
+    id: "firstAidKit",
+    name: "First Aid Kit",
+    description: "A basic first aid box, handy for dealing with minor injuries.",
+    location: "cafe",
     pickupable: true,
     usable: true,
   },
@@ -392,7 +408,7 @@ function showInventory() {
   if (inventory.length === 0) {
         print("You’re not carrying anything.");
       } else {
-        print("You’re carrying: " + inventory.join(", "));
+        print("You’re carrying: " + inventory.forEach(i => print(` - ${i.name}`));
       }
 }
 
@@ -505,7 +521,7 @@ function goDirection(dir) {
 
   // Print the new room description
   print(`You move ${dir} into the ${nextRoom.id}.\n`);
-  print(nextRoom.description);
+  describeRoom(false);
   print("\n");
 }
 
@@ -658,7 +674,7 @@ function handleCommand(cmdInput) {
     useLever();
   } else if (cmd === "move shelf" || cmd === "move shelves") {
     moveShelf();
-  } else if (cmd === "look" || cmd === "search") {
+  } else if (cmd === "search") {
     lookForItem();
   } else if (cmd.startsWith("take ")) {
     const item = cmd.substring(5).trim(); // Extract item, removing "take " prefix and extra whitespace

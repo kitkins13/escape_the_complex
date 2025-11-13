@@ -4,14 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Escape the Complex — Prototype</title>
-  <!-- Link the stylesheet (I'll provide style.css next) -->
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!--
-    Main container: retro terminal look planned.
-    Place rooms_complete.json in the same folder; engine.js will load it.
-  -->
+
   <main class="container" role="main">
     <header class="header">
       <h1>Escape the Complex</h1>
@@ -42,18 +38,20 @@
           <input id="cmd" class="cmdInput" placeholder="Type a command (e.g. look, go north, take key)" autocomplete="off" />
           <button id="send" class="btn">Send</button>
           <button id="help" class="btn secondary">Help</button>
+          <!--button id="inv" class="btn secondary">Inventory</button-->
         </div>
       </div>
 
-      <!-- Optional help panel -->
+      <!-- game help panel -->
       <aside id="helpPanel" class="panel hidden" aria-hidden="true">
         <h2>Commands (prototype)</h2>
         <ul>
-          <li><code>look</code> — reprints the current room description</li>
+          <li><code>look around</code> — reprints the current room description</li>
           <li><code>go &lt;direction&gt;</code> — move (north, south, east, west, north east ...)</li>
+          <li><code>inventory</code> — show inventory</li>
+          <li><code>search</code> — search current room for items</li>
           <li><code>take &lt;item&gt;</code> — pick up an item</li>
           <li><code>leave &lt;item&gt;</code> — drop an item</li>
-          <li><code>inventory</code> — show inventory</li>
           <li><code>use &lt;item&gt;</code> — attempt to use an item</li>
           <li><code>give &lt;item&gt; to &lt;npc&gt;</code> — give an item</li>
           <li><code>talk to &lt;npc&gt;</code> — talk to caretaker / barista / scientist / puppy</li>
@@ -66,7 +64,7 @@
     <footer class="footer">Prototype — gameplay logic will be in <code>engine.js</code>.</footer>
   </main>
 
-  <!-- engine.js will power the game (I'll provide it next). -->
+  <!-- link engine.js to run the game -->
   <script src="engine.js" defer></script>
 </body>
 </html>
