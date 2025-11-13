@@ -406,10 +406,21 @@ function dropItem(name) {
 // show player inventory
 function showInventory() {
   if (inventory.length === 0) {
-        print("You’re not carrying anything.");
+    print("You\u2019re not carrying anything.");
+  } else {
+    // Print the header then list each carried item on its own line.
+    print("You\u2019re carrying:");
+    inventory.forEach(id => {
+      // inventory stores item ids — look up the item name in the items map
+      const it = items[id];
+      if (it) {
+        print(` - ${it.name}`);
       } else {
-        print("You’re carrying: " + inventory.forEach(i => print(` - ${i.name}`));
+        // fallback if inventory contains raw names or unknown ids
+        print(` - ${id}`);
       }
+    });
+  }
 }
 
 // Game state
