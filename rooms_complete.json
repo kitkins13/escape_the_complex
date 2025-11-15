@@ -2,7 +2,7 @@
   {
     "id": "white room",
     "intro": "You find yourself in a small, empty white room.",
-    "description": "The room is quite small, and empty aside from a single wooden bench fixed in the centre. \nThe bench looks old, weathered and rickety, contrasting oddly with the blank sterility of the rest of the room. \nYou're not sure it would take your full weight.\nThe ceiling is pretty high, and there are some carvings around the top of the walls. \nYou wouldn't mind getting a closer look at them. Maybe you could jump up there?\nThere is no exit that you can see.",
+    "description": "The room is quite small, and empty aside from a single wooden bench fixed in the centre. \nThe bench looks old, weathered and rickety, contrasting oddly with the blank sterility of the rest of the room. \nYou're not sure it would take your full weight.\nThe ceiling is pretty high, and there are some carvings around the top of the walls. \nYou wouldn't mind getting a closer look at them. Maybe you could jump up there?",
     "exits": {
       
     }
@@ -10,7 +10,7 @@
   {
     "id": "fossil exhibit",
     "intro": "You find yourself in a cavernous room, filled with ancient fossils.",
-    "description": "It's a massive room, filled with all kinds of interesting fossils and fascinating displays. \nYou could wander here for hours, but first you'd like to find a way out.\nThere's a door to the east, and a door to the north. The west door leads back to the white room.\nThere are several piles of books stacked in a corner, along with scattered bits of paper. \nIt looks like someone was busy studying the fossils, but they're not here right now.",
+    "description": "It's a massive room, filled with all kinds of interesting fossils and fascinating displays. \nYou could wander here for hours, but first you'd like to find a way out.\nThere's a door to the east, and a door to the north. The west door leads back to the white room.\nThere are several piles of books stacked in a corner, along with scattered bits of paper. \nThere's someone sitting in the corner, books and papers piled on the floor around them. It looks like they're studying the fossils.",
     "exits": {
       "west": "white room",
       "east": "gift shop",
@@ -93,7 +93,7 @@
   {
     "id": "cafe",
     "intro": "You enter a cozy cafe. It looks as if nobody has been here in a while.",
-    "description": "This would probably be a cozy, bustling little cafe if it didn't feel so abandoned. \nThe tables and chairs are highly polished, as if expecting customers any minute, but the display counter is empty.\nThere are some canned drinks and pre-packaged snacks left on a shelf behind the counter, and a small first aid box on the wall.\nThe door to the west leads back to the blue corridor. \nGrimy windows and a glass door line the south wall, and you can just about see a garden through them.",
+    "description": "This would probably be a cozy, bustling little cafe if it didn't feel so abandoned. \nThe tables and chairs are highly polished, as if expecting customers any minute, but the only one here is a barista.\nThere are some canned drinks and pre-packaged snacks left on a shelf behind the counter, and a small first aid box on the wall.\nThe door to the west leads back to the blue corridor. \nGrimy windows and a glass door line the south wall, and you can just about see a garden through them.",
     "exits": {
       "west": "blue corridor",
       "south": "garden"
@@ -155,6 +155,6 @@
   {
     "id": "exit",
     "intro": "You made it out!\n",
-    "description": "The sunlight dazzles you as you stand in the fresh air outside. "
+    "description": "The sunlight dazzles you as you stand in the fresh air outside. Congratulations on Escaping the Complex!"
   }
 ]

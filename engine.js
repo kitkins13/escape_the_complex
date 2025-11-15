@@ -189,31 +189,27 @@ function handlePoke() {
 // NPC OBJECTS & TALK SYSTEM
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// NPC objects and relevant flags
+// NPC objects
 const npcs = {
   caretaker: {
     name: "Caretaker",
     location: "blue corridor",
     met: false,
-    helped: false
   },
   barista: {
     name: "Barista",
     location: "cafe",
     met: false,
-    helped: false
   },
   scientist: {
     name: "Scientist",
     location: "fossil exhibit",
     met: false,
-    helped: false
   },
   puppy: {
     name: "Digger",
     location: "yard",
     met: false,
-    helped: false
   }
 };
 
@@ -246,7 +242,7 @@ function talkTo(npcName) {
 
   if (npcName === "scientist") {
     if (flags.givenSnowglobe){
-      print("The scientist says: 'Hello again. Thank you for the snowglobe, by the way.'")
+      print("The scientist says: 'Hello again. Did you find a use for that gem at all?'")
     } else {
       print("The scientist says: 'Fascinating place, isn't it? So many mysteries.'");
     }
@@ -254,7 +250,13 @@ function talkTo(npcName) {
   }
 }
 
+// game flags
 const flags = {
+  carryingToolbox = false,
+  cartBuilt = false,
+  usingCart = false,
+  carryingBookshelf = false,
+  carryingBirdhouse = false,
   givenToolbox: false,
   givenFlowers: false,
   givenSnowglobe : false,
@@ -377,15 +379,15 @@ function moveShelf() {
 const items = {
   lever: {
     id: "lever",
-    name: "Metal Lever",
+    name: "metal lever",
     description: "A sturdy lever that probably belongs to some machinery.",
-    location: "workshop",
+    location: "null",
     pickupable: true,
     usable: true,
   },
   keyring: {
     id: "keyring",
-    name: "Keyring",
+    name: "keyring",
     description: "A plain leather keyring.",
     location: "gift shop",
     pickupable: true,
@@ -393,12 +395,12 @@ const items = {
   },
   dogToy: {
     id: "dogToy",
-    name: "Dog Toy",
+    name: "dog toy",
     description: "A brightly coloured squeaky dog toy.",
     location: "gift shop",
     pickupable: true,
     usable: false,
-    giveableTo: "Digger",
+    giveableTo: "puppy",
     onGive: () => {
       print("The puppy barks excitedly and chews on the toy for a moment. Looks like you gained a new friend!");
       flags.befriendedPuppy = true;
@@ -406,20 +408,21 @@ const items = {
   },
   snowglobe: {
     id: "snowglobe",
-    name: "Snowglobe",
+    name: "snowglobe",
     description: "A small and intricate snowglobe. The cottage inside reminds you of home, somehow.",
     location: "gift shop",
     pickupable: true,
     usable: false,
-    giveableTo: "Scientist",
+    giveableTo: "scientist",
     onGive: () => {
-      print("The scientist says: 'Thank you, I was looking for one of these.'");
+      print("The scientist says: 'Thank you, I was looking for one of these. Here, I've been trying to work out where this goes, but you might have better luck.'");
+      inventory.push("teleGem")
       flags.givenSnowglobe = true;
     }
   },
   toolbox: {
     id: "toolbox",
-    name: "Toolbox",
+    name: "toolbox",
     description: "A heavy metal toolbox filled with tools. It looks like it belongs to the caretaker.",
     location: "workshop",
     pickupable: true,
@@ -428,11 +431,13 @@ const items = {
     onGive: () => {
       print("The caretaker beams. 'Oh, you found my old toolbox! Thank you!'");
       flags.givenToolbox = true;
+      inventory.push("lever");
+      print("The caretaker hands you a metal lever. 'You'll probably need this sooner or later.'");
     }
   },
   flowers: {
     id: "flowers",
-    name: "Flowers",
+    name: "flowers",
     description: "A bunch of colourful flowers you picked from the garden.",
     location: "inventory",
     pickupable: true,
@@ -446,7 +451,7 @@ const items = {
   },
   smallKey: {
     id: "smallKey",
-    name: "Small Key",
+    name: "small key",
     description: "A tiny tarnished key. There's a faded, dusty label: 'White Room - Exit'.",
     location: "hidden store",
     pickupable: true,
@@ -454,7 +459,7 @@ const items = {
   },
   brassKey: {
     id: "brassKey",
-    name: "Brass Key",
+    name: "brass key",
     description: "A heavy brass key. There's a tag on it that reads: 'Garden'.",
     location: "secret lab",
     pickupable: true,
@@ -462,7 +467,7 @@ const items = {
   },
   ironKey: {
     id: "ironKey",
-    name: "Iron Key",
+    name: "iron key",
     description: "A plain iron key. A label attached says: 'Stockroom'.",
     location: "garden",
     pickupable: true,
@@ -470,7 +475,7 @@ const items = {
   },
   firstAidKit: {
     id: "firstAidKit",
-    name: "First Aid Kit",
+    name: "first aid kit",
     description: "A basic first aid box, handy for dealing with minor injuries.",
     location: "cafe",
     pickupable: true,
@@ -478,9 +483,9 @@ const items = {
   },
   teleGem: {
     id: "teleGem",
-    name: "Green Gem",
+    name: "green gem",
     description: "It glows faintly with a mysterious energy. Might fit somewhere important.",
-    location: "bathroom",
+    location: "null",
     pickupable: true,
     usable: true,
   }
@@ -539,10 +544,18 @@ function dropItem(name) {
 // show player inventory
 function showInventory() {
   if (inventory.length === 0) {
-        print("You’re not carrying anything.");
+    print("You're not carrying anything.");
+  } else {
+    print("You're carrying:");
+    inventory.forEach(id => {
+      const it = items[id];
+      if (it) {
+        print(` - ${it.name}`);
       } else {
-        print("You’re carrying: " + inventory.forEach(i => print(` - ${i.name}`)));
+        print(` - ${id}`);
       }
+    });
+  }
 }
 
 // give items to NPCs
