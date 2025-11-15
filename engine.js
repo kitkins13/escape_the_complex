@@ -541,7 +541,7 @@ function showInventory() {
   if (inventory.length === 0) {
         print("You’re not carrying anything.");
       } else {
-        print("You’re carrying: " + inventory.forEach(i => print(` - ${i.name}`));
+        print("You’re carrying: " + inventory.forEach(i => print(` - ${i.name}`)));
       }
 }
 
