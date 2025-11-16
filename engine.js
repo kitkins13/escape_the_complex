@@ -252,11 +252,11 @@ function talkTo(npcName) {
 
 // game flags
 const flags = {
-  carryingToolbox = false,
-  cartBuilt = false,
-  usingCart = false,
-  carryingBookshelf = false,
-  carryingBirdhouse = false,
+  carryingToolbox: false,
+  cartBuilt: false,
+  usingCart: false,
+  carryingBookshelf: false,
+  carryingBirdhouse: false,
   givenToolbox: false,
   givenFlowers: false,
   givenSnowglobe : false,
