@@ -366,7 +366,7 @@ function moveShelf() {
     return;
   }
 
-  if (!inventory.includes("ironKey") {
+  if (!inventory.includes("ironKey")) {
     print("There's no reason to move those.\n");
     return;
   }
