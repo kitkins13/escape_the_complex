@@ -192,22 +192,22 @@ function handlePoke() {
 // NPC objects
 const npcs = {
   caretaker: {
-    name: "Caretaker",
+    name: "caretaker",
     location: "blue corridor",
     met: false,
   },
   barista: {
-    name: "Barista",
+    name: "barista",
     location: "cafe",
     met: false,
   },
   scientist: {
-    name: "Scientist",
+    name: "scientist",
     location: "fossil exhibit",
     met: false,
   },
   puppy: {
-    name: "Digger",
+    name: "puppy",
     location: "yard",
     met: false,
   }
@@ -247,6 +247,14 @@ function talkTo(npcName) {
       print("The scientist says: 'Fascinating place, isn't it? So many mysteries.'");
     }
     return;
+  }
+
+  if (npcName === "puppy") {
+     if (flags.befriendedPuppy) {
+       print("The puppy barks, happy to see you. 'Woof woof!'")
+     } else {
+        print("The puppy seems a little unsure of you. Maybe if you gave him a dog toy he'd be friendlier?");
+     }
   }
 }
 
@@ -358,7 +366,7 @@ function moveShelf() {
     return;
   }
 
-  if (!player.hasIronKey) {
+  if (!inventory.includes("ironKey") {
     print("There's no reason to move those.\n");
     return;
   }
