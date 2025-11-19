@@ -29,15 +29,15 @@ function appendMessage(text) {
 // FLAVOUR TEXT AND SECRETS
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Sit command
+// sit command
 function handleSit() {
   const loc = player.location;
 
   if (loc === "white room") {
     appendMessage("You sit on the bench gingerly. It creaks, but holds up. The old wood is a bit splintery, though. Probably best not to stay sat for too long.");
-    if (player.hasPuppy) {
-      appendMessage("Digger barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole.");
-      player.smallKeyholeRevealed = true;
+    if (puppy.following) {
+      appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole.");
+      flags.smallKeyholeRevealed = true;
     }
   } else if (loc === "blue corridor") {
     appendMessage("You sit down on one of the cushioned benches. It's nice to take a break after all the exploring you've been doing.");
@@ -52,64 +52,57 @@ function handleSit() {
   }
 }
 
-// Jump command
+// jump command
 function handleJump() {
   const loc = player.location;
 
   if (loc === "white room") {
-    if (!player.wrExitOpen) {
+    if (!flags.wrExitOpen) {
       appendMessage("You jump as high as you can, and spot a button near the ceiling. You press it quickly, and a hidden door opens in the east wall.\n");
       const wr = rooms["white room"];
       wr.exits["east"] = "fossil exhibit";
-      player.wrExitOpen = true;
+      flags.wrExitOpen = true;
     } else {
-      appendMessage("You jump again, but nothing else happens.\n")
+      appendMessage("You jump again, but nothing else happens.\n");
     }
   } else if (loc === "hidden store") {
     appendMessage("As you jump, you spot a tiny key on one of the high shelves. You jump up again and grab it.\nThere's a scratched up tag attached to it with the words 'white room - exit' written on.\n");
     player.hasSmallKey = true;
   } else if (loc === "cleaners' store" || loc === "secret lab") {
     appendMessage("You can't jump here, the ceiling is too low.\n");
-  } else if (loc === "fossil exhibit" && !player.note1Found) {
+  } else if (loc === "fossil exhibit" && !flags.note1Found) {
     appendMessage("You spot a note stuck to the triceratops skull. You carefully reach up and take it.");
-    player.note1Found = true;
-  } else if (loc === "garden" && !player.note4Found) {
+    flags.note1Found = true;
+  } else if (loc === "garden" && !flags.note4Found) {
     appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.\n");
-    player.note4Found = true;
+    flags.note4Found = true;
   } else {
     appendMessage("You jump, but nothing unusual happens.\n");
   }
 }
 
-// Examine command
+// examine command
 function handleExamine() {
   const loc = player.location;
 
-  if (loc === "gift shop") {
-    appendMessage("You look at the things on the shelves.");
-    if (!player.hasKeyring) appendMessage("A plain leather keyring catches your eye.");
-    if (!player.hasDogToy) appendMessage("There's a squeaky dog toy sitting alone in a battered box.");
-    if (!player.hasSnowglobe) appendMessage("A small snowglobe sparkles away on a corner shelf. The little cottage inside reminds you of home, somehow.");
-  }
-
-  else if (loc === "art gallery") {
+  if (loc === "art gallery") {
     appendMessage("You take a good look at some of the paintings. They're even creepier up close.");
-    if (!player.note2Found) {
+    if (!flags.note2Found) {
       appendMessage("One of the surreal landscapes has a note tucked into the frame. You take it gently, trying to avoid disturbing the artwork.");
-      player.note2Found = true;
+      flags.note2Found = true;
     }
   }
 
   else if (loc === "yard") {
     appendMessage("The junk piles seem even more rusty and decrepit the closer you look at them. Who dumped all this mess here, anyway?");
-    if (!player.note3Found) {
+    if (!flags.note3Found) {
       appendMessage("You spot a slightly damp note under a big stone beside one pile. Careful not to nudge the teetering junk, you take the note.");
-      player.note3Found = true;
+      flags.note3Found = true;
     }
   }
 
   else if (loc === "observatory") {
-    if (!player.discoveredLab) {
+    if (!flags.discoveredLab) {
       appendMessage("You go and take a better look at those mechanisms. Most seem to operate the big telescope, but one isn't connected to anything you can see. It's missing its lever... maybe the caretaker knows something about it?");
     }
   }
@@ -130,8 +123,7 @@ function handleExamine() {
   }
 
   else if (loc === "secret room") {
-    appendMessage("On closer inspection, the pedestals each have small gems set into the top. Red, blue, yellow, purple, orange and white. One is empty, with a divot where a gem might be placed.");
-    if (player.hasTeleGem) appendMessage("The green gem you picked up might fit there.");
+    appendMessage("On closer inspection, the pedestals have fine wires inlaid down their length, joining with a circuit-like pattern embedded in the floor.");
   }
 
   else if (loc === "workshop") {
@@ -151,7 +143,7 @@ function handleExamine() {
   }
 }
 
-// Poke command
+// poke command
 function handlePoke() {
   const loc = player.location;
 
@@ -159,6 +151,7 @@ function handlePoke() {
     appendMessage("You poke some of the equipment on the bench, wondering what it does. Something starts reacting violently...");
     appendMessage("The lab explodes in a chain reaction, and you perish in the destruction.");
     player.isDead = true;
+    flags.gameLose = true;
     appendMessage("*** GAME OVER ***");
   }
 
@@ -177,11 +170,23 @@ function handlePoke() {
 
   else if (loc === "workshop") {
     appendMessage("You poke the things on the workbench. One of the half-built whatnots slides across, revealing a scrap of paper underneath it. You take the note.\n");
-    player.note5Found = true;
+    flags.note5Found = true;
   }
 
   else {
     appendMessage("You walk around the room poking things. Nothing interesting happens.");
+  }
+}
+
+// pick flowers for the barista
+function pickFlowers() {
+  const loc = player.location;
+  
+  if (loc === "garden") {
+    appendMessage("You pick some of the prettier flowers you can see. Maybe the barista would appreciate them.");
+    inventory.push("flowers");
+  } else {
+    appendMessage("There are no flowers here. Try the garden.");
   }
 }
 
@@ -210,13 +215,15 @@ const npcs = {
     name: "puppy",
     location: "yard",
     met: false,
+    following: false,
   }
 };
 
+// simple talk system - may expand later
 function talkTo(npcName) {
   const npc = npcs[npcName];
   if (!npc || npc.location !== player.location) {
-    print(`There's no one called ${npcName} here.`);
+    appendMessage(`The ${npcName} isn't here.`);
     return;
   }
 
@@ -224,53 +231,48 @@ function talkTo(npcName) {
 
   if (npcName === "caretaker") {
     if (flags.givenToolbox) {
-      print("The caretaker says: 'Thanks again for returning my toolbox!'");
+      appendMessage("The caretaker says: 'Thanks again for returning my toolbox!'");
     } else {
-      print("The caretaker says: 'If you find my old toolbox anywhere, bring it to me!'");
+      appendMessage("The caretaker says: 'If you find my old toolbox anywhere, bring it to me!'");
     }
     return;
   }
 
   if (npcName === "barista") {
     if (flags.givenFlowers){
-      print("The barista says: 'Thank you again for the flowers, lovie. They're beautiful!'")
+      appendMessage("The barista says: 'Thank you again for the flowers, lovie. They're beautiful!'");
     } else {
-      print("The barista says: 'Hi lovie! Always happy to help!'");
+      appendMessage("The barista says: 'Hi lovie! Always happy to help!'");
     }
     return;
   }
 
   if (npcName === "scientist") {
     if (flags.givenSnowglobe){
-      print("The scientist says: 'Hello again. Did you find a use for that gem at all?'")
+      appendMessage("The scientist says: 'Hello again. Did you find a use for that gem at all?'");
     } else {
-      print("The scientist says: 'Fascinating place, isn't it? So many mysteries.'");
+      appendMessage("The scientist says: 'Fascinating place, isn't it? So many mysteries.'");
     }
     return;
   }
-
+  
   if (npcName === "puppy") {
-     if (flags.befriendedPuppy) {
-       print("The puppy barks, happy to see you. 'Woof woof!'")
-     } else {
-        print("The puppy seems a little unsure of you. Maybe if you gave him a dog toy he'd be friendlier?");
-     }
+    if (flags.befriendedPuppy) {
+      appendMessage("The puppy jumps up and licks your hand. 'Woof woof!'");
+    } else {
+      appendMessage("The puppy seems a little uncertain of you. Maybe if you had a toy he'd be more interested?");
+    }
   }
 }
 
-// game flags
-const flags = {
-  carryingToolbox: false,
-  cartBuilt: false,
-  usingCart: false,
-  carryingBookshelf: false,
-  carryingBirdhouse: false,
-  givenToolbox: false,
-  givenFlowers: false,
-  givenSnowglobe : false,
-  hasCake: false,
-  befriendedPuppy: false,
-};
+// puppy follows player
+function puppyFollow() {
+  const friend = flags.befriendedPuppy;
+  
+  if (friend) {
+    puppy.location = player.location;
+  }
+}
 
 // ~~~~~~~~~~~~~~~~~~~~
 // PUZZLE RELATED LOGIC
@@ -279,12 +281,12 @@ const flags = {
 // build items in the workshop
 function build(item) {
   if (player.location !== "workshop") {
-    print("You can’t build anything here.");
+    appendMessage("You can’t build anything here.");
     return;
   }
 
   if (!item) {
-    print("What do you want to build?");
+    appendMessage("What do you want to build?");
     return;
   }
 
@@ -294,85 +296,85 @@ function build(item) {
     case "cart":
     case "handcart":
       if (!player.builtCart) {
-        print("You build a simple, yet sturdy cart.");
+        appendMessage("You build a simple, yet sturdy cart.");
         player.builtCart = true;
       } else {
-        print("You already built a cart.");
+        appendMessage("You already built a cart.");
       }
       break;
 
     case "birdhouse":
       if (!player.builtBirdhouse) {
-        print("You build a small, standing birdhouse. It might look pretty in a garden.");
+        appendMessage("You build a small, standing birdhouse. It might look pretty in a garden.");
         player.builtBirdhouse = true;
       } else {
-        print("You already built a birdhouse.");
+        appendMessage("You already built a birdhouse.");
       }
       break;
 
     case "shelf":
     case "bookshelf":
       if (!player.builtShelf) {
-        print("You build a tall shelving unit. It would be good for books, or someone could make a display on it.");
+        appendMessage("You build a tall shelving unit. It would be good for books, or someone could make a display on it.");
         player.builtShelf = true;
       } else {
-        print("You already built a shelf.");
+        appendMessage("You already built a shelf.");
       }
       break;
 
     default:
-      print("You don’t see the right equipment to make that.");
+      appendMessage("You don’t see the right equipment to make that.");
   }
 }
 
 // use the lever in the observatory
 function useLever() {
   if (player.location !== "observatory") {
-    print("There’s nowhere to use a lever here.");
+    appendMessage("There’s nowhere to use a lever here.");
     return;
   }
 
-  if (inventory.includes("lever") && !player.leverPlaced) {
-    print("You put the lever back in the mechanism, hearing a satisfying click as it finds its place.");
+  if (inventory.includes("lever") && !flags.leverPlaced) {
+    appendMessage("You put the lever back in the mechanism, hearing a satisfying click as it finds its place.");
     inventory = inventory.filter(i => i !== "lever");
-    player.leverPlaced = true;
-  } else if (player.leverPlaced && !player.discoveredLab) {
-    print("You pull the newly placed lever. Clicking and grinding noises travel through the walls — a hidden panel swings open in the southwest corner.");
-    player.discoveredLab = true;
+    flags.leverPlaced = true;
+  } else if (flags.leverPlaced && !flags.discoveredLab) {
+    appendMessage("You pull the newly placed lever. Clicking and grinding noises travel through the walls — a hidden panel swings open in the southwest corner.");
+    flags.discoveredLab = true;
     // unlocks the secret lab exit
     const obs = rooms["observatory"];
     obs.exits["south west"] = "secret lab";
-  } else if (player.discoveredLab) {
-    print("The lever’s already done its job.");
+  } else if (flags.discoveredLab) {
+    appendMessage("The lever’s already done its job.");
   } else {
-    print("You don’t have a lever to use.");
+    appendMessage("You don’t have a lever to use.");
   }
 }
 
 // player moves the shelves in the cleaners' store
 function moveShelf() {
   if (player.location !== "cleaners' store") {
-    print("There are no shelves here to move.\n");
+    appendMessage("There are no shelves here to move.\n");
     return;
   }
 
-  if (player.shelvesMoved) {
-    print("You already moved the shelves.\n");
+  if (flags.shelvesMoved) {
+    appendMessage("You already moved the shelves.\n");
     return;
   }
 
   if (player.isInjured) {
-    print("You try to push the shelves aside, but your injured arm lets you down. Maybe there’s a first aid kit around somewhere?\n");
+    appendMessage("You try to push the shelves aside, but your injured arm lets you down. Maybe there’s a first aid kit around somewhere?\n");
     return;
   }
 
   if (!inventory.includes("ironKey")) {
-    print("There's no reason to move those.\n");
+    appendMessage("There's no reason to move those.\n");
     return;
   }
 
-  print("You push the shelf aside, revealing a hidden door with an iron keyhole. The key fits perfectly, and you unlock the door.\n");
-  player.shelvesMoved = true;
+  appendMessage("You push the shelf aside, revealing a hidden door with an iron keyhole. The key fits perfectly, and you unlock the door.\n");
+  flags.shelvesMoved = true;
 
   // reveals the hidden store exit
   const store = rooms["cleaners' store"];
@@ -410,8 +412,9 @@ const items = {
     usable: false,
     giveableTo: "puppy",
     onGive: () => {
-      print("The puppy barks excitedly and chews on the toy for a moment. Looks like you gained a new friend!");
+      appendMessage("The puppy barks excitedly and chews on the toy for a moment. Looks like you gained a new friend!");
       flags.befriendedPuppy = true;
+      puppy.following = true;
     }
   },
   snowglobe: {
@@ -423,8 +426,9 @@ const items = {
     usable: false,
     giveableTo: "scientist",
     onGive: () => {
-      print("The scientist says: 'Thank you, I was looking for one of these. Here, I've been trying to work out where this goes, but you might have better luck.'");
-      inventory.push("teleGem")
+      appendMessage("The scientist says: 'Thank you, I was looking for one of these. Here, I've been trying to work out where this goes, but you might have better luck.'\n");
+      inventory.push("teleGem");
+      appendMessage("The scientist hands you a strange green gem. It seems to be glowing.\n");
       flags.givenSnowglobe = true;
     }
   },
@@ -432,30 +436,38 @@ const items = {
     id: "toolbox",
     name: "toolbox",
     description: "A heavy metal toolbox filled with tools. It looks like it belongs to the caretaker.",
-    location: "workshop",
+    location: "yard",
     pickupable: true,
     usable: false,
     giveableTo: "caretaker",
     onGive: () => {
-      print("The caretaker beams. 'Oh, you found my old toolbox! Thank you!'");
+      appendMessage("The caretaker beams. 'Oh, you found my old toolbox! Thank you!'");
       flags.givenToolbox = true;
       inventory.push("lever");
-      print("The caretaker hands you a metal lever. 'You'll probably need this sooner or later.'");
+      appendMessage("The caretaker hands you a metal lever. 'You'll probably need this sooner or later.'");
     }
   },
   flowers: {
     id: "flowers",
     name: "flowers",
     description: "A bunch of colourful flowers you picked from the garden.",
-    location: "inventory",
+    location: "garden",
     pickupable: true,
     usable: false,
     giveableTo: "barista",
     onGive: () => {
-      print("The barista blushes. 'Oh, these are beautiful! Here, have some cake on the house, lovie!'");
+      appendMessage("The barista blushes. 'Oh, these are beautiful! Here, have some cake on the house, lovie!'");
       flags.givenFlowers = true;
       inventory.push("cake");
     }
+  },
+  cake: {
+    id: "cake",
+    name: "cake",
+    description: "A tasty looking slice of cake, neatly wrapped in a to-go box.",
+    location: "null",
+    pickupable: true,
+    usable: false,
   },
   smallKey: {
     id: "smallKey",
@@ -464,6 +476,13 @@ const items = {
     location: "hidden store",
     pickupable: true,
     usable: true,
+    onUse: () => {
+      appendMessage("You carefully fit the small key into the tiny keyhole and turn it. A part of the north wall slides open, revealing an almost blinding light.");
+      flags.exitUnlocked = true;
+      // opens the glass corridor exit
+      const whrm = rooms["white room"];
+      whrm.exits["north"] = "glass corridor";
+    }
   },
   brassKey: {
     id: "brassKey",
@@ -472,6 +491,14 @@ const items = {
     location: "secret lab",
     pickupable: true,
     usable: true,
+    onUse: () => {
+      // opens the garden doors
+      appendMessage("You unlock the door and push it open with a slight creak. Looks like there's a garden through there.");
+      const gard1 = rooms["blue corridor"];
+      gard1.exits["south east"] = "garden";
+      const gard2 = rooms["cafe"];
+      gard2.exits["south"] = "garden";
+    }
   },
   ironKey: {
     id: "ironKey",
@@ -480,6 +507,11 @@ const items = {
     location: "garden",
     pickupable: true,
     usable: true,
+    onUse: () => {
+      // opens the hidden store exit
+      const store = rooms["cleaners' store"];
+      store.exits["east"] = "hidden store";
+    }
   },
   firstAidKit: {
     id: "firstAidKit",
@@ -488,6 +520,14 @@ const items = {
     location: "cafe",
     pickupable: true,
     usable: true,
+    onUse: () => {
+      if (!player.isInjured) {
+        appendMessage("Best not to waste the supplies.");
+      } else {
+        appendMessage("You wash and bandage your arm.");
+        player.isInjured = false;
+      }
+    }
   },
   teleGem: {
     id: "teleGem",
@@ -496,6 +536,13 @@ const items = {
     location: "null",
     pickupable: true,
     usable: true,
+    onUse: () => {
+      appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Press the central crystal to continue.'");
+      // activates teleport and secret ending
+      flags.teleportEnabled = true;
+      const tele = rooms["secret room"];
+      store.exits["teleport"] = "exit";
+    }
   }
 };
 
@@ -504,57 +551,19 @@ function lookForItem() {
   const foundItems = Object.values(items).filter(i => i.location === player.location);
 
   if (foundItems.length === 0) {
-    print("You don’t see anything useful here.");
+    appendMessage("You don’t see anything useful here.");
   } else {
-    print("You notice:");
+    appendMessage("You notice:");
     foundItems.forEach(i => print(` - ${i.name}: ${i.description}`));
   }
-}
-
-// player takes item
-function takeItem(name) {
-  const found = Object.values(items).find(
-    i => i.location === player.location && i.name.toLowerCase() === name.toLowerCase()
-  );
-
-  if (!found) {
-    print("You don’t see that here.");
-    return;
-  }
-
-  if (!found.pickupable) {
-    print("You can’t take that.");
-    return;
-  }
-
-  inventory.push(found.id);
-  found.location = "inventory";
-  print(`You take the ${found.name}.`);
-}
-
-// player drops item
-function dropItem(name) {
-  const index = inventory.findIndex(
-    id => items[id].name.toLowerCase() === name.toLowerCase()
-  );
-
-  if (index === -1) {
-    print("You don’t have that.");
-    return;
-  }
-
-  const item = items[inventory[index]];
-  item.location = player.location;
-  inventory.splice(index, 1);
-  print(`You leave the ${item.name} behind.`);
 }
 
 // show player inventory
 function showInventory() {
   if (inventory.length === 0) {
-    print("You're not carrying anything.");
+    appendMessage("You're not carrying anything.");
   } else {
-    print("You're carrying:");
+    appendMessage("You're carrying:");
     inventory.forEach(id => {
       const it = items[id];
       if (it) {
@@ -566,6 +575,44 @@ function showInventory() {
   }
 }
 
+// player takes item
+function takeItem(name) {
+  const found = Object.values(items).find(
+    i => i.location === player.location && i.name.toLowerCase() === name.toLowerCase()
+  );
+
+  if (!found) {
+    appendMessage("You don’t see that here.");
+    return;
+  }
+
+  if (!found.pickupable) {
+    appendMessage("You can’t take that.");
+    return;
+  }
+
+  inventory.push(found.id);
+  found.location = "inventory";
+  appendMessage(`You take the ${found.name}.`);
+}
+
+// player drops item
+function dropItem(name) {
+  const index = inventory.findIndex(
+    id => items[id].name.toLowerCase() === name.toLowerCase()
+  );
+
+  if (index === -1) {
+    appendMessage("You don’t have that.");
+    return;
+  }
+
+  const item = items[inventory[index]];
+  item.location = player.location;
+  inventory.splice(index, 1);
+  appendMessage(`You leave the ${item.name} behind.`);
+}
+
 // give items to NPCs
 function giveItem(itemName, npcName) {
   const item = Object.values(items).find(
@@ -575,30 +622,55 @@ function giveItem(itemName, npcName) {
   const npc = npcs[npcName];
 
   if (!item) {
-    print(`You don't seem to have a ${itemName}.`);
+    appendMessage(`You don't seem to have a ${itemName}.`);
     return;
   }
   if (!inventory.includes(item.id)) {
-    print(`You're not carrying the ${item.name}.`);
+    appendMessage(`You're not carrying the ${item.name}.`);
     return;
   }
   if (!npc) {
-    print(`The ${npcName} isn't here.`);
+    appendMessage(`The ${npcName} isn't here.`);
     return;
   }
   if (npc.location !== player.location) {
-    print(`${npc.name} isn't here right now.`);
+    appendMessage(`${npc.name} isn't here right now.`);
     return;
   }
   if (item.giveableTo !== npcName) {
-    print(`${npc.name} doesn't seem interested in that.`);
+    appendMessage(`${npc.name} doesn't seem interested in that.`);
     return;
   }
 
   // give success
-  print(`You give the ${item.name} to ${npc.name}.`);
+  appendMessage(`You give the ${item.name} to ${npc.name}.`);
   inventory = inventory.filter(i => i !== item.id);
   if (item.onGive) item.onGive(); // run custom event logic
+}
+
+// use items
+function useItem(itemName) {
+  const item = Object.values(items).find(
+    i => i.name.toLowerCase() === itemName.toLowerCase()
+  );
+  
+  if (!item) {
+    appendMessage(`You don't seem to have a ${itemName}.`);
+    return;
+  }
+  
+  if (!inventory.includes(item.id)) {
+    appendMessage(`You're not carrying a ${item.name}.`);
+    return;
+  }
+  
+  if (!item.usable) {
+    appendMessage("You can't use that.");
+    return;
+  }
+  
+  appendMessage(`You use the ${item.name}.`);
+  if (item.onUse) item.onUse(); // run custom event logic
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -610,23 +682,39 @@ let rooms = {};
 let currentRoom = null;
 let inventory = [];
 
-// player object
-const player = {
-  location: "white room",
-  hasPuppy: false,
+// game flags
+const flags = {
+  cartBuilt: false,
+  usingCart: false,
+  carryingToolbox: false,
+  carryingBookshelf: false,
+  carryingBirdhouse: false,
+  givenToolbox: false,
+  givenFlowers: false,
+  givenSnowglobe : false,
+  befriendedPuppy: false,
+  leverPlaced: false,
+  shelvesMoved: false,
   wrExitOpen: false,
   smallKeyholeRevealed: false,
-  hasSmallKey: false,
   note1Found: false,
   note2Found: false,
   note3Found: false,
   note4Found: false,
   note5Found: false,
-  hasKeyring: false,
-  hasDogToy: false,
-  hasSnowglobe: false,
-  hasTeleGem: false,
   discoveredLab: false,
+  teleportEnabled: false,
+  exitUnlocked: false,
+  gameLose: false,
+  gameWin: false,
+};
+
+// player object
+const player = {
+  location: "white room",
+  builtCart: false,
+  builtShelf: false,
+  builtBirdhouse: false,
   isInjured: false,
   isDead: false,
 };
@@ -656,7 +744,7 @@ async function loadRooms() {
     });
     return true;
   } catch (err) {
-    print("⚠️ Could not load rooms_complete.json");
+    appendMessage("⚠️ Could not load rooms_complete.json");
     console.error(err);
     return false;
   }
@@ -666,19 +754,19 @@ async function loadRooms() {
 function describeRoom(showIntro = true) {
   const room = rooms[currentRoom];
   if (!room) {
-    print("You're lost in the void. (Room not found!)\n");
+    appendMessage("You're lost in the void. (Room not found!)\n");
     return;
   }
 
   br();
-  if (showIntro && room.intro) print(room.intro);
-  if (room.description) print(room.description);
+  if (showIntro && room.intro) appendMessage(room.intro);
+  if (room.description) appendMessage(room.description);
 
   const exits = Object.keys(room.exits || {});
   if (exits.length > 0) {
-    print("Exits: " + exits.join(", "));
+    appendMessage("Exits: " + exits.join(", "));
   } else {
-    print("There are no visible exits.\n");
+    appendMessage("There are no visible exits.\n");
   }
   br();
 }
@@ -687,12 +775,12 @@ function describeRoom(showIntro = true) {
 function goDirection(dir) {
   const room = rooms[currentRoom];
   if (!room) {
-    print("Error: currentRoom not found!\n");
+    appendMessage("Error: currentRoom not found!\n");
     return;
   }
 
   if (!room.exits || !room.exits[dir]) {
-    print(`You can't go ${dir} from here.\n`);
+    appendMessage(`You can't go ${dir} from here.\n`);
     return;
   }
 
@@ -701,7 +789,7 @@ function goDirection(dir) {
   const nextRoom = rooms[nextRoomId];
 
   if (!nextRoom) {
-    print("That direction doesn't seem to go anywhere.\n");
+    appendMessage("That direction doesn't seem to go anywhere.\n");
     return;
   }
 
@@ -710,10 +798,19 @@ function goDirection(dir) {
   player.location = nextRoomId.toLowerCase();
 
   // print the new room description
-  print(`You move ${dir} into the ${nextRoom.id}.\n`);
+  appendMessage(`You move ${dir} into the ${nextRoom.id}.\n`);
   describeRoom(false);
-  print("\n");
+  
+/* incomplete functions - ready to add win/lose logic
+  if (flags.gameWin) { //add win condition logic here
+    
+  }
+  
+  if (flags.gameLose) { //add lose condition logic here
+    
+  }*/
 }
+
 
 // command handler
 function handleCommand(cmdInput) {
@@ -724,7 +821,7 @@ function handleCommand(cmdInput) {
     if (dir) {
       goDirection(dir);
     } else {
-      print("Go where?");
+      appendMessage("Go where?");
     }
   } else if (cmd === "look around") {
     describeRoom(false);
@@ -741,7 +838,7 @@ function handleCommand(cmdInput) {
     if (target) {
       build(target);
     } else {
-      print("Build what?");
+      appendMessage("Build what?");
     }
   } else if (cmd === "use lever") {
     useLever();
@@ -754,14 +851,21 @@ function handleCommand(cmdInput) {
     if (item) {
       takeItem(item);
     } else {
-      print("Take what?");
+      appendMessage("Take what?");
     }
   } else if (cmd.startsWith("drop ")) {
     const item = cmd.substring(5).trim();
     if (item) {
       dropItem(item);
     } else {
-      print("Drop what?");
+      appendMessage("Drop what?");
+    }
+  } else if (cmd.startsWith("use ")) {
+    const item = cmd.substring(4).trim();
+    if (item) {
+      useItem(item);
+    } else {
+      appendMessage("Use what?");
     }
   } else if (cmd.startsWith("give ")){
     const parts = cmd.slice(5).split(" to ");
@@ -769,7 +873,7 @@ function handleCommand(cmdInput) {
       giveItem(parts[0].trim(), parts[1].trim());
       return true;
     }
-    print("Give what to whom?");
+    appendMessage("Give what to whom?");
     return true;
   } else if (cmd.startsWith("talk to ")) {
     talkTo(cmd.slice(8).trim());
@@ -777,7 +881,7 @@ function handleCommand(cmdInput) {
   } else if (cmd === "inventory" || cmd === "check bag") {
     showInventory();
   } else {
-    print("You can't do that.");
+    appendMessage("You can't do that.");
   }
 }
 
@@ -815,13 +919,13 @@ closeHelp.addEventListener("click", () => toggleHelp(false));
 
 // Initialize the game
 async function startGame() {
-  print("Loading Escape the Complex...");
+  appendMessage("Loading Escape the Complex...");
   const ok = await loadRooms();
   if (!ok) return;
   currentRoom = Object.keys(rooms)[0];
-  print("Welcome to Escape the Complex!");
+  appendMessage("Welcome to Escape the Complex!");
   describeRoom(true);
-  print("Type a command or use the compass to move.");
+  appendMessage("Type a command or use the compass to move.");
   br();
   cmdInput.focus();
 }
