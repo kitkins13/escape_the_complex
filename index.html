@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Escape the Complex — Prototype</title>
+  <title>Escape the Complex</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -11,7 +11,7 @@
   <main class="container" role="main">
     <header class="header">
       <h1>Escape the Complex</h1>
-      <div class="subtitle">Browser prototype — retro terminal interface</div>
+      <div class="subtitle">a game by xZnu0us</div>
     </header>
 
     <section id="game" class="game">
@@ -44,15 +44,15 @@
 
       <!-- game help panel -->
       <aside id="helpPanel" class="panel hidden" aria-hidden="true">
-        <h2>Commands (prototype)</h2>
+        <h2>Commands</h2>
         <ul>
           <li><code>look around</code> — reprints the current room description</li>
           <li><code>go &lt;direction&gt;</code> — move (north, south, east, west, north east ...)</li>
+          <li><code>jump</code> — jump, you might find a secret</li>
           <li><code>inventory</code> — show inventory</li>
-          <li><code>search</code> — search current room for items</li>
-          <li><code>take &lt;item&gt;</code> — pick up an item</li>
-          <li><code>leave &lt;item&gt;</code> — drop an item</li>
-          <li><code>use &lt;item&gt;</code> — attempt to use an item</li>
+          <li><code>search</code> — search the current room for items</li>
+          <li><code>examine</code> — examine the current room more closely</li>
+          <li><code>take/leave/use &lt;item&gt;</code> — pick up/drop/use an item</li>
           <li><code>give &lt;item&gt; to &lt;npc&gt;</code> — give an item</li>
           <li><code>talk to &lt;npc&gt;</code> — talk to caretaker / barista / scientist / puppy</li>
           <li><code>build &lt;thing&gt;</code> — build in the workshop (cart, birdhouse, shelf)</li>
@@ -61,7 +61,7 @@
       </aside>
     </section>
 
-    <footer class="footer">Prototype — gameplay logic will be in <code>engine.js</code>.</footer>
+    <footer class="footer">Still under development! .</footer>
   </main>
 
   <!-- link engine.js to run the game -->
