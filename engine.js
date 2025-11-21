@@ -359,18 +359,14 @@ function placeBookshelf() {
 }
 
 // use the lever in the observatory - superseded by general useItem function
-/*function useLever() {
+function pullLever() {
   if (player.location !== "observatory") {
-    appendMessage("There’s nowhere to use a lever here.");
+    appendMessage("There’s no lever here.");
     return;
-  }
-
-  if (inventory.includes("lever") && !flags.leverPlaced) {
-    appendMessage("You put the lever back in the mechanism, hearing a satisfying click as it finds its place.");
-    inventory = inventory.filter(i => i !== "lever");
-    flags.leverPlaced = true;
+  } else if (inventory.includes("lever") && !flags.leverPlaced) {
+    appendMessage("You need to put the lever in the mechanism first.")
   } else if (flags.leverPlaced && !flags.discoveredLab) {
-    appendMessage("You pull the newly placed lever. Clicking and grinding noises travel through the walls — a hidden panel swings open in the southwest corner.");
+    appendMessage("You pull the newly placed lever. Clicking and grinding noises travel through the walls, and a hidden panel swings open in the southwest corner.");
     flags.discoveredLab = true;
     // unlocks the secret lab exit
     const obs = rooms["observatory"];
@@ -380,7 +376,7 @@ function placeBookshelf() {
   } else {
     appendMessage("You don’t have a lever to use.");
   }
-}*/
+}
 
 // player moves the shelves in the cleaners' store
 function moveShelf() {
@@ -420,7 +416,7 @@ function moveShelf() {
 const items = {
   lever: {
     id: "lever",
-    name: "metal lever",
+    name: "lever",
     description: "A sturdy lever that probably belongs to some machinery.",
     location: "null",
     pickupable: true,
@@ -437,13 +433,7 @@ const items = {
         inventory = inventory.filter(i => i !== "lever");
         flags.leverPlaced = true;
       } else if (flags.leverPlaced && !flags.discoveredLab) {
-        appendMessage("You pull the newly placed lever. Clicking and grinding noises travel through the walls — a hidden panel swings open in the southwest corner.");
-        flags.discoveredLab = true;
-    // unlocks the secret lab exit
-        const obs = rooms["observatory"];
-        obs.exits["south west"] = "secret lab";
-      } else if (flags.discoveredLab) {
-        appendMessage("The lever’s already done its job.");
+        appendMessage("You already put the lever where it belongs, time to pull it and see what happens.");
       } else {
         appendMessage("You don’t have a lever to use.");
       }
@@ -999,9 +989,9 @@ function handleCommand(cmdInput) {
     } else {
       appendMessage("Build what?");
     }
-  } /*else if (cmd === "use lever") {
-    useLever(); //replaced by general useItem function
-  }*/ else if (cmd === "move shelf" || cmd === "move shelves") {
+  } else if (cmd === "pull lever") {
+    pullLever();
+  } else if (cmd === "move shelf" || cmd === "move shelves") {
     moveShelf();
   } else if (cmd === "search") {
     lookForItem();
