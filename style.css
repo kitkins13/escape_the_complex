@@ -229,3 +229,21 @@ body::after {
   opacity: 0.15;
   z-index: 999;
 }
+
+/* Media queries */
+@media screen and (min-device-width: 1200px) and (max-device-width: 1600px) 
+  and (-webkit-min-device-pixel-ratio: 1) { 
+  .output {
+    overflow: auto;
+    padding: 0.55rem;
+    background-color: #000;
+    max-height: 350px;
+    margin-bottom: 0.7rem;
+    line-height: 1.5;
+    font-size: 0.9rem;
+  }
+
+  .footer {
+    display: none;
+  }
+}
