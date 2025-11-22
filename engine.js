@@ -34,10 +34,11 @@ function handleSit() {
   const loc = player.location;
 
   if (loc === "white room") {
-    appendMessage("You sit on the bench gingerly. It creaks, but holds up. The old wood is a bit splintery, though. Probably best not to stay sat for too long.");
     if (npcs.puppy.following && !flags.smallKeyholeRevealed) {
       appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
       flags.smallKeyholeRevealed = true;
+    } else {
+      appendMessage("You sit on the bench gingerly. It creaks, but holds up. The old wood is a bit splintery, though. Probably best not to stay sat for too long.");
     }
   } else if (loc === "blue corridor") {
     appendMessage("You sit down on one of the cushioned benches. It's nice to take a break after all the exploring you've been doing.");
@@ -89,6 +90,8 @@ function handleExamine() {
     if (npcs.puppy.following && !flags.smallKeyholeRevealed) {
       appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
       flags.smallKeyholeRevealed = true;
+    } else {
+      appendMessage("There's not much to examine here.");
     }
   } else if (loc === "art gallery") {
     appendMessage("You take a good look at some of the paintings. They're even creepier up close.");
@@ -258,10 +261,12 @@ function talkTo(npcName) {
 // puppy follows player
 function puppyFollow() {
   const follow = npcs.puppy.following;
+  const playerLoc = player.location;
+  const puppyLoc = npcs.puppy.location;
   
   if (follow) {
-    npcs.puppy.location = player.location;
-    appendMessage("The puppy follows along behind you. It's nice to have a friend here.")
+    puppyLoc = player.Loc;
+    appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾")
   }
   
 }
@@ -300,7 +305,7 @@ function build(item) {
       if (!player.builtBirdhouse) {
         appendMessage("You build a small, standing birdhouse. It might look pretty in a garden.");
         player.builtBirdhouse = true;
-        birdhouse["location"] = "workshop";
+        items.birdhouse.location = "workshop";
       } else {
         appendMessage("You already built a birdhouse.");
       }
@@ -311,7 +316,7 @@ function build(item) {
       if (!player.builtShelf) {
         appendMessage("You build a tall shelving unit. It would be good for books, or someone could make a display on it.");
         player.builtShelf = true;
-        bookshelf["location"] = "workshop";
+        items.bookshelf.location = "workshop";
       } else {
         appendMessage("You already built a bookshelf.");
       }
@@ -476,7 +481,6 @@ const items = {
       appendMessage("The puppy barks excitedly and chews on the toy for a moment. Looks like you gained a new friend!");
       flags.befriendedPuppy = true;
       npcs.puppy.following = true;
-      puppyFollow();
     }
   },
   snowglobe: {
@@ -969,7 +973,7 @@ function goDirection(dir) {
   describeRoom(true);
   
   if (npcs.puppy.following && !flags.labExploded && !flags.winGame) {
-    appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾");
+    puppyFollow(true);
   }
 
   
@@ -989,7 +993,6 @@ function goDirection(dir) {
   }
 
 }
-
 
 // command handler
 function handleCommand(cmdInput) {
