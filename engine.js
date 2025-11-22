@@ -35,8 +35,8 @@ function handleSit() {
 
   if (loc === "white room") {
     appendMessage("You sit on the bench gingerly. It creaks, but holds up. The old wood is a bit splintery, though. Probably best not to stay sat for too long.");
-    if (puppy.following) {
-      appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole.");
+    if (puppy.following && !flags.smallKeyholeRevealed) {
+      appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
       flags.smallKeyholeRevealed = true;
     }
   } else if (loc === "blue corridor") {
@@ -84,30 +84,29 @@ function handleJump() {
 // examine command
 function handleExamine() {
   const loc = player.location;
-
-  if (loc === "art gallery") {
+  
+  if (loc === "white room"){
+    if (puppy.following && !flags.smallKeyholeRevealed) {
+      appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
+      flags.smallKeyholeRevealed = true;
+    }
+  } else if (loc === "art gallery") {
     appendMessage("You take a good look at some of the paintings. They're even creepier up close.");
     if (!flags.note2Found) {
       appendMessage("One of the surreal landscapes has a note tucked into the frame. You take it gently, trying to avoid disturbing the artwork.");
       flags.note2Found = true;
     }
-  }
-
-  else if (loc === "yard") {
+  } else if (loc === "yard") {
     appendMessage("The junk piles seem even more rusty and decrepit the closer you look at them. Who dumped all this mess here, anyway?");
     if (!flags.note3Found) {
       appendMessage("You spot a slightly damp note under a big stone beside one pile. Careful not to nudge the teetering junk, you take the note.");
       flags.note3Found = true;
     }
-  }
-
-  else if (loc === "observatory") {
+  } else if (loc === "observatory") {
     if (!flags.discoveredLab) {
       appendMessage("You go and take a better look at those mechanisms. Most seem to operate the big telescope, but one isn't connected to anything you can see. It's missing its lever... maybe the caretaker knows something about it?");
     }
-  }
-
-  else if (loc === "fossil exhibit") {
+  } else if (loc === "fossil exhibit") {
     const fossilFacts = [
       "The word 'fossil' comes from the Latin 'fossilis', meaning 'dug up.'",
       "Most fossils form in sedimentary rock, created by layers of sediment compressing over time.",
@@ -120,25 +119,15 @@ function handleExamine() {
     ];
     const fact = fossilFacts[Math.floor(Math.random() * fossilFacts.length)];
     appendMessage(`A nearby sign reads: ${fact}`);
-  }
-
-  else if (loc === "secret room") {
+  } else if (loc === "secret room") {
     appendMessage("On closer inspection, the pedestals have fine wires inlaid down their length, joining with a circuit-like pattern embedded in the floor.");
-  }
-
-  else if (loc === "workshop") {
+  } else if (loc === "workshop") {
     appendMessage("Several design sketches are strewn across the workbench. Most are beyond you, but a few look interesting: a simple birdhouse, a tall bookshelf, and a handcart. You could probably make those, looking at the careful detail put into the drawings.");
-  }
-  
-  else if (loc === "cleaners' store") {
+  } else if (loc === "cleaners' store") {
     appendMessage("You take a closer look at those shelves, intrigued by the scattered, flaky rust. You can just make out a thin crack in the wall behind them, and a rusted up keyhole mostly hidden by the edge of one shelf.");
-  }
-  
-  else if (loc === "secret lab") {
+  } else if (loc === "secret lab") {
     appendMessage("There's a lot of scientific equipment here, both familiar and unfamiliar. Beakers of strange fluids are lined up along one side of the bench. Some are emitting steam, despite being nowhere near a heat source. Probably best to leave them alone.");
-  }
-
-  else {
+  } else {
     appendMessage("There's nothing interesting enough to examine here.");
   }
 }
@@ -153,6 +142,7 @@ function handlePoke() {
     player.isDead = true;
     flags.gameLose = true;
     appendMessage("*** GAME OVER ***");
+    return;
   }
 
   else if (loc === "yard") {
@@ -271,6 +261,7 @@ function puppyFollow() {
   
   if (follow) {
     puppy.location = player.location;
+    appendMessage("The puppy follows along behind you. It's nice to have a friend here.")
   }
   
 }
@@ -309,7 +300,7 @@ function build(item) {
       if (!player.builtBirdhouse) {
         appendMessage("You build a small, standing birdhouse. It might look pretty in a garden.");
         player.builtBirdhouse = true;
-        birdhouse.location = "workshop";
+        birdhouse["location"] = "workshop";
       } else {
         appendMessage("You already built a birdhouse.");
       }
@@ -320,9 +311,9 @@ function build(item) {
       if (!player.builtShelf) {
         appendMessage("You build a tall shelving unit. It would be good for books, or someone could make a display on it.");
         player.builtShelf = true;
-        bookshelf.location = "workshop";
+        bookshelf["location"] = "workshop";
       } else {
-        appendMessage("You already built a shelf.");
+        appendMessage("You already built a bookshelf.");
       }
       break;
 
@@ -356,6 +347,33 @@ function placeBookshelf() {
 
   // Open the secret exit
   rooms["fossil exhibit"].exits.south = "secret room";
+}
+
+// place birdhouse in garden to get gem for secret ending
+function placeBirdhouse() {
+  if (player.location !== "garden") {
+    appendMessage("There's nowhere suitable to put the birdhouse here.");
+    return;
+  }
+
+  if (!inventory.includes("birdhouse")) {
+    appendMessage("You don't have a birdhouse to place.");
+    return;
+  }
+
+  if (flags.birdhousePlaced) {
+    appendMessage("The birdhouse is already in place.");
+    return;
+  }
+
+  flags.birdhousePlaced = true;
+  inventory = inventory.filter(i => i !== "birdhouse"); // remove from inventory
+
+  appendMessage("You place the birdhouse in a nice corner of the garden. It seems like it belongs there.");
+  appendMessage("A bird lands on the perch almost immediately, dropping a sparkling green gem. You pick it up, thinking anything could be useful here.");
+
+  // add gem to inventory
+  inventory.push("green gem");
 }
 
 // use the lever in the observatory - superseded by general useItem function
@@ -412,7 +430,7 @@ function moveShelf() {
 // INVENTORY + ITEM SYSTEM
 // ~~~~~~~~~~~~~~~~~~~~~~~
 
-// obtainable items (TEMP - will put in a json file eventually)
+// obtainable items
 const items = {
   lever: {
     id: "lever",
@@ -421,8 +439,7 @@ const items = {
     location: "null",
     pickupable: true,
     usable: true,
-    onUse: () => {
-      //insert use lever logic here
+    onUse: () => { // use lever logic
       if (player.location !== "observatory") {
         appendMessage("There’s nowhere to use a lever here.");
         return;
@@ -459,6 +476,7 @@ const items = {
       appendMessage("The puppy barks excitedly and chews on the toy for a moment. Looks like you gained a new friend!");
       flags.befriendedPuppy = true;
       puppy.following = true;
+      puppyFollow();
     }
   },
   snowglobe: {
@@ -470,9 +488,9 @@ const items = {
     usable: false,
     giveableTo: "scientist",
     onGive: () => {
-      appendMessage("The scientist says: 'Thank you, I was looking for one of these. Here, I've been trying to work out where this goes, but you might have better luck.'\n");
+      appendMessage("The scientist says: 'Thank you, I was looking for one of these. Here, I've been trying to work out where this goes, but you might have better luck.'");
       inventory.push("teleGem");
-      appendMessage("The scientist hands you a strange green gem. It seems to be glowing.\n");
+      appendMessage("The scientist hands you a strange green gem. It seems to be glowing.");
       flags.givenSnowglobe = true;
     }
   },
@@ -499,14 +517,12 @@ const items = {
   bookshelf: {
     id: "bookshelf",
     name: "bookshelf",
-    description: "A tall shelving unit, suitable for keeping books off the floor.",
-    location: "null"
+    description: "A tall shelving unit, suitable for keeping books off the floor."
   },
   birdhouse: {
     id: "birdhouse",
     name: "birdhouse",
-    description: "A simple freestanding wooden birdhouse, it might look nice in a garden.",
-    location: "null"
+    description: "A simple freestanding wooden birdhouse, it might look nice in a garden."
   },
   flowers: {
     id: "flowers",
@@ -616,13 +632,12 @@ const items = {
     pickupable: true,
     usable: true,
     onUse: () => {
-      if (player.location === "secret room") {
-        appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Press the central crystal to continue.'");
-        // activates teleport and secret ending
-        flags.teleportEnabled = true;
-        const tele = rooms["secret room"];
-        tele.exits["teleport"] = "exit";
-      }
+      if (player.location === "secret room" && flags.hasTeleGem) {
+    appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Press the central crystal to continue.'");
+    appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
+    flags.winGame = true;
+    return;
+  }
     }
   }
 };
@@ -809,6 +824,8 @@ const flags = {
   carryingToolbox: false,
   carryingBookshelf: false,
   carryingBirdhouse: false,
+  bookshelfPlaced: false,
+  birdhousePlaced: false,
   givenToolbox: false,
   givenFlowers: false,
   givenSnowglobe : false,
@@ -870,11 +887,27 @@ async function loadRooms() {
   }
 }
 
+/*/ load items JSON
+async function loadItems() {
+  try {
+    const res = await fetch("./items.json");
+    const data = await res.json();
+    data.forEach(item => {
+      items[item.id] = item;
+    });
+    return true;
+  } catch (err) {
+    appendMessage("⚠️ Could not load items.json");
+    console.error(err);
+    return false;
+  }
+}*/
+
 // show current room
 function describeRoom(showIntro = true) {
   const room = rooms[currentRoom];
   if (!room) {
-    appendMessage("You're lost in the void. (Room not found!)\n");
+    appendMessage("You're lost in the void. (Room not found!)");
     return;
   }
 
@@ -886,7 +919,7 @@ function describeRoom(showIntro = true) {
   if (exits.length > 0) {
     appendMessage("Exits: " + exits.join(", "));
   } else {
-    appendMessage("There are no visible exits.\n");
+    appendMessage("There are no visible exits.");
   }
   br();
 }
@@ -934,22 +967,44 @@ function goDirection(dir) {
 
   // print the new room description
   appendMessage(`You move ${dir} into the ${nextRoom.id}.`);
-  describeRoom(false);
+  describeRoom(true);
   
-/* incomplete functions - ready to add win/lose logic
-  if (flags.gameWin) { //add win condition logic here
-    
+  if (flags.puppyFollow && !flags.labExploded && !flags.winGame) {
+    appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾");
+  }
+
+  
+  if (player.isInjured) {
+    if (!inventory.includes("first aid kit")) {
+      appendMessage("You have a minor injury. It might be a good idea to look for a first aid kit.");
+    } else {
+      appendMessage("You have a minor injury. Maybe you should use the first aid kit you picked up.");
+    }
   }
   
-  if (flags.gameLose) { //add lose condition logic here
-    
-  }*/
+  if (player.location === "glass corridor" && dir === "west") {
+    appendMessage("You push open the glass door underneath the EXIT sign and leave the building at last.");
+    appendMessage("~~~ 🏆 YOU WIN! ~~~");
+    flags.winGame = true;
+    return;
+  }
+
 }
 
 
 // command handler
 function handleCommand(cmdInput) {
   const cmd = cmdInput.trim().toLowerCase();
+
+  if (flags.gameLose) {
+    appendMessage("The lab exploded. You're no longer among the living.\nType RESTART to play again.");
+    return;
+  }
+
+  if (flags.gameWin) {
+    appendMessage("You've already escaped! Refresh the page or type RESTART to play again.");
+    return;
+  }
 
   if (cmd.startsWith("go ")) {
     const dir = cmd.substring(3).trim();
@@ -966,6 +1021,8 @@ function handleCommand(cmdInput) {
     handleJump();
   } else if (cmd === "examine") {
     handleExamine();
+  } else if (cmd === "pick flowers") {
+    pickFlowers();
   } else if (cmd === "poke" || cmd === "poke stuff") {
     handlePoke();
   } else if (cmd.startsWith("eat ")) {
@@ -1019,6 +1076,8 @@ function handleCommand(cmdInput) {
   } else if (cmd === "place shelf" || cmd === "place bookshelf" || cmd === "use shelf") {
     placeBookshelf();
     return;
+  } else if (cmd ==="place birdhouse") {
+    placeBirdhouse();
   } else if (cmd.startsWith("give ")){
     const parts = cmd.slice(5).split(" to ");
     if (parts.length === 2) {
@@ -1032,6 +1091,9 @@ function handleCommand(cmdInput) {
     return true;
   } else if (cmd === "inventory" || cmd === "check bag") {
     showInventory();
+  } else if (cmd === "restart") {
+    location.reload();
+    return;
   } else {
     appendMessage("You can't do that.");
   }
