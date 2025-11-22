@@ -35,7 +35,7 @@ function handleSit() {
 
   if (loc === "white room") {
     appendMessage("You sit on the bench gingerly. It creaks, but holds up. The old wood is a bit splintery, though. Probably best not to stay sat for too long.");
-    if (puppy.following && !flags.smallKeyholeRevealed) {
+    if (npcs.puppy.following && !flags.smallKeyholeRevealed) {
       appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
       flags.smallKeyholeRevealed = true;
     }
@@ -86,7 +86,7 @@ function handleExamine() {
   const loc = player.location;
   
   if (loc === "white room"){
-    if (puppy.following && !flags.smallKeyholeRevealed) {
+    if (npcs.puppy.following && !flags.smallKeyholeRevealed) {
       appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
       flags.smallKeyholeRevealed = true;
     }
@@ -257,10 +257,10 @@ function talkTo(npcName) {
 
 // puppy follows player
 function puppyFollow() {
-  const follow = puppy.following;
+  const follow = npcs.puppy.following;
   
   if (follow) {
-    puppy.location = player.location;
+    npcs.puppy.location = player.location;
     appendMessage("The puppy follows along behind you. It's nice to have a friend here.")
   }
   
@@ -475,7 +475,7 @@ const items = {
     onGive: () => {
       appendMessage("The puppy barks excitedly and chews on the toy for a moment. Looks like you gained a new friend!");
       flags.befriendedPuppy = true;
-      puppy.following = true;
+      npcs.puppy.following = true;
       puppyFollow();
     }
   },
@@ -911,7 +911,6 @@ function describeRoom(showIntro = true) {
     return;
   }
 
-  br();
   if (showIntro && room.intro) appendMessage(room.intro);
   if (room.description) appendMessage(room.description);
 
@@ -921,7 +920,7 @@ function describeRoom(showIntro = true) {
   } else {
     appendMessage("There are no visible exits.");
   }
-  br();
+
 }
 
 // move between rooms
@@ -969,7 +968,7 @@ function goDirection(dir) {
   appendMessage(`You move ${dir} into the ${nextRoom.id}.`);
   describeRoom(true);
   
-  if (flags.puppyFollow && !flags.labExploded && !flags.winGame) {
+  if (npcs.puppy.following && !flags.labExploded && !flags.winGame) {
     appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾");
   }
 
@@ -1138,6 +1137,7 @@ async function startGame() {
   if (!ok) return;
   currentRoom = Object.keys(rooms)[0];
   appendMessage("Welcome to Escape the Complex!");
+  br();
   describeRoom(true);
   appendMessage("Type a command or use the compass to move.");
   br();
