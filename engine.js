@@ -265,7 +265,7 @@ function puppyFollow() {
   const puppyLoc = npcs.puppy.location;
   
   if (follow) {
-    puppyLoc = player.Loc;
+    puppyLoc = playerLoc;
     appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾")
   }
   
