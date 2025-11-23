@@ -973,7 +973,7 @@ function goDirection(dir) {
   describeRoom(true);
   
   if (npcs.puppy.following && !flags.labExploded && !flags.winGame) {
-    puppyFollow(true);
+    puppyFollow();
   }
 
   
