@@ -261,11 +261,9 @@ function talkTo(npcName) {
 // puppy follows player
 function puppyFollow() {
   const follow = npcs.puppy.following;
-  const playerLoc = player.location;
-  const puppyLoc = npcs.puppy.location;
   
   if (follow) {
-    puppyLoc = playerLoc;
+    npcs.puppy.location = player.location;
     appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾")
   }
   
@@ -521,12 +519,14 @@ const items = {
   bookshelf: {
     id: "bookshelf",
     name: "bookshelf",
-    description: "A tall shelving unit, suitable for keeping books off the floor."
+    description: "A tall shelving unit, suitable for keeping books off the floor.",
+    pickupable: true
   },
   birdhouse: {
     id: "birdhouse",
     name: "birdhouse",
-    description: "A simple freestanding wooden birdhouse, it might look nice in a garden."
+    description: "A simple freestanding wooden birdhouse, it might look nice in a garden.",
+    pickupable: true
   },
   flowers: {
     id: "flowers",
