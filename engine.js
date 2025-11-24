@@ -71,12 +71,12 @@ function handleJump() {
     player.hasSmallKey = true;
   } else if (loc === "cleaners' store" || loc === "secret lab") {
     appendMessage("You can't jump here, the ceiling is too low.\n");
-  } else if (loc === "fossil exhibit" && !flags.note1Found) {
+  } else if (loc === "fossil exhibit" && !player.notes.note1Found) {
     appendMessage("You spot a note stuck to the triceratops skull. You carefully reach up and take it.");
-    flags.note1Found = true;
-  } else if (loc === "garden" && !flags.note4Found) {
+    player.notes.note1Found = true;
+  } else if (loc === "garden" && !player.notes.note4Found) {
     appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.\n");
-    flags.note4Found = true;
+    player.notes.note4Found = true;
   } else {
     appendMessage("You jump, but nothing unusual happens.\n");
   }
@@ -95,15 +95,15 @@ function handleExamine() {
     }
   } else if (loc === "art gallery") {
     appendMessage("You take a good look at some of the paintings. They're even creepier up close.");
-    if (!flags.note2Found) {
+    if (!player.notes.note2Found) {
       appendMessage("One of the surreal landscapes has a note tucked into the frame. You take it gently, trying to avoid disturbing the artwork.");
-      flags.note2Found = true;
+      player.notes.note2Found = true;
     }
   } else if (loc === "yard") {
     appendMessage("The junk piles seem even more rusty and decrepit the closer you look at them. Who dumped all this mess here, anyway?");
-    if (!flags.note3Found) {
+    if (!player.notes.note3Found) {
       appendMessage("You spot a slightly damp note under a big stone beside one pile. Careful not to nudge the teetering junk, you take the note.");
-      flags.note3Found = true;
+      player.notes.note3Found = true;
     }
   } else if (loc === "observatory") {
     if (!flags.discoveredLab) {
@@ -162,8 +162,12 @@ function handlePoke() {
   }
 
   else if (loc === "workshop") {
-    appendMessage("You poke the things on the workbench. One of the half-built whatnots slides across, revealing a scrap of paper underneath it. You take the note.");
-    flags.note5Found = true;
+    if (!player.notes.note5found){
+      appendMessage("You poke the things on the workbench. One of the half-built whatnots slides across, revealing a scrap of paper underneath it. You take the note.");
+      player.notes.note5Found = true;
+    } else {
+      appendMessage("You poke the things on the workbench again. One of them whirrs for a moment, then stops. Nothing else happens.");
+    }
   }
 
   else {
@@ -181,6 +185,20 @@ function pickFlowers() {
   } else {
     appendMessage("There are no flowers here. Try the garden.");
   }
+}
+
+// show notes function
+function showNotes() {
+  const found = Object.keys(player.notes).filter(n => player.notes[n]);
+  if (found.length === 0) {
+    appendMessage("You haven't discovered any notes yet.");
+    return;
+  }
+
+  print("📒 Notes Found:");
+  found.forEach(n => {
+    appendMessage("\n" + notes[n] + "\n");
+  });
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -345,6 +363,7 @@ function placeBookshelf() {
   }
 
   flags.bookshelfPlaced = true;
+  flags.carryingBookshelf = false;
   inventory = inventory.filter(i => i !== "bookshelf"); // remove from inventory
 
   appendMessage("You place the tall bookshelf against the wall next to the scientist. He gives you a grateful nod.");
@@ -354,7 +373,7 @@ function placeBookshelf() {
   rooms["fossil exhibit"].exits.south = "secret room";
 }
 
-// place birdhouse in garden to get gem for secret ending
+// place birdhouse in garden to get gem for secret ending puzzle
 function placeBirdhouse() {
   if (player.location !== "garden") {
     appendMessage("There's nowhere suitable to put the birdhouse here.");
@@ -372,13 +391,14 @@ function placeBirdhouse() {
   }
 
   flags.birdhousePlaced = true;
+  flags.carryingBirdhouse = false;
   inventory = inventory.filter(i => i !== "birdhouse"); // remove from inventory
 
   appendMessage("You place the birdhouse in a nice corner of the garden. It seems like it belongs there.");
-  appendMessage("A bird lands on the perch almost immediately, dropping a sparkling green gem. You pick it up, thinking anything could be useful here.");
+  appendMessage("A bird lands on the perch almost immediately, dropping a small, shiny black metal object. You pick it up, thinking anything could be useful here.");
 
   // add gem to inventory
-  inventory.push("teleGem");
+  inventory.push("battery");
 }
 
 // use the lever in the observatory - superseded by general useItem function
@@ -419,7 +439,7 @@ function moveShelf() {
   }
 
   if (!inventory.includes("ironKey")) {
-    appendMessage("There's no reason to move those.\n");
+    appendMessage("There's no need to move those yet.\n");
     return;
   }
 
@@ -506,6 +526,7 @@ const items = {
     onGive: () => {
       appendMessage("The caretaker beams. 'Oh, you found my old toolbox! Thank you!'");
       flags.givenToolbox = true;
+      flags.carryingToolbox = false;
       inventory.push("lever");
       appendMessage("The caretaker hands you a metal lever. 'You'll probably need this sooner or later.'");
     }
@@ -513,7 +534,8 @@ const items = {
   cart: {
     id: "cart",
     name: "cart",
-    description: "A sturdy wooden cart, suitable for transporting heavy items."
+    description: "A sturdy wooden cart, suitable for transporting heavy items.",
+    pickupable: true
   },
   bookshelf: {
     id: "bookshelf",
@@ -663,14 +685,49 @@ const items = {
     pickupable: true,
     usable: true,
     onUse: () => {
-      if (player.location === "secret room" && flags.hasTeleGem) {
-        appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Press the central crystal to continue.'");
+      if (player.location === "secret room" && !flags.batteryPlaced) {
+        appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits complete. Please insert power source and press the central crystal to continue.'");
+        inventory = inventory.filter(i => i !== "teleGem");
+      } else if (player.location === "secret room" && flags.batteryPlaced) {
+        appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Please press the central crystal to continue.'");
+        appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
+        flags.gameWin = true;
+        return;
+      }
+    }
+  },
+  battery: {
+    id: "battery",
+    name: "battery",
+    description: "It's cold and rather light. There seem to be connectors on each end, and a green bar down one side, with a lightning bolt above it. Maybe a power source for something?",
+    location: "null",
+    pickupable: true,
+    usable: true,
+    onUse: () => {
+      if (player.location === "secret room" && !flags.teleGemPlaced) {
+        appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the floor lights up with a soft glow, and a synthetic voice says: 'Power source connected. Please complete the crystal circuit to activate teleportation system.'");
+        inventory = inventory.filter(i => i !== "battery");
+      } else if (player.location === "secret room" && flags.teleGemPlaced) {
+      appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the floor lights up with a soft glow, and a synthetic voice says: 'Power source connected. Please press the central crystal to continue.'");
         appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
         flags.gameWin = true;
         return;
       }
     }
   }
+};
+
+// notes array
+const notes = {
+  note1: "Note 1 reads:\nIf you're reading this, then you're stuck here too. There is a way out, or so I've heard, but so far none of us have managed to find it. The caretaker's been here the longest, and even they don't know how to get out.\nOn the bright side, nobody here ever seems to get sick or old, so that's something. Just a heads up, though, you can be injured, so be careful what you poke.\nA couple of hints, things I've found out along the way:\n1- Nobody minds if you take things, as long as you're not selfish about keeping them.\n2- Loyal friends are worth their weight in gold around here. Bring a gift and they'll help you out.\n3- If something seems missing, try to find it. Sometimes replacing what's lost can help you find your way.\nGood luck!\n",
+
+  note2: "Note 2 reads:\nDay ???\nI am unsure how long I have been trapped in this place. I lost count of the days a long time ago, if one can say there are such things as 'days' or 'time' here.\nAll I know is that I must find a way to escape. I cannot remain here for eternity, no matter the seeming endlessness of it and the perpetual youth it has granted me.\nThe lab next to the observatory is full of strange equipment, things I've never seen before. Perhaps I can use it to find a way to escape this strange limbo?\n",
+
+  note3: "Note 3 reads:\nEvery time I try to scale these walls, I reach the top and find myself back at the bottom. What is going on in this place? Why can't any of us leave? Is this a prison? Are we dead, trapped in some endless purgatory?\nI keep finding these small gems, all different colours, that seem to fit in the pedestals in the small chamber off the fossil exhibit.\nI put most of them in place already, there's only one missing. A green one, judging by the colours of the rest. Maybe if I can find that, it will open something up.\nI will get out of here if it's the last thing I ever do.\n",
+
+  note4: "Note 4 reads:\nI think this is the closest to escaping I'll ever get at this point. At least the air is fresh and the flowers are pretty. I still don't know how I got here, but it's a nice enough place to spend my time.\nThe garden keeps me occupied, tending the flowers and watching the birds.\nI wonder if there's any way to get a little birdhouse for them? I'm sure they'd be grateful for somewhere to rest.\n",
+
+  note5: "Note 5 reads:\nGuess I'm the cleaner around here now. Not that the place needs much cleaning doing. Things never seem to get dirty or used up, no idea why.\nThe old guy who used to hang around the blue corridor sweeping just vanished a while back. No idea where he went. You'd think if he found a way out, he would have let the rest of us know.\nIt's pretty lonely with just me and the other two, now. The scientist has been complaining lately about his missing bookshelf, none of us can figure out where the blasted thing went. I'll build him a new one next time I'm in the workshop.\nAt least Digger is happy to keep me company while I sweep the floors. He's still as young and energetic as the day we wound up here.\n"
 };
 
 // check items in current room 
@@ -760,6 +817,7 @@ function takeItem(name) {
     } 
     
     flags.carryingBookshelf = true;
+    flags.usingCart = true;
     appendMessage("You load the bookshelf onto the cart. Now to find where it belongs.");
   }
   
@@ -784,6 +842,7 @@ function takeItem(name) {
     } 
     
     flags.carryingBirdhouse = true;
+    flags.usingCart = true;
     appendMessage("You load the birdhouse onto the cart. Now to find where it belongs.");
   }
 
@@ -804,6 +863,27 @@ function dropItem(name) {
   }
 
   const item = items[inventory[index]];
+  
+  if (item === "cart" || item === "handcart") {
+    appendMessage("That's too useful to leave behind.");
+    return;
+  }
+  
+  if (item === "birdhouse") {
+    appendMessage("This might be useful later. You make a note of where you left it, in case you need to come back.");
+    carryingBirdhouse = false;
+  }
+  
+  if (item === "bookshelf") {
+    appendMessage("This might be useful later. You make a note of where you left it, in case you need to come back.");
+    carryingBookshelf = false;
+  }
+  
+  if (item === "toolbox") {
+    appendMessage("This might be useful later. You make a note of where you left it, in case you need to come back.");
+    carryingToolbox = false;
+  }
+  
   item.location = player.location;
   inventory.splice(index, 1);
   appendMessage(`You leave the ${item.name} behind.`);
@@ -913,13 +993,9 @@ const flags = {
   shelvesMoved: false,
   wrExitOpen: false,
   smallKeyholeRevealed: false,
-  note1Found: false,
-  note2Found: false,
-  note3Found: false,
-  note4Found: false,
-  note5Found: false,
   discoveredLab: false,
-  teleportEnabled: false,
+  teleGemPlaced: false,
+  batteryPlaced: false,
   exitUnlocked: false,
   gameLose: false,
   gameWin: false,
@@ -933,6 +1009,13 @@ const player = {
   builtBirdhouse: false,
   isInjured: false,
   isDead: false,
+  notes: {
+    note1Found: false,
+    note2Found: false,
+    note3Found: false,
+    note4Found: false,
+    note5Found: false
+  }
 };
 
 // Utility: print text to output box
@@ -1153,7 +1236,7 @@ function handleCommand(cmdInput) {
   } else if (cmd === "place shelf" || cmd === "place bookshelf" || cmd === "use shelf") {
     placeBookshelf();
     return;
-  } else if (cmd ==="place birdhouse") {
+  } else if (cmd ==="place birdhouse" || cmd === "use birdhouse") {
     placeBirdhouse();
   } else if (cmd.startsWith("give ")){
     const parts = cmd.slice(5).split(" to ");
@@ -1168,6 +1251,8 @@ function handleCommand(cmdInput) {
     return true;
   } else if (cmd === "inventory" || cmd === "check bag") {
     showInventory();
+  } else if (cmd === "read note" || cmd === "read notes" || cmd === "notes") {
+    showNotes();
   } else if (cmd === "restart") {
     location.reload();
     return;
