@@ -56,7 +56,7 @@
   {
     "id": "workshop",
     "intro": "There's a workshop here. It looks well equipped and maintained.",
-    "description": "A decent workshop, if a little messy. There's a toolbox on a workbench, and plenty of woodworking supplies, if the fancy to build something strikes you.\nYou can see a small yard through an open door to the west, and the door leading back to the art gallery is to the east.",
+    "description": "A decent workshop, if a little messy. There is a variety of tools and blueprints scattered across a workbench, and plenty of woodworking supplies, if the fancy to build something strikes you.\nYou can see a small yard through an open door to the west, and the door leading back to the art gallery is to the east.",
     "exits": {
       "east": "art gallery",
       "west": "yard"
@@ -65,7 +65,7 @@
   {
     "id": "yard",
     "intro": "There's a small yard out here. A mesh roof keeps you inside, but it's nice to feel some fresh air.",
-    "description": "It looks like extra scrap for the workshop is stored here. Piles are stacked precariously, looking as if they could fall over any minute. Best not disturb them.\nThere's also a puppy sitting near a half-finished doghouse in one corner.\nThe open door to the east leads back to the workshop.",
+    "description": "It looks like extra scrap for the workshop is stored here. Piles are stacked precariously, looking as if they could fall over any minute. Best not disturb them.\nA worn toolbox is half hidden under a few planks of wood against the north wall. There's also a puppy sitting near a half-finished doghouse in one corner.\nThe open door to the east leads back to the workshop.",
     "exits": {
       "east": "workshop"
     }
@@ -146,13 +146,7 @@
     "intro": "The secret room is tiny, with only a few thin pedestals arranged in a circle.",
     "description": "The room is quite small, with a high ceiling. Six narrow pedestals ring one wider stand in the centre, all but one with a sparkling coloured gem on top.\nLooking at the colours of the rest, you guess the empty pedestal is supposed to hold a green gem.",
     "exits": {
-      "north": "fossil exhibit",
-      "teleport": "exit"
+      "north": "fossil exhibit"
     }
-  },
-  {
-    "id": "exit",
-    "intro": "You made it out!\n",
-    "description": "The sunlight dazzles you as you stand in the fresh air outside. Congratulations on Escaping the Complex!"
   }
 ]

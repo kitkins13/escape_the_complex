@@ -261,9 +261,11 @@ function talkTo(npcName) {
 // puppy follows player
 function puppyFollow() {
   const follow = npcs.puppy.following;
+  const playerLoc = player.location;
+  const puppyLoc = npcs.puppy.location;
   
   if (follow) {
-    npcs.puppy.location = player.location;
+    puppyLoc = playerLoc;
     appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾")
   }
   
@@ -376,7 +378,7 @@ function placeBirdhouse() {
   appendMessage("A bird lands on the perch almost immediately, dropping a sparkling green gem. You pick it up, thinking anything could be useful here.");
 
   // add gem to inventory
-  inventory.push("green gem");
+  inventory.push("teleGem");
 }
 
 // use the lever in the observatory - superseded by general useItem function
@@ -421,12 +423,9 @@ function moveShelf() {
     return;
   }
 
-  appendMessage("You push the shelf aside, revealing a hidden door with an iron keyhole. The key fits perfectly, and you unlock the door.\n");
+  appendMessage("You push the shelf aside, revealing a hidden door with a rusty iron keyhole. The key you found in the garden looks like it fits.\n");
   flags.shelvesMoved = true;
 
-  // reveals the hidden store exit
-  const store = rooms["cleaners' store"];
-  store.exits["east"] = "hidden store";
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~
@@ -520,12 +519,14 @@ const items = {
     id: "bookshelf",
     name: "bookshelf",
     description: "A tall shelving unit, suitable for keeping books off the floor.",
+    location: "null",
     pickupable: true
   },
   birdhouse: {
     id: "birdhouse",
     name: "birdhouse",
     description: "A simple freestanding wooden birdhouse, it might look nice in a garden.",
+    location: "null",
     pickupable: true
   },
   flowers: {
@@ -566,6 +567,32 @@ const items = {
     onConsume: () => {
       appendMessage("You drink the coffee, enjoying the robust flavour and energising caffeine.");
       inventory = inventory.filter(i => i !== "coffee");
+    }
+  },
+  drink: {
+    id: "drink",
+    name: "canned drink",
+    description: "A can of... something vaguely drinkable. You don't recognise the brand.",
+    location: "cafe",
+    pickupable: true,
+    usable: false,
+    consumable: true,
+    onConsume: () => {
+      appendMessage("You open the can and drink the contents. It doesn't taste like anything, but it quenches some thirst.");
+      inventory = inventory.filter(i => i !== "drink");
+    }
+  },
+  snack: {
+    id: "snack",
+    name: "packaged snack",
+    description: "A snack bar in unfamiliar packaging. There are only dashes in place of an expiry date.",
+    location: "cafe",
+    pickupable: true,
+    usable: false,
+    consumable: true,
+    onConsume: () => {
+      appendMessage("You unwrap the bar and tuck in. It's dry and tasteless, but gives your stomach something to do.");
+      inventory = inventory.filter(i => i !== "snack");
     }
   },
   smallKey: {
@@ -637,11 +664,11 @@ const items = {
     usable: true,
     onUse: () => {
       if (player.location === "secret room" && flags.hasTeleGem) {
-    appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Press the central crystal to continue.'");
-    appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
-    flags.winGame = true;
-    return;
-  }
+        appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Press the central crystal to continue.'");
+        appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
+        flags.gameWin = true;
+        return;
+      }
     }
   }
 };
@@ -692,24 +719,72 @@ function takeItem(name) {
   }
   
   if (found.id === "toolbox") {
-    if (player.location !== "yard") {
+    if (player.location !== items.toolbox.location) {
     appendMessage("There’s no toolbox here.");
     return;
     }
 
-    if (flags.carryingToolbox) {
-      appendMessage("You're already transporting the toolbox.");
+    if (flags.carryingBookshelf || flags.carryingBirdhouse) {
+      appendMessage("The cart is sturdy but small. There's only room for one thing at a time.");
       return;
     }
 
     if (!inventory.includes("cart")) {
-      appendMessage("The toolbox is too heavy to carry by itself. You need something to transport it with.");
+      appendMessage("The toolbox is too heavy to carry by hand. You need something to transport it with.");
       return;
     }
 
     flags.carryingToolbox = true;
     flags.usingCart = true;
     appendMessage("You load the heavy toolbox onto the cart. You can now move it around easily.");
+  }
+  
+  if (found.id === "bookshelf") {
+    if (!inventory.includes("cart")) {
+      appendMessage("You can't drag that around the place by yourself. Maybe if you had a cart you could move it more easily.");
+      return;
+    }
+    
+    if (flags.carryingToolbox || flags.carryingBirdhouse) {
+      appendMessage("The cart is sturdy but small. There's only room for one thing at a time.");
+      return;
+    }
+    if (!player.builtShelf) {
+      appendMessage("You haven't built a bookshelf yet.");
+      return;
+    }
+    
+    if (player.location !== items.bookshelf.location) {
+      appendMessage("The bookshelf isn't here.");
+      return;
+    } 
+    
+    flags.carryingBookshelf = true;
+    appendMessage("You load the bookshelf onto the cart. Now to find where it belongs.");
+  }
+  
+  if (found.id === "birdhouse") {
+    if (!inventory.includes("cart")) {
+      appendMessage("You can't drag that around the place by yourself. Maybe if you had a cart you could move it more easily.");
+      return;
+    }
+    
+    if (flags.carryingToolbox || flags.carryingBookshelf) {
+      appendMessage("The cart is sturdy but small. There's only room for one thing at a time.");
+      return;
+    }
+    if (!player.builtBirdhouse) {
+      appendMessage("You haven't built a birdhouse yet.");
+      return;
+    }
+    
+    if (player.location !== items.birdhouse.location) {
+      appendMessage("The birdhouse isn't here.");
+      return;
+    } 
+    
+    flags.carryingBirdhouse = true;
+    appendMessage("You load the birdhouse onto the cart. Now to find where it belongs.");
   }
 
   inventory.push(found.id);
@@ -973,7 +1048,7 @@ function goDirection(dir) {
   describeRoom(true);
   
   if (npcs.puppy.following && !flags.labExploded && !flags.winGame) {
-    puppyFollow();
+    puppyFollow(true);
   }
 
   
@@ -988,7 +1063,7 @@ function goDirection(dir) {
   if (player.location === "glass corridor" && dir === "west") {
     appendMessage("You push open the glass door underneath the EXIT sign and leave the building at last.");
     appendMessage("~~~ 🏆 YOU WIN! ~~~");
-    flags.winGame = true;
+    flags.gameWin = true;
     return;
   }
 
