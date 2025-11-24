@@ -73,10 +73,10 @@ function handleJump() {
     appendMessage("You can't jump here, the ceiling is too low.\n");
   } else if (loc === "fossil exhibit" && !player.notes.note1Found) {
     appendMessage("You spot a note stuck to the triceratops skull. You carefully reach up and take it.");
-    player.notes.note1Found = true;
+    player.notes.note1 = true;
   } else if (loc === "garden" && !player.notes.note4Found) {
     appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.\n");
-    player.notes.note4Found = true;
+    player.notes.note4 = true;
   } else {
     appendMessage("You jump, but nothing unusual happens.\n");
   }
@@ -95,15 +95,15 @@ function handleExamine() {
     }
   } else if (loc === "art gallery") {
     appendMessage("You take a good look at some of the paintings. They're even creepier up close.");
-    if (!player.notes.note2Found) {
+    if (!player.notes.note2) {
       appendMessage("One of the surreal landscapes has a note tucked into the frame. You take it gently, trying to avoid disturbing the artwork.");
-      player.notes.note2Found = true;
+      player.notes.note2 = true;
     }
   } else if (loc === "yard") {
     appendMessage("The junk piles seem even more rusty and decrepit the closer you look at them. Who dumped all this mess here, anyway?");
-    if (!player.notes.note3Found) {
+    if (!player.notes.note3) {
       appendMessage("You spot a slightly damp note under a big stone beside one pile. Careful not to nudge the teetering junk, you take the note.");
-      player.notes.note3Found = true;
+      player.notes.note3 = true;
     }
   } else if (loc === "observatory") {
     if (!flags.discoveredLab) {
@@ -162,9 +162,9 @@ function handlePoke() {
   }
 
   else if (loc === "workshop") {
-    if (!player.notes.note5found){
+    if (!player.notes.note5){
       appendMessage("You poke the things on the workbench. One of the half-built whatnots slides across, revealing a scrap of paper underneath it. You take the note.");
-      player.notes.note5Found = true;
+      player.notes.note5 = true;
     } else {
       appendMessage("You poke the things on the workbench again. One of them whirrs for a moment, then stops. Nothing else happens.");
     }
@@ -279,11 +279,9 @@ function talkTo(npcName) {
 // puppy follows player
 function puppyFollow() {
   const follow = npcs.puppy.following;
-  const playerLoc = player.location;
-  const puppyLoc = npcs.puppy.location;
   
   if (follow) {
-    puppyLoc = playerLoc;
+    npcs.puppy.location = player.location;
     appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾")
   }
   
@@ -397,7 +395,7 @@ function placeBirdhouse() {
   appendMessage("You place the birdhouse in a nice corner of the garden. It seems like it belongs there.");
   appendMessage("A bird lands on the perch almost immediately, dropping a small, shiny black metal object. You pick it up, thinking anything could be useful here.");
 
-  // add gem to inventory
+  // add battery to inventory
   inventory.push("battery");
 }
 
@@ -409,7 +407,7 @@ function pullLever() {
   } else if (inventory.includes("lever") && !flags.leverPlaced) {
     appendMessage("You need to put the lever in the mechanism first.")
   } else if (flags.leverPlaced && !flags.discoveredLab) {
-    appendMessage("You pull the newly placed lever. Clicking and grinding noises travel through the walls, and a hidden panel swings open in the southwest corner.");
+    appendMessage("You pull the newly placed lever. Clicking and grinding noises travel through the walls, and a hidden panel swings open in the south west corner.");
     flags.discoveredLab = true;
     // unlocks the secret lab exit
     const obs = rooms["observatory"];
@@ -534,8 +532,7 @@ const items = {
   cart: {
     id: "cart",
     name: "cart",
-    description: "A sturdy wooden cart, suitable for transporting heavy items.",
-    pickupable: true
+    description: "A sturdy wooden cart, suitable for transporting heavy items."
   },
   bookshelf: {
     id: "bookshelf",
@@ -555,7 +552,7 @@ const items = {
     id: "flowers",
     name: "flowers",
     description: "A bunch of colourful flowers you picked from the garden.",
-    location: "garden",
+    location: "null",
     pickupable: true,
     usable: false,
     giveableTo: "barista",
@@ -656,6 +653,7 @@ const items = {
     pickupable: true,
     usable: true,
     onUse: () => {
+      appendMessage("The key turns with a squeak and a clunk, but the secret door opens.");
       // opens the hidden store exit
       const store = rooms["cleaners' store"];
       store.exits["east"] = "hidden store";
@@ -688,11 +686,14 @@ const items = {
       if (player.location === "secret room" && !flags.batteryPlaced) {
         appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits complete. Please insert power source and press the central crystal to continue.'");
         inventory = inventory.filter(i => i !== "teleGem");
+        flags.teleGemPlaced = true;
       } else if (player.location === "secret room" && flags.batteryPlaced) {
         appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Please press the central crystal to continue.'");
         appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
         flags.gameWin = true;
         return;
+      } else {
+        appendMessage("You can't use that here.");
       }
     }
   },
@@ -707,11 +708,14 @@ const items = {
       if (player.location === "secret room" && !flags.teleGemPlaced) {
         appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the floor lights up with a soft glow, and a synthetic voice says: 'Power source connected. Please complete the crystal circuit to activate teleportation system.'");
         inventory = inventory.filter(i => i !== "battery");
+        flags.batteryPlaced = true;
       } else if (player.location === "secret room" && flags.teleGemPlaced) {
       appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the floor lights up with a soft glow, and a synthetic voice says: 'Power source connected. Please press the central crystal to continue.'");
         appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
         flags.gameWin = true;
         return;
+      } else {
+        appendMessage("You can't use that here.");
       }
     }
   }
@@ -870,18 +874,21 @@ function dropItem(name) {
   }
   
   if (item === "birdhouse") {
-    appendMessage("This might be useful later. You make a note of where you left it, in case you need to come back.");
+    appendMessage("The birdhouse might be useful later. You make a note of where you left it, in case you need to come back.");
     carryingBirdhouse = false;
+    return;
   }
   
   if (item === "bookshelf") {
-    appendMessage("This might be useful later. You make a note of where you left it, in case you need to come back.");
+    appendMessage("The bookshelf might be useful later. You make a note of where you left it, in case you need to come back.");
     carryingBookshelf = false;
+    return;
   }
   
   if (item === "toolbox") {
-    appendMessage("This might be useful later. You make a note of where you left it, in case you need to come back.");
+    appendMessage("The toolbox might be useful later. You make a note of where you left it, in case you need to come back.");
     carryingToolbox = false;
+    return;
   }
   
   item.location = player.location;
@@ -1010,11 +1017,11 @@ const player = {
   isInjured: false,
   isDead: false,
   notes: {
-    note1Found: false,
-    note2Found: false,
-    note3Found: false,
-    note4Found: false,
-    note5Found: false
+    note1: false,
+    note2: false,
+    note3: false,
+    note4: false,
+    note5: false
   }
 };
 
@@ -1093,6 +1100,13 @@ function goDirection(dir) {
     return;
   }
 
+  if (player.location === "glass corridor" && dir === "west") {
+    appendMessage("You push open the glass door underneath the EXIT sign and leave the building at last.");
+    appendMessage("~~~ 🏆 YOU WIN! 🏆 ~~~");
+    flags.gameWin = true;
+    return;
+  }
+  
   if (!room.exits || !room.exits[dir]) {
     appendMessage(`You can't go ${dir} from here.`);
     return;
@@ -1108,18 +1122,14 @@ function goDirection(dir) {
   }
   
   if (flags.carryingToolbox && !flags.usingCart) {
-    appendMessage("The toolbox is too heavy to carry for long. You'll need something to help move it.");
+    appendMessage("The toolbox is too heavy to carry for long. Try building a cart to help you move it.");
     return;
-  }
-  
-  if (flags.bookshelfBuilt && inventory.includes("bookshelf") && !inventory.includes("cart")) {
-    if (inventory.includes("toolbox")){
-      appendMessage("There's only room on the cart for one thing.");
-      return;
-    } else {
-      appendMessage("The bookshelf is far too heavy to carry around without a cart.");
-      return;
-    }
+  } else if (flags.carryingBookshelf && !flags.usingCart) {
+    appendMessage("The bookshelf is too bulky to move by yourself. Try building a cart to help you move it.");
+    return;
+  } else if (flags.carryingBirdhouse && !flags.usingCart) {
+    appendMessage("The birdhouse is too awkward to carry around like this. Try building a cart to help you move it.");
+    return;
   }
 
   // update both trackers
@@ -1141,13 +1151,6 @@ function goDirection(dir) {
     } else {
       appendMessage("You have a minor injury. Maybe you should use the first aid kit you picked up.");
     }
-  }
-  
-  if (player.location === "glass corridor" && dir === "west") {
-    appendMessage("You push open the glass door underneath the EXIT sign and leave the building at last.");
-    appendMessage("~~~ 🏆 YOU WIN! ~~~");
-    flags.gameWin = true;
-    return;
   }
 
 }
