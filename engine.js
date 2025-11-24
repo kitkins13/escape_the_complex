@@ -532,7 +532,9 @@ const items = {
   cart: {
     id: "cart",
     name: "cart",
-    description: "A sturdy wooden cart, suitable for transporting heavy items."
+    description: "A sturdy wooden cart, suitable for transporting heavy items.",
+    pickupable: true,
+    droppable: false
   },
   bookshelf: {
     id: "bookshelf",
@@ -860,16 +862,16 @@ function dropItem(name) {
   const index = inventory.findIndex(
     id => items[id].name.toLowerCase() === name.toLowerCase()
   );
-
-  if (index === -1) {
-    appendMessage("You don’t have that.");
-    return;
-  }
-
+  
   const item = items[inventory[index]];
   
-  if (item === "cart" || item === "handcart") {
+  if (!item.droppable) {
     appendMessage("That's too useful to leave behind.");
+    return;
+  }
+	
+  if (index === -1) {
+    appendMessage("You don’t have that.");
     return;
   }
   
