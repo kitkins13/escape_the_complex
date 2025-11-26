@@ -1,6 +1,6 @@
-/* Escape the Complex — Browser Prototype Engine
+/* Escape the Complex — Browser Game Engine
    Works with index.html, style.css, and rooms_complete.json
-   Basic playable loop with movement, command input, and output logging.
+   Gameplay logic, items and dialogue, utility functions
 */
 
 const output = document.getElementById("output");
@@ -66,9 +66,6 @@ function handleJump() {
     } else {
       appendMessage("You jump again, but nothing else happens.\n");
     }
-  } else if (loc === "hidden store") {
-    appendMessage("As you jump, you spot a tiny key on one of the high shelves. You jump up again and grab it.\nThere's a scratched up tag attached to it with the words 'white room - exit' written on.\n");
-    player.hasSmallKey = true;
   } else if (loc === "cleaners' store" || loc === "secret lab") {
     appendMessage("You can't jump here, the ceiling is too low.\n");
   } else if (loc === "fossil exhibit" && !player.notes.note1Found) {
@@ -230,6 +227,73 @@ const npcs = {
   }
 };
 
+function handleCaretakerTalk() {
+  if (player.location !== "blue corridor") {
+    appendMessage("The caretaker isn't here.");
+    return;
+  }
+
+  // First meeting
+  if (!npcs.caretaker.met) {
+    dialogue.caretaker.firstMeet.forEach(line => appendMessage(line));
+    npcs.caretaker.met = true;
+    return;
+  }
+
+  // Check priority conditions
+  const match = dialogue.caretaker.conditions.find(c => c.check());
+  if (match) {
+    appendMessage(match.text);
+    return;
+  }
+
+  // Generic fallback
+  const random = Math.floor(Math.random() * dialogue.caretaker.generic.length);
+  appendMessage(dialogue.caretaker.generic[random]);
+}
+
+function handleScientistTalk() {
+  if (player.location !== "fossil exhibit") {
+    appendMessage("The scientist isn't here.");
+    return;
+  }
+
+  // First meeting
+  if (!npcs.scientist.met) {
+    dialogue.scientist.firstMeet.forEach(line => appendMessage(line));
+    npcs.scientist.met = true;
+    return;
+  }
+
+  // Check priority conditions
+  const match = dialogue.scientist.conditions.find(c => c.check());
+  if (match) {
+    appendMessage(match.text);
+    return;
+  }
+
+  // Generic fallback
+  const random = Math.floor(Math.random() * dialogue.scientist.generic.length);
+  appendMessage(dialogue.scientist.generic[random]);
+}
+
+function handleBaristaTalk() {
+  if (player.location !== "cafe") {
+    appendMessage("The barista isn't here. Try the cafe.");
+    return;
+  }
+
+  if (!npcs.barista.met) {
+    appendMessage("The barista says: 'Hello, lovie! You're the first customer I've had in ages!'");
+    npcs.barista.met = true;
+    appendMessage("'Can I get you anything? We have coffee, tea, juice, or soda, and there's some cake in the back.'");
+    waitingForOrder = true;
+  } else {
+    print("The barista says: 'Back again, lovie? Same choices as before!'");
+    waitingForOrder = true;
+  }
+}
+
 // simple talk system - expand later
 function talkTo(npcName) {
   const npc = npcs[npcName];
@@ -241,30 +305,15 @@ function talkTo(npcName) {
   npc.met = true;
 
   if (npcName === "caretaker") {
-    if (flags.givenToolbox) {
-      appendMessage("The caretaker says: 'Thanks again for returning my toolbox! Have you visited the observatory yet? It's just north of here. Well worth a look, I'd say.'");
-    } else {
-      appendMessage("The caretaker says: 'That sink in the bathroom needs fixing, but I've lost my toolbox. If you find it, could you bring it to me?'");
-    }
-    return;
+    handleCaretakerTalk();
   }
 
   if (npcName === "barista") {
-    if (flags.givenFlowers){
-      appendMessage("The barista says: 'Thank you again for the flowers, lovie. They're beautiful!'");
-    } else {
-      appendMessage("The barista says: 'Hi lovie! Always happy to help!'");
-    }
-    return;
+    handleBaristaTalk();
   }
 
   if (npcName === "scientist") {
-    if (flags.givenSnowglobe){
-      appendMessage("The scientist says: 'Hello again. Did you find a use for that gem at all?'");
-    } else {
-      appendMessage("The scientist says: 'Fascinating place, isn't it? So many mysteries.'");
-    }
-    return;
+    handleScientistTalk();
   }
   
   if (npcName === "puppy") {
@@ -282,10 +331,123 @@ function puppyFollow() {
   
   if (follow) {
     npcs.puppy.location = player.location;
-    appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾")
+    appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾");
+  }
+}
+
+// order drinks & food in the cafe
+function handleBaristaOrder(item) {
+  const order = item.toLowerCase();
+  
+  if (!order || order === "nothing" || order === "no thanks") {
+    appendMessage("The barista says: 'Changed your mind, lovie? I'll be here if you decide you want anything.'");
+    waitingForOrder = false;
+  }
+
+  if (order === "coffee") {
+    appendMessage("The barista says: 'One coffee, got it. Just a moment...' She turns to the machine behind her, and hands you a steaming cup of coffee. 'On the house, lovie. Enjoy!");
+    inventory.push("coffee");
+    waitingForOrder = false;
+  } else if (order === "tea") {
+    appendMessage("The barista says: 'One tea, got it. Just a moment...' She turns to the machine behind her, and hands you a steaming cup of tea. 'On the house, lovie. Enjoy!'");
+    inventory.push("tea");
+    waitingForOrder = false;
+  } else if (order === "juice") {
+    appendMessage("The barista says: 'One juice, got it. Just a moment...' She goes over to the fridge behind her, and hands you a glass of chilled juice. 'On the house, lovie. Enjoy!'");
+    inventory.push("juice");
+    waitingForOrder = false;
+  } else if (order === "soda") {
+    appendMessage("The barista says: 'One soda, got it. Just a moment...' She goes over to the fridge behind her, and hands you a glass of chilled soda. 'On the house, lovie. Enjoy!'");
+    inventory.push("soda");
+    waitingForOrder = false;
+  } else if (order === "cake") {
+    appendMessage("The barista says: 'Coming right up.' She disappears through a small door behind the counter, and returns with a delicious slice of cake. 'Here you go, lovie. On the house. Enjoy!'");
+    inventory.push("cake");
+    waitingForOrder = false;
   }
   
 }
+
+// npc dialogue tables
+const dialogue = {
+  caretaker: {
+    firstMeet: [
+      "You approach the sweeping person cautiously. They smile and nod, immediately setting you at ease. The person says: 'Hello there! It's been a while since anyone visited. I'm the caretaker around here, so if you run into any problems, come and ask me. I can usually figure out something helpful.'"
+    ],
+    conditions: [
+      {
+        // Puppy name reveal
+        check: () => npcs.puppy.following,
+        text: "The caretaker says: 'I see you met Digger! He's a good dog, and great at digging up secrets.'"
+      },
+      {
+        // Toolbox hint
+        check: () => flags.carryingToolbox,
+        text: "The caretaker says: 'Oh, you found my old toolbox. I wondered where I left that. If you're done with it, would you mind giving it back? I could do with getting some maintenance done around here.'"
+      },
+      {
+        // Post-return thanks
+        check: () => flags.givenToolbox,
+        text: "The caretaker says: 'Thanks again for finding my toolbox. I got that sink fixed in the bathroom, if you need to wash your hands for any reason.'"
+      },
+      {
+        // Garden hint
+        check: () => flags.gardenOpen,
+        text: "The caretaker says: 'You managed to get that old garden unlocked, then? It was beautiful, once. A bit overgrown now, but nothing I can't fix with time, now the door's open.'"
+      },
+      {
+        // Secret lab
+        check: () => flags.discoveredLab,
+        text: "The caretaker says: 'Ah, you've uncovered one of this place's secrets! Good work, friend. Keep at it, you'll find your way out of here in no time.'"
+      },
+      {
+        // Hidden stores
+        check: () => flags.shelvesMoved,
+        text: "The caretaker says: 'A hidden door in my cleaning cupboard, you say? Well, I'll be. I never knew that was there. Did you go through it? Could be all sorts of interesting things in there.'"
+      },
+      {
+        // Injury hint
+        check: () => player.isInjured,
+        text: "The caretaker says: 'Ow, that cut looks nasty. Been poking about in the yard? There's a first aid kit in the cafe you could use. Pretty basic, but it'll get the job done.' They point to the north east door."
+      }
+    ],
+    generic: [
+      "The caretaker says: 'Hello again. How are you doing?'",
+      "The caretaker says: 'Say, if you find my toolbox anywhere around here, would you mind bringing it to me? You'll need something to carry it in, it's a pretty heavy old thing. A handcart would do the trick.'",
+      "The caretaker says: 'I've heard there's a beautiful glass corridor somewhere in this building, but I've never been able to find it. If you stumble across it, would you let me know? It's probably in dire need of a clean by now.'",
+      "The caretaker says: 'You know, there are a few loose notes floating around the place. Maybe if you look closely at things, or look high up, you could find some.'",
+      "The caretaker says: 'Have you been to the observatory yet? I had some spare parts for the mechanisms in my toolbox, if I can find the thing.'"
+    ]
+  },
+  scientist: {
+    firstMeet: [
+      "You approach the man on the floor, and he looks up from his books, slightly startled by your sudden appearance. The man says: 'Ah, a new face! Pleasure to meet you. They just call me the scientist, I've been here long enough I don't remember my real name anymore.'"
+    ],
+    conditions: [
+      {
+        // snowglobe trade hint
+        check: () => inventory.includes("snowglobe"),
+        text: "The scientist says: 'Say, if you come across a snowglobe anywhere around here, would you bring it to me? I don't have a lot, but I'm sure I could find something useful to give you for one.'"
+      },
+      {
+        // reaction to secret room
+        check: () => flags.bookshelfPlaced,
+        text: "The scientist says: 'Well I never! A secret room just off this exhibit, and none of us knew. I wonder how putting that shelf down triggered the door opening?'"
+      },
+      {
+        // secret lab reaction
+        check: () => flags.discoveredLab,
+        text: "The scientist says: 'Oh, you managed to get my lab open? Good work! I thought that was sealed up forever.'"
+      },
+    ],
+    generic: [
+      "The scientist says: 'Hello again. How are you doing?'",
+      "The scientist says: 'These fossils are quite fascinating, don't you think? I could study them forever.'",
+      "The scientist says: 'I gave up looking for a way out some time ago. Being here is far more peaceful than my old life. You keep at it, though! I'm sure you'll find one eventually.'",
+      "The scientist says: 'Have you found the observatory yet? I used to spend a fair amount of time in there, watching the skies.'"
+    ]
+  }
+};
 
 // ~~~~~~~~~~~~~~~~~~~~
 // PUZZLE RELATED LOGIC
@@ -405,7 +567,7 @@ function pullLever() {
     appendMessage("There’s no lever here.");
     return;
   } else if (inventory.includes("lever") && !flags.leverPlaced) {
-    appendMessage("You need to put the lever in the mechanism first.")
+    appendMessage("You need to put the lever in the mechanism first.");
   } else if (flags.leverPlaced && !flags.discoveredLab) {
     appendMessage("You pull the newly placed lever. Clicking and grinding noises travel through the walls, and a hidden panel swings open in the south west corner.");
     flags.discoveredLab = true;
@@ -458,6 +620,7 @@ const items = {
     description: "A sturdy lever that probably belongs to some machinery.",
     location: "null",
     pickupable: true,
+    droppable: false,
     usable: true,
     onUse: () => { // use lever logic
       if (player.location !== "observatory") {
@@ -482,6 +645,7 @@ const items = {
     description: "A plain leather keyring.",
     location: "gift shop",
     pickupable: true,
+    droppable: true,
     usable: false,
   },
   dogToy: {
@@ -490,6 +654,7 @@ const items = {
     description: "A brightly coloured squeaky dog toy.",
     location: "gift shop",
     pickupable: true,
+    droppable: false,
     usable: false,
     giveableTo: "puppy",
     onGive: () => {
@@ -504,6 +669,7 @@ const items = {
     description: "A small and intricate snowglobe. The cottage inside reminds you of home, somehow.",
     location: "gift shop",
     pickupable: true,
+    droppable: true,
     usable: false,
     giveableTo: "scientist",
     onGive: () => {
@@ -519,6 +685,7 @@ const items = {
     description: "A heavy metal toolbox filled with tools. It looks like it belongs to the caretaker.",
     location: "yard",
     pickupable: true,
+    droppable: true,
     usable: false,
     giveableTo: "caretaker",
     onGive: () => {
@@ -541,14 +708,16 @@ const items = {
     name: "bookshelf",
     description: "A tall shelving unit, suitable for keeping books off the floor.",
     location: "null",
-    pickupable: true
+    pickupable: true,
+    droppable: true
   },
   birdhouse: {
     id: "birdhouse",
     name: "birdhouse",
     description: "A simple freestanding wooden birdhouse, it might look nice in a garden.",
     location: "null",
-    pickupable: true
+    pickupable: true,
+    droppable: true
   },
   flowers: {
     id: "flowers",
@@ -556,6 +725,7 @@ const items = {
     description: "A bunch of colourful flowers you picked from the garden.",
     location: "null",
     pickupable: true,
+    droppable: true,
     usable: false,
     giveableTo: "barista",
     onGive: () => {
@@ -570,6 +740,7 @@ const items = {
     description: "A tasty looking slice of cake, neatly wrapped in a to-go box.",
     location: "null",
     pickupable: false,
+    droppable: false,
     usable: false,
     consumable: true,
     onConsume: () => {
@@ -583,11 +754,54 @@ const items = {
     description: "A steaming hot cup of coffee, skillfully prepared by the barista.",
     location: "null",
     pickupable: false,
+    droppable: false,
     usable: false,
     consumable: true,
     onConsume: () => {
       appendMessage("You drink the coffee, enjoying the robust flavour and energising caffeine.");
       inventory = inventory.filter(i => i !== "coffee");
+    }
+  },
+  tea: {
+    id: "tea",
+    name: "tea",
+    description: "A hot cup of tea, skillfully prepared by the barista.",
+    location: "null",
+    pickupable: false,
+    droppable: false,
+    usable: false,
+    consumable: true,
+    onConsume: () => {
+      appendMessage("You drink the tea, savouring the soothing scent.");
+      inventory = inventory.filter(i => i !== "tea");
+    }
+  },
+  juice: {
+    id: "juice",
+    name: "juice",
+    description: "A fresh glass of chilled juice.",
+    location: "null",
+    pickupable: false,
+    droppable: false,
+    usable: false,
+    consumable: true,
+    onConsume: () => {
+      appendMessage("You drink the juice, relishing the citrusy zing on your tongue.");
+      inventory = inventory.filter(i => i !== "juice");
+    }
+  },
+  soda: {
+    id: "soda",
+    name: "soda",
+    description: "A fizzing glass of soda.",
+    location: "null",
+    pickupable: false,
+    droppable: false,
+    usable: false,
+    consumable: true,
+    onConsume: () => {
+      appendMessage("You drink the soda, smiling as the bubbles tickle your nose.");
+      inventory = inventory.filter(i => i !== "soda");
     }
   },
   drink: {
@@ -596,6 +810,7 @@ const items = {
     description: "A can of... something vaguely drinkable. You don't recognise the brand.",
     location: "cafe",
     pickupable: true,
+    droppable: true,
     usable: false,
     consumable: true,
     onConsume: () => {
@@ -609,6 +824,7 @@ const items = {
     description: "A snack bar in unfamiliar packaging. There are only dashes in place of an expiry date.",
     location: "cafe",
     pickupable: true,
+    droppable: true,
     usable: false,
     consumable: true,
     onConsume: () => {
@@ -622,6 +838,7 @@ const items = {
     description: "A tiny tarnished key. There's a faded, dusty label: 'White Room - Exit'.",
     location: "hidden store",
     pickupable: true,
+    droppable: false,
     usable: true,
     onUse: () => {
       appendMessage("You carefully fit the small key into the tiny keyhole and turn it. A part of the north wall slides open, revealing an almost blinding light.");
@@ -637,6 +854,7 @@ const items = {
     description: "A heavy brass key. There's a tag on it that reads: 'Garden'.",
     location: "secret lab",
     pickupable: true,
+    droppable: false,
     usable: true,
     onUse: () => {
       // opens the garden doors
@@ -645,6 +863,7 @@ const items = {
       gard1.exits["south east"] = "garden";
       const gard2 = rooms["cafe"];
       gard2.exits["south"] = "garden";
+      flags.gardenOpen = true;
     }
   },
   ironKey: {
@@ -653,6 +872,7 @@ const items = {
     description: "A plain iron key. A label attached says: 'Stockroom'.",
     location: "garden",
     pickupable: true,
+    droppable: false,
     usable: true,
     onUse: () => {
       appendMessage("The key turns with a squeak and a clunk, but the secret door opens.");
@@ -667,6 +887,7 @@ const items = {
     description: "A basic first aid box, handy for dealing with minor injuries.",
     location: "cafe",
     pickupable: true,
+    droppable: true,
     usable: true,
     onUse: () => {
       if (!player.isInjured) {
@@ -683,6 +904,7 @@ const items = {
     description: "It glows faintly with a mysterious energy. Might fit somewhere important.",
     location: "null",
     pickupable: true,
+    droppable: true,
     usable: true,
     onUse: () => {
       if (player.location === "secret room" && !flags.batteryPlaced) {
@@ -705,6 +927,7 @@ const items = {
     description: "It's cold and rather light. There seem to be connectors on each end, and a green bar down one side, with a lightning bolt above it. Maybe a power source for something?",
     location: "null",
     pickupable: true,
+    droppable: true,
     usable: true,
     onUse: () => {
       if (player.location === "secret room" && !flags.teleGemPlaced) {
@@ -1003,6 +1226,7 @@ const flags = {
   wrExitOpen: false,
   smallKeyholeRevealed: false,
   discoveredLab: false,
+  gardenOpen: false,
   teleGemPlaced: false,
   batteryPlaced: false,
   exitUnlocked: false,
@@ -1161,6 +1385,11 @@ function goDirection(dir) {
 function handleCommand(cmdInput) {
   const cmd = cmdInput.trim().toLowerCase();
 
+  if (cmd === "restart") {
+    location.reload();
+    return;
+  }
+  
   if (flags.gameLose) {
     appendMessage("The lab exploded. You're no longer among the living.\nType RESTART to play again.");
     return;
@@ -1168,6 +1397,11 @@ function handleCommand(cmdInput) {
 
   if (flags.gameWin) {
     appendMessage("You've already escaped! Refresh the page or type RESTART to play again.");
+    return;
+  }
+
+  if (waitingForOrder) {
+    handleBaristaOrder(cmd);
     return;
   }
 
@@ -1254,22 +1488,37 @@ function handleCommand(cmdInput) {
   } else if (cmd.startsWith("talk to ")) {
     talkTo(cmd.slice(8).trim());
     return true;
-  } else if (cmd === "inventory" || cmd === "check bag") {
+  } else if (cmd === "inventory" || cmd === "check bag" || cmd === "bag") {
     showInventory();
   } else if (cmd === "read note" || cmd === "read notes" || cmd === "notes") {
     showNotes();
-  } else if (cmd === "restart") {
-    location.reload();
-    return;
   } else {
     appendMessage("You can't do that.");
   }
 }
 
-// Toggle help panel
+// toggle help panel
 function toggleHelp(show) {
   helpPanel.classList.toggle("hidden", !show);
   helpPanel.setAttribute("aria-hidden", !show);
+}
+
+// toggle notes panel
+document.getElementById("notesButton").onclick = () => {
+  document.getElementById("notesPanel").classList.toggle("hidden");
+  renderNotesPanel();
+};
+
+function renderNotesPanel() {
+  const panel = document.getElementById("notesPanel");
+  panel.innerHTML = "";
+  const found = Object.keys(player.notes).filter(n => player.notes[n]);
+
+  found.forEach(n => {
+    const block = document.createElement("pre");
+    block.textContent = NOTES[n];
+    panel.appendChild(block);
+  });
 }
 
 // Input handling

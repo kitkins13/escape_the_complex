@@ -204,6 +204,17 @@ html, body {
   color: var(--accent);
 }
 
+
+#notesPanel {
+  background:#111;
+  border:2px solid #aa8800;
+  padding:10px;
+  color:#ffaa44;
+  overflow-y:auto;
+  max-height:300px;
+  white-space:pre-wrap;
+}
+
 /* ---- Footer ---- */
 .footer {
   text-align: center;
