@@ -213,6 +213,7 @@ const npcs = {
     name: "barista",
     location: "cafe",
     met: false,
+    waitingForOrder: false,
   },
   scientist: {
     name: "scientist",
@@ -341,29 +342,29 @@ function handleBaristaOrder(item) {
   
   if (!order || order === "nothing" || order === "no thanks") {
     appendMessage("The barista says: 'Changed your mind, lovie? I'll be here if you decide you want anything.'");
-    waitingForOrder = false;
+    npcs.barista.waitingForOrder = false;
   }
 
   if (order === "coffee") {
     appendMessage("The barista says: 'One coffee, got it. Just a moment...' She turns to the machine behind her, and hands you a steaming cup of coffee. 'On the house, lovie. Enjoy!");
     inventory.push("coffee");
-    waitingForOrder = false;
+    npcs.barista.waitingForOrder = false;
   } else if (order === "tea") {
     appendMessage("The barista says: 'One tea, got it. Just a moment...' She turns to the machine behind her, and hands you a steaming cup of tea. 'On the house, lovie. Enjoy!'");
     inventory.push("tea");
-    waitingForOrder = false;
+    npcs.barista.waitingForOrder = false;
   } else if (order === "juice") {
     appendMessage("The barista says: 'One juice, got it. Just a moment...' She goes over to the fridge behind her, and hands you a glass of chilled juice. 'On the house, lovie. Enjoy!'");
     inventory.push("juice");
-    waitingForOrder = false;
+    npcs.barista.waitingForOrder = false;
   } else if (order === "soda") {
     appendMessage("The barista says: 'One soda, got it. Just a moment...' She goes over to the fridge behind her, and hands you a glass of chilled soda. 'On the house, lovie. Enjoy!'");
     inventory.push("soda");
-    waitingForOrder = false;
+    npcs.barista.waitingForOrder = false;
   } else if (order === "cake") {
     appendMessage("The barista says: 'Coming right up.' She disappears through a small door behind the counter, and returns with a delicious slice of cake. 'Here you go, lovie. On the house. Enjoy!'");
     inventory.push("cake");
-    waitingForOrder = false;
+    npcs.barista.waitingForOrder = false;
   }
   
 }
@@ -1400,7 +1401,7 @@ function handleCommand(cmdInput) {
     return;
   }
 
-  if (waitingForOrder) {
+  if (npcs.barista.waitingForOrder) {
     handleBaristaOrder(cmd);
     return;
   }
