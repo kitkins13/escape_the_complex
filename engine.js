@@ -208,6 +208,10 @@ const npcs = {
     name: "caretaker",
     location: "blue corridor",
     met: false,
+    playerThanked: false,
+    shelfCommentSaid: false,
+    gardenCommentSaid: false,
+    labCommentSaid: false,
   },
   barista: {
     name: "barista",
@@ -219,6 +223,8 @@ const npcs = {
     name: "scientist",
     location: "fossil exhibit",
     met: false,
+    shelfCommentSaid: false,
+    labCommentSaid: false,
   },
   puppy: {
     name: "puppy",
@@ -245,6 +251,7 @@ function handleCaretakerTalk() {
   const match = dialogue.caretaker.conditions.find(c => c.check());
   if (match) {
     appendMessage(match.text);
+    if (match.onSay()) match.onSay(); // prevent repeating conditional dialogue
     return;
   }
 
@@ -270,6 +277,7 @@ function handleScientistTalk() {
   const match = dialogue.scientist.conditions.find(c => c.check());
   if (match) {
     appendMessage(match.text);
+    if (match.onSay()) match.onSay(); // prevent repeating conditional dialogue
     return;
   }
 
@@ -288,10 +296,10 @@ function handleBaristaTalk() {
     appendMessage("The barista says: 'Hello, lovie! You're the first customer I've had in ages!'");
     npcs.barista.met = true;
     appendMessage("'Can I get you anything? We have coffee, tea, juice, or soda, and there's some cake in the back.'");
-    waitingForOrder = true;
+    npcs.barista.waitingForOrder = true;
   } else {
     print("The barista says: 'Back again, lovie? Same choices as before!'");
-    waitingForOrder = true;
+    npcs.barista.waitingForOrder = true;
   }
 }
 
@@ -378,8 +386,16 @@ const dialogue = {
     conditions: [
       {
         // Puppy name reveal
-        check: () => npcs.puppy.following,
-        text: "The caretaker says: 'I see you met Digger! He's a good dog, and great at digging up secrets.'"
+        check: () => npcs.puppy.following && !flags.learnedPuppyName,
+        text: "The caretaker says: 'I see you met Digger! He's a good dog, and great at digging up secrets.'",
+        onSay: () => {
+          flags.learnedPuppyName = true;
+        }
+      },
+      {
+        // Injury hint
+        check: () => player.isInjured,
+        text: "The caretaker says: 'Ow, that cut looks nasty. Been poking about in the yard? There's a first aid kit in the cafe you could use. Pretty basic, but it'll get the job done.' They point to the north east door."
       },
       {
         // Toolbox hint
@@ -388,36 +404,43 @@ const dialogue = {
       },
       {
         // Post-return thanks
-        check: () => flags.givenToolbox,
-        text: "The caretaker says: 'Thanks again for finding my toolbox. I got that sink fixed in the bathroom, if you need to wash your hands for any reason.'"
-      },
-      {
-        // Garden hint
-        check: () => flags.gardenOpen,
-        text: "The caretaker says: 'You managed to get that old garden unlocked, then? It was beautiful, once. A bit overgrown now, but nothing I can't fix with time, now the door's open.'"
-      },
-      {
-        // Secret lab
-        check: () => flags.discoveredLab,
-        text: "The caretaker says: 'Ah, you've uncovered one of this place's secrets! Good work, friend. Keep at it, you'll find your way out of here in no time.'"
+        check: () => flags.givenToolbox && !npcs.caretaker.playerThanked,
+        text: "The caretaker says: 'Thanks again for finding my toolbox. I got that sink fixed in the bathroom, if you need to wash your hands for any reason.'",
+        onSay: () => {
+          npcs.caretaker.playerThanked = true;
+        }
       },
       {
         // Hidden stores
-        check: () => flags.shelvesMoved,
-        text: "The caretaker says: 'A hidden door in my cleaning cupboard, you say? Well, I'll be. I never knew that was there. Did you go through it? Could be all sorts of interesting things in there.'"
+        check: () => flags.shelvesMoved && !npcs.caretaker.shelfCommentSaid,
+        text: "The caretaker says: 'A hidden door in my cleaning cupboard, you say? Well, I'll be. I never knew that was there. Did you go through it? Could be all sorts of interesting things in there.'",
+        onSay: () => {
+          npcs.caretaker.shelfCommentSaid = true;
+        }
       },
       {
-        // Injury hint
-        check: () => player.isInjured,
-        text: "The caretaker says: 'Ow, that cut looks nasty. Been poking about in the yard? There's a first aid kit in the cafe you could use. Pretty basic, but it'll get the job done.' They point to the north east door."
-      }
+        // Garden hint
+        check: () => flags.gardenOpen && !npcs.caretaker.gardenCommentSaid,
+        text: "The caretaker says: 'You managed to get that old garden unlocked, then? It was beautiful, once. A bit overgrown now, but nothing I can't fix with time, now the door's open.'",
+        onSay: () => {
+          npcs.caretaker.gardenCommentSaid = true;
+        }
+      },
+      {
+        // Secret lab
+        check: () => flags.discoveredLab && !npcs.caretaker.labCommentSaid,
+        text: "The caretaker says: 'Ah, you've uncovered one of this place's secrets! Good work, friend. Keep at it, you'll find your way out of here in no time.'",
+        onSay: () => {
+          npcs.caretaker.labCommentSaid = true;
+        }
+      },
     ],
     generic: [
       "The caretaker says: 'Hello again. How are you doing?'",
       "The caretaker says: 'Say, if you find my toolbox anywhere around here, would you mind bringing it to me? You'll need something to carry it in, it's a pretty heavy old thing. A handcart would do the trick.'",
       "The caretaker says: 'I've heard there's a beautiful glass corridor somewhere in this building, but I've never been able to find it. If you stumble across it, would you let me know? It's probably in dire need of a clean by now.'",
       "The caretaker says: 'You know, there are a few loose notes floating around the place. Maybe if you look closely at things, or look high up, you could find some.'",
-      "The caretaker says: 'Have you been to the observatory yet? I had some spare parts for the mechanisms in my toolbox, if I can find the thing.'"
+      "The caretaker says: 'Have you been to the observatory yet? It's just north of here. Fascinating room, even if the equipment's a little old.'"
     ]
   },
   scientist: {
@@ -433,12 +456,18 @@ const dialogue = {
       {
         // reaction to secret room
         check: () => flags.bookshelfPlaced,
-        text: "The scientist says: 'Well I never! A secret room just off this exhibit, and none of us knew. I wonder how putting that shelf down triggered the door opening?'"
+        text: "The scientist says: 'Well I never! A secret room just off this exhibit, and none of us knew. I wonder how putting that shelf down triggered the door opening?'",
+        onSay: () => {
+          npcs.scientist.shelfCommentSaid = true;
+        }
       },
       {
         // secret lab reaction
         check: () => flags.discoveredLab,
-        text: "The scientist says: 'Oh, you managed to get my lab open? Good work! I thought that was sealed up forever.'"
+        text: "The scientist says: 'Oh, you managed to get my lab open? Good work! I thought that was sealed up forever.'",
+        onSay: () => {
+          npcs.scientist.labCommentSaid = true;
+        }
       },
     ],
     generic: [
@@ -1222,6 +1251,7 @@ const flags = {
   givenFlowers: false,
   givenSnowglobe : false,
   befriendedPuppy: false,
+  learnedPuppyName: false,
   leverPlaced: false,
   shelvesMoved: false,
   wrExitOpen: false,
@@ -1510,6 +1540,7 @@ document.getElementById("notesButton").onclick = () => {
   renderNotesPanel();
 };
 
+// populate notes panel
 function renderNotesPanel() {
   const panel = document.getElementById("notesPanel");
   panel.innerHTML = "";
@@ -1517,7 +1548,7 @@ function renderNotesPanel() {
 
   found.forEach(n => {
     const block = document.createElement("pre");
-    block.textContent = NOTES[n];
+    block.textContent = notes[n];
     panel.appendChild(block);
   });
 }
