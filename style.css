@@ -18,19 +18,31 @@
 .theme-green {
   --bg: #001900;
   --text: #00ff80;
-  --accent: #00ff80;
+  --text-dim: #00dd40;
+  --accent: #00dd40;
+  --border: #00ee60;
+  --btn-bg: #003e10;
+  --btn-hover: #005d10;
 }
 
 .theme-light {
   --bg: #f5f5f5;
   --text: #111;
+  --text-dim:;
   --accent: #444;
+  --border: #333;
+  --btn-bg: #e2e2e2;
+  --btn-hover: #f3f3f3;
 }
 
 .theme-dark {
   --bg: #111;
   --text: #ddd;
-  --accent: #888;
+  --text-dim: #aaa;
+  --accent: #b1b1b1;
+  --border: #aaa;
+  --btn-bg: #ccc;
+  --btn-hover: #c2c2c2;
 }
 
 /* ---- Main Styling ---- */
