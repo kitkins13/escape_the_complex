@@ -311,8 +311,6 @@ function talkTo(npcName) {
     return;
   }
 
-  npc.met = true;
-
   if (npcName === "caretaker") {
     handleCaretakerTalk();
   }
@@ -326,6 +324,9 @@ function talkTo(npcName) {
   }
   
   if (npcName === "puppy") {
+	
+		npcs.puppy.met = true;
+	
     if (flags.befriendedPuppy) {
       appendMessage("The puppy jumps up and licks your hand. 'Woof woof!'");
     } else {
@@ -385,7 +386,7 @@ const dialogue = {
     ],
     conditions: [
       {
-        // Puppy name reveal
+        // puppy name reveal
         check: () => npcs.puppy.following && !flags.learnedPuppyName,
         text: "The caretaker says: 'I see you met Digger! He's a good dog, and great at digging up secrets.'",
         onSay: () => {
@@ -393,17 +394,22 @@ const dialogue = {
         }
       },
       {
-        // Injury hint
+        // injury hint
         check: () => player.isInjured,
         text: "The caretaker says: 'Ow, that cut looks nasty. Been poking about in the yard? There's a first aid kit in the cafe you could use. Pretty basic, but it'll get the job done.' They point to the north east door."
       },
+			{
+        // toolbox hint
+        check: () => !flags.givenToolbox,
+        text: "The caretaker says: 'Say, if you find my toolbox anywhere around here, would you mind bringing it to me? You'll need something to carry it in, it's a pretty heavy old thing. A handcart would do the trick.'"
+      },
       {
-        // Toolbox hint
+        // toolbox ask
         check: () => flags.carryingToolbox,
         text: "The caretaker says: 'Oh, you found my old toolbox. I wondered where I left that. If you're done with it, would you mind giving it back? I could do with getting some maintenance done around here.'"
       },
       {
-        // Post-return thanks
+        // thank player for returning toolbox
         check: () => flags.givenToolbox && !npcs.caretaker.playerThanked,
         text: "The caretaker says: 'Thanks again for finding my toolbox. I got that sink fixed in the bathroom, if you need to wash your hands for any reason.'",
         onSay: () => {
@@ -411,7 +417,7 @@ const dialogue = {
         }
       },
       {
-        // Hidden stores
+        // hidden stores comment
         check: () => flags.shelvesMoved && !npcs.caretaker.shelfCommentSaid,
         text: "The caretaker says: 'A hidden door in my cleaning cupboard, you say? Well, I'll be. I never knew that was there. Did you go through it? Could be all sorts of interesting things in there.'",
         onSay: () => {
@@ -419,7 +425,7 @@ const dialogue = {
         }
       },
       {
-        // Garden hint
+        // garden comment
         check: () => flags.gardenOpen && !npcs.caretaker.gardenCommentSaid,
         text: "The caretaker says: 'You managed to get that old garden unlocked, then? It was beautiful, once. A bit overgrown now, but nothing I can't fix with time, now the door's open.'",
         onSay: () => {
@@ -427,7 +433,7 @@ const dialogue = {
         }
       },
       {
-        // Secret lab
+        // secret lab comment
         check: () => flags.discoveredLab && !npcs.caretaker.labCommentSaid,
         text: "The caretaker says: 'Ah, you've uncovered one of this place's secrets! Good work, friend. Keep at it, you'll find your way out of here in no time.'",
         onSay: () => {
@@ -437,10 +443,11 @@ const dialogue = {
     ],
     generic: [
       "The caretaker says: 'Hello again. How are you doing?'",
-      "The caretaker says: 'Say, if you find my toolbox anywhere around here, would you mind bringing it to me? You'll need something to carry it in, it's a pretty heavy old thing. A handcart would do the trick.'",
+      "The caretaker says: 'The barista was talking about making a birdhouse for the garden. I think there was a design sketch for something like that over in the workshop, if you wanted to help out.'",
       "The caretaker says: 'I've heard there's a beautiful glass corridor somewhere in this building, but I've never been able to find it. If you stumble across it, would you let me know? It's probably in dire need of a clean by now.'",
       "The caretaker says: 'You know, there are a few loose notes floating around the place. Maybe if you look closely at things, or look high up, you could find some.'",
-      "The caretaker says: 'Have you been to the observatory yet? It's just north of here. Fascinating room, even if the equipment's a little old.'"
+      "The caretaker says: 'Have you been to the observatory yet? It's just north of here. Fascinating room, even if the equipment's a little old.'",
+			"The caretaker says: 'The scientist has been complaining about having nowhere to keep all his books lately. He just leaves them scattered all over the floor in the fossil exhibit. A bookshelf might help him keep them tidier.'"
     ]
   },
   scientist: {
@@ -455,7 +462,7 @@ const dialogue = {
       },
       {
         // reaction to secret room
-        check: () => flags.bookshelfPlaced,
+        check: () => flags.bookshelfPlaced && !npcs.scientist.shelfCommentSaid,
         text: "The scientist says: 'Well I never! A secret room just off this exhibit, and none of us knew. I wonder how putting that shelf down triggered the door opening?'",
         onSay: () => {
           npcs.scientist.shelfCommentSaid = true;
@@ -463,7 +470,7 @@ const dialogue = {
       },
       {
         // secret lab reaction
-        check: () => flags.discoveredLab,
+        check: () => flags.discoveredLab && !npcs.scientist.labCommentSaid,
         text: "The scientist says: 'Oh, you managed to get my lab open? Good work! I thought that was sealed up forever.'",
         onSay: () => {
           npcs.scientist.labCommentSaid = true;
@@ -474,7 +481,8 @@ const dialogue = {
       "The scientist says: 'Hello again. How are you doing?'",
       "The scientist says: 'These fossils are quite fascinating, don't you think? I could study them forever.'",
       "The scientist says: 'I gave up looking for a way out some time ago. Being here is far more peaceful than my old life. You keep at it, though! I'm sure you'll find one eventually.'",
-      "The scientist says: 'Have you found the observatory yet? I used to spend a fair amount of time in there, watching the skies.'"
+      "The scientist says: 'Have you found the observatory yet? I used to spend a fair amount of time in there, watching the skies.'",
+			"The scientist says: 'Oh, where did I leave that book? It's a wonder I can ever find any of them in this chaos. If only I had a shelf to organise them on properly...'"
     ]
   }
 };
