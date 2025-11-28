@@ -1561,6 +1561,41 @@ function renderNotesPanel() {
   });
 }
 
+// inventory panel show/hide
+const invButton = document.getElementById("invButton");
+const inventoryPanel = document.getElementById("inventoryPanel");
+const closeInv = document.getElementById("closeInv");
+
+invButton.addEventListener("click", () => {
+  updateInventoryUI();
+  inventoryPanel.classList.remove("hidden");
+});
+
+closeInv.addEventListener("click", () => {
+  inventoryPanel.classList.add("hidden");
+});
+
+// populate inventory panel
+function updateInventoryUI() {
+  const list = document.getElementById("inventoryList");
+  list.innerHTML = "";
+  inventory.forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    list.appendChild(li);
+  });
+}
+
+// theme selector
+document.querySelectorAll('input[name="theme"]').forEach(radio => {
+  radio.addEventListener("change", e => {
+    document.body.className = ""; // clear previous
+    if (e.target.value !== "amber") {
+      document.body.classList.add("theme-" + e.target.value);
+    }
+  });
+});
+
 // Input handling
 sendBtn.addEventListener("click", () => {
   const input = cmdInput.value;

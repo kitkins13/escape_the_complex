@@ -1,5 +1,5 @@
-/* Escape the Complex - Browser Prototype Stylesheet
-   Retro terminal theme (dark background, amber text)
+/* Escape the Complex - browser version stylesheet
+    including new theme options for user to choose from
 */
 
 :root {
@@ -12,6 +12,28 @@
   --btn-hover: #333;
   --font: "Courier New", monospace;
 }
+
+/* ---- Themes ---- */
+
+.theme-green {
+  --bg: #001900;
+  --text: #00ff80;
+  --accent: #00ff80;
+}
+
+.theme-light {
+  --bg: #f5f5f5;
+  --text: #111;
+  --accent: #444;
+}
+
+.theme-dark {
+  --bg: #111;
+  --text: #ddd;
+  --accent: #888;
+}
+
+/* ---- Main Styling ---- */
 
 html, body {
   margin: 0;
@@ -35,6 +57,7 @@ html, body {
 }
 
 /* ---- Header ---- */
+
 .header {
   text-align: center;
   margin-bottom: 0.5rem;
@@ -53,6 +76,7 @@ html, body {
 }
 
 /* ---- Game area ---- */
+
 .game {
   flex: 1;
   width: 100%;
@@ -80,11 +104,13 @@ html, body {
 }
 
 /* Add a subtle CRT-style glow */
+
 .output, .cmdInput {
   text-shadow: 0 0 2px rgba(255, 204, 102, 0.6);
 }
 
 /* ---- Controls ---- */
+
 .controls {
   display: flex;
   flex-direction: column;
@@ -115,6 +141,7 @@ html, body {
 }
 
 /* ---- Buttons ---- */
+
 .btn, .dir {
   background-color: var(--btn-bg);
   color: var(--text);
@@ -140,7 +167,12 @@ html, body {
   opacity: 1;
 }
 
+.button-row {
+  padding: 10px;
+}
+
 /* ---- Compass Layout ---- */
+
 .compass {
   display: grid;
   grid-template-columns: repeat(3, 50px);
@@ -164,7 +196,8 @@ html, body {
   color: var(--text-dim);
 }
 
-/* ---- Help Panel ---- */
+/* ---- Panels ---- */
+
 .panel {
   background-color: #111;
   border: 1px solid var(--border);
@@ -175,7 +208,7 @@ html, body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 300px;
+  width: 400px;
   max-height: 80%;
   overflow-y: auto;
   box-shadow: 0 0 20px rgba(255, 204, 102, 0.3);
@@ -204,18 +237,14 @@ html, body {
   color: var(--accent);
 }
 
-
 #notesPanel {
-  background:#111;
-  border:2px solid #aa8800;
-  padding:10px;
-  color:#ffaa44;
-  overflow-y:auto;
-  max-height:300px;
-  white-space:pre-wrap;
+  width: 600px;
+  overflow: auto;
+  white-space: normal;
 }
 
 /* ---- Footer ---- */
+
 .footer {
   text-align: center;
   color: var(--text-dim);

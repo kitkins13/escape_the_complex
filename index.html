@@ -37,10 +37,33 @@
         <div class="input-row">
           <input id="cmd" class="cmdInput" placeholder="Type a command (e.g. look, go north, take key)" autocomplete="off" />
           <button id="send" class="btn">Send</button>
-          <button id="help" class="btn secondary">Help</button>
-          <button id="notesButton" class="btn secondary">Notes</button>
-          <!--button id="inv" class="btn secondary">Bag</button-->
         </div>
+        <div class="button-row">
+          <button id="invButton" class="btn secondary">Bag</button>
+          <button id="notesButton" class="btn secondary">Notes</button>
+          <button id="help" class="btn secondary">Help</button>
+          <button id="settingsButton" class="btn secondary">Settings</button>
+        </div>
+      </div>
+      
+      <!-- inventory panel -->
+
+      <div id="inventoryPanel" class="panel hidden" aria-hidden="true">
+        <h2>Inventory</h2>
+        <ul id="inventoryList"></ul>
+        <button id="closeInv" class="btn secondary">Close</button>
+      </div>
+
+      <!-- theme select panel -->
+      <div id="settingsPanel" class="panel hidden" aria-hidden="true">
+        <h2>Visual Options</h2>
+
+        <label><input type="radio" name="theme" value="amber" checked> Amber Terminal</label><br>
+        <label><input type="radio" name="theme" value="green"> Green Retro</label><br>
+        <label><input type="radio" name="theme" value="light"> Light Mode</label><br>
+        <label><input type="radio" name="theme" value="dark"> Dark Mode</label><br>
+
+        <button id="closeSettings" class="close-btn">Close</button>
       </div>
 
       <!-- game help panel -->
@@ -50,18 +73,23 @@
           <li><code>look around</code> — reprints the current room description</li>
           <li><code>go &lt;direction&gt;</code> — move (north, south, east, west, north east ...)</li>
           <li><code>jump</code> — jump, you might find a secret</li>
-          <li><code>inventory</code> — show inventory</li>
+          <li><code>bag</code> — show inventory</li>
           <li><code>search</code> — search the current room for items</li>
           <li><code>examine</code> — examine the current room more closely</li>
           <li><code>poke</code> — poke things in the current room, use with caution</li>
-          <li><code>take/leave/use &lt;item&gt;</code> — pick up/drop/use an item</li>
+          <li><code>take/drop/use &lt;item&gt;</code> — pick up/drop/use an item</li>
           <li><code>give &lt;item&gt; to &lt;npc&gt;</code> — give an item</li>
           <li><code>talk to &lt;npc&gt;</code> — talk to caretaker / barista / scientist / puppy</li>
-          <li><code>build &lt;thing&gt;</code> — build in the workshop (cart, birdhouse, shelf)</li>
+          <li><code>build &lt;item&gt;</code> — build in the workshop (cart, birdhouse, shelf)</li>
+          <li><code>place &lt;item&gt;</code> — place workshop items to solve puzzles</li>
         </ul>
         <button id="closeHelp" class="btn">Close</button>
       </aside>
-      <div id="notesPanel" class="panel hidden"></div>
+      
+      <!-- notes panel -->
+      <div id="notesPanel" class="panel hidden">
+        
+      </div>
     </section>
 
     <footer class="footer">Still under development!</footer>
