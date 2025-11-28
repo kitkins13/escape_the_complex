@@ -1586,6 +1586,19 @@ function updateInventoryUI() {
   });
 }
 
+// settings panel show/hide
+const settingsButton = document.getElementById("settingsButton");
+const settingsPanel = document.getElementById("settingsPanel");
+const closeSettings = document.getElementById("closeSettings");
+
+settingsButton.addEventListener("click", () => {
+  settingsPanel.classList.remove("hidden");
+});
+
+closeSettings.addEventListener("click", () => {
+  settingsPanel.classList.add("hidden");
+});
+
 // theme selector
 document.querySelectorAll('input[name="theme"]').forEach(radio => {
   radio.addEventListener("change", e => {
