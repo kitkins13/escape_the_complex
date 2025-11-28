@@ -97,7 +97,8 @@ html, body {
   border: 2px solid var(--border);
   border-radius: 10px;
   padding: 1rem;
-  background: #000;
+  background: var(--bg);
+  color: var(--text);
   box-shadow: 0 0 15px rgba(255, 170, 51, 0.15);
 }
 
@@ -106,7 +107,8 @@ html, body {
   overflow: auto;
   white-space: pre-wrap;
   padding: 0.75rem;
-  background-color: #000;
+  background-color: var(--bg);
+  color: var(--text);
   border: 1px solid var(--border);
   border-radius: 6px;
   max-height: 450px;
