@@ -258,7 +258,6 @@ html, body {
 #notesPanel {
   width: 600px;
   overflow: auto;
-  white-space: pre-wrap;
 }
 
 /* ---- Footer ---- */
@@ -283,27 +282,66 @@ body::after {
   background-image: repeating-linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.15) 0.5px,
-    rgba(0, 0, 0, 0.3) 2px
+    rgba(0, 0, 0, 0.2) 2px
   );
   opacity: 0.15;
   z-index: 999;
 }
 
-/* Media queries
-@media screen and (min-device-width: 1200px) and (max-device-width: 1600px) 
-  and (-webkit-min-device-pixel-ratio: 1) { 
+/* Media queries */
+@media screen and (min-device-width: 1024px) and (max-device-width: 1600px) 
+  and (-webkit-min-device-pixel-ratio: 1) { /* for small screens & laptops */
   .output {
-    overflow: auto;
-    padding: 0.55rem;
-    background-color: #000;
-    max-height: 350px;
-    margin-bottom: 0.7rem;
-    line-height: 1.5;
+    max-height: 330px;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
     font-size: 0.9rem;
   }
+}
 
+@media screen and (min-device-width: 700px) and (max-device-width: 1024px) and (orientation: landscape) { /* for tablets - landscape orientation */
+  .output {
+    max-height: 250px;
+    margin-bottom: 0.5rem;
+    line-height: 0.9;
+    font-size: 0.9rem;
+  }
+  
   .footer {
     display: none;
   }
 }
-*/
+
+@media screen and (min-device-width: 480px) and (max-device-width: 768px) and (orientation: portrait) { /* for tablets - portrait orientation */
+  .output {
+    max-height: 300px;
+    max-width: 90%;
+    margin-bottom: 0.5rem;
+    line-height: 0.9;
+    font-size: 0.9rem;
+  }
+  
+  #notesPanel {
+    width: 90%;
+  }
+
+}
+
+@media screen and (max-device-width: 480px) { /* for phones */
+  .output {
+    max-height: 275px;
+    max-width: 80%;
+    margin-bottom: 0.3rem;
+    line-height: 1.0;
+    font-size: 0.9rem;
+  }
+  
+  .footer {
+    display: none;
+  }
+  
+  #notesPanel {
+    width: 90%;
+  }
+  
+}

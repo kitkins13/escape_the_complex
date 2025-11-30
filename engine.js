@@ -1542,7 +1542,7 @@ function toggleHelp(show) {
   helpPanel.setAttribute("aria-hidden", !show);
 }
 
-// toggle notes panel
+/*/ toggle notes panel
 document.getElementById("notesButton").onclick = () => {
   document.getElementById("notesPanel").classList.toggle("hidden");
   renderNotesPanel();
@@ -1558,6 +1558,33 @@ function renderNotesPanel() {
     const block = document.createElement("pre");
     block.textContent = notes[n];
     panel.appendChild(block);
+  });
+}*/
+
+// notes panel v2, modelled on inventory panel
+const notesButton = document.getElementById("notesButton");
+const notesPanel = document.getElementById("notesPanel");
+const closeNotes = document.getElementById("closeNotes");
+
+notesButton.addEventListener("click", () => {
+  updateJournal();
+  notesPanel.classList.remove("hidden");
+});
+
+closeNotes.addEventListener("click", () => {
+  notesPanel.classList.add("hidden");
+});
+
+// populate notes panel
+function updateJournal() {
+  const pNotes = document.getElementById("playerNotes");
+  pNotes.innerHTML = "";
+  const found = Object.keys(player.notes).filter(n => player.notes[n]);
+  
+  found.forEach(n => {
+    const li = document.createElement("li");
+    li.textContent = notes[n];
+    pNotes.appendChild(li);
   });
 }
 
