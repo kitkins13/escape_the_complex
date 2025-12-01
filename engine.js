@@ -1641,7 +1641,7 @@ closeHelp.addEventListener("click", () => toggleHelp(false));
 function saveGame() {
   const saveData = {
     currentRoom,
-    visitedRooms: Array.from(visitedRooms),
+    //visitedRooms: Array.from(visitedRooms),
     inventory,
     player
   };
@@ -1660,7 +1660,7 @@ function loadGame() {
 
   const data = JSON.parse(saved);
   currentRoom = data.currentRoom;
-  visitedRooms = new Set(data.visitedRooms);
+  //visitedRooms = new Set(data.visitedRooms);
   inventory = data.inventory;
   Object.assign(player, data.player);
 
