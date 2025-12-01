@@ -1355,7 +1355,11 @@ function goDirection(dir) {
     flags.gameWin = true;
     return;
   }
-  
+
+	if (player.location === "white room" && inventory.includes("small key") && !flags.smallKeyholeRevealed) {
+		appendMessage("You are exhausted after spending so long wandering around this place. That rickety old bench suddenly looks a lot more comfortable. Surely it wouldn't hurt to sit down for a moment?");
+	}
+	
   if (!room.exits || !room.exits[dir]) {
     appendMessage(`You can't go ${dir} from here.`);
     return;
@@ -1495,7 +1499,7 @@ function handleCommand(cmdInput) {
     } else {
       appendMessage("Use what?");
     }
-  } else if (cmd === "place shelf" || cmd === "place bookshelf" || cmd === "use shelf") {
+  } else if (cmd === "place shelf" || cmd === "place bookshelf" || cmd === "use bookshelf" || cmd === "use shelf") {
     placeBookshelf();
     return;
   } else if (cmd ==="place birdhouse" || cmd === "use birdhouse") {
