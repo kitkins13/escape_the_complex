@@ -1581,11 +1581,11 @@ function updateInventoryUI() {
   list.innerHTML = "";
   inventory.forEach(item => {
     const li = document.createElement("li");
-	const it = items[id];
+	const it = items[item];
     if (it) {
       li.textContent = it.name;
     } else {
-      li.textContent = it.id;
+      li.textContent = item;
     }
     list.appendChild(li);
   });
