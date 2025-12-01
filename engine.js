@@ -1581,7 +1581,12 @@ function updateInventoryUI() {
   list.innerHTML = "";
   inventory.forEach(item => {
     const li = document.createElement("li");
-    li.textContent = item.name;
+	const it = items[id];
+    if (it) {
+      li.textContent = it.name;
+    } else {
+      li.textContent = it.id;
+    }
     list.appendChild(li);
   });
 }
