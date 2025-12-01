@@ -7,23 +7,24 @@
   --text: #ffcc66;
   --text-dim: #cc9955;
   --accent: #ffaa33;
-  --border: #333;
-  --btn-bg: #222;
-  --btn-hover: #333;
+  --border: #643;
+  --btn-bg: #403020;
+  --btn-hover: #554020;
   --glow: rgba(255, 204, 102, 0.6);
-  --font: "Courier New", monospace;
+  --font: "Kode Mono", monospace;
+  --font-size: 0.9rem;
 }
 
 /* ---- Themes ---- */
 
 .theme-green {
-  --bg: #001900;
+  --bg: #001005;
   --text: #00ff80;
   --text-dim: #00dd40;
   --accent: #00dd40;
-  --border: #00ee60;
-  --btn-bg: #003e00;
-  --btn-hover: #005500;
+  --border: #061;
+  --btn-bg: #003b04;
+  --btn-hover: #005d02;
   --glow: rgba(10, 225, 40, 0.6);
 }
 
@@ -58,6 +59,10 @@ html, body {
   color: var(--text);
   font-family: var(--font);
   height: 100%;
+}
+
+code {
+  font-size: 1.05rem;
 }
 
 .container {
@@ -95,7 +100,7 @@ html, body {
 
 .game {
   flex: 1;
-  width: 100%;
+  width: 95%;
   display: flex;
   flex-direction: column;
   border: 2px solid var(--border);
@@ -187,6 +192,10 @@ html, body {
 
 .button-row {
   padding: 10px;
+}
+
+#save-load-buttons {
+  align-self: center;
 }
 
 /* ---- Compass Layout ---- */

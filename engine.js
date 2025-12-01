@@ -1321,22 +1321,6 @@ async function loadRooms() {
   }
 }
 
-/*/ load items JSON
-async function loadItems() {
-  try {
-    const res = await fetch("./items.json");
-    const data = await res.json();
-    data.forEach(item => {
-      items[item.id] = item;
-    });
-    return true;
-  } catch (err) {
-    appendMessage("⚠️ Could not load items.json");
-    console.error(err);
-    return false;
-  }
-}*/
-
 // show current room
 function describeRoom(showIntro = true) {
   const room = rooms[currentRoom];
@@ -1536,32 +1520,17 @@ function handleCommand(cmdInput) {
   }
 }
 
+// ~~~~~~~~~~~~~~~~~~~~~~~
+// UI CONTROLS & FUNCTIONS
+// ~~~~~~~~~~~~~~~~~~~~~~~
+
 // toggle help panel
 function toggleHelp(show) {
   helpPanel.classList.toggle("hidden", !show);
   helpPanel.setAttribute("aria-hidden", !show);
 }
 
-/*/ toggle notes panel
-document.getElementById("notesButton").onclick = () => {
-  document.getElementById("notesPanel").classList.toggle("hidden");
-  renderNotesPanel();
-};
-
-// populate notes panel
-function renderNotesPanel() {
-  const panel = document.getElementById("notesPanel");
-  panel.innerHTML = "";
-  const found = Object.keys(player.notes).filter(n => player.notes[n]);
-
-  found.forEach(n => {
-    const block = document.createElement("pre");
-    block.textContent = notes[n];
-    panel.appendChild(block);
-  });
-}*/
-
-// notes panel v2, modelled on inventory panel
+// notes panel show/hide
 const notesButton = document.getElementById("notesButton");
 const notesPanel = document.getElementById("notesPanel");
 const closeNotes = document.getElementById("closeNotes");
@@ -1661,6 +1630,49 @@ compass.addEventListener("click", (e) => {
 
 helpBtn.addEventListener("click", () => toggleHelp(true));
 closeHelp.addEventListener("click", () => toggleHelp(false));
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// GAME START, SAVE & LOAD SYSTEM
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// Save/Load system
+
+// save game function
+function saveGame() {
+  const saveData = {
+    currentRoom,
+    visitedRooms: Array.from(visitedRooms),
+    inventory,
+    player
+  };
+
+  localStorage.setItem("escapeSave", JSON.stringify(saveData));
+  print("💾 Game saved!");
+}
+
+// load game function
+function loadGame() {
+  const saved = localStorage.getItem("escapeSave");
+  if (!saved) {
+    print("⚠️ No saved game found.");
+    return;
+  }
+
+  const data = JSON.parse(saved);
+  currentRoom = data.currentRoom;
+  visitedRooms = new Set(data.visitedRooms);
+  inventory = data.inventory;
+  Object.assign(player, data.player);
+
+  print("📂 Game loaded!");
+  describeRoom();
+  renderMap();
+}
+
+// save/load button event listeners
+document.getElementById("saveBtn").addEventListener("click", saveGame);
+document.getElementById("loadBtn").addEventListener("click", loadGame);
+
 
 // Initialize the game
 async function startGame() {
