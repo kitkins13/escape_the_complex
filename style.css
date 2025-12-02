@@ -58,7 +58,6 @@ html, body {
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  height: 100%;
 }
 
 code {
@@ -75,6 +74,14 @@ code {
   padding: 1rem;
   height: 100vh;
   box-sizing: border-box;
+}
+
+a {
+  color: var(--text-dim);
+}
+
+a:hover {
+  color: var(--text);
 }
 
 /* ---- Header ---- */
@@ -271,12 +278,13 @@ code {
 
 /* ---- Footer ---- */
 
-.footer {
+footer {
   text-align: center;
   background-color: var(--bg);
   color: var(--text-dim);
   font-size: 0.8rem;
   margin-top: 0.5rem;
+  padding: 10px;
 }
 
 /* Optional scanline overlay (CRT vibe) */
@@ -337,9 +345,12 @@ body::after {
 }
 
 @media screen and (max-device-width: 480px) { /* for phones */
+  .container {
+    
+  }
+  
   .output {
     max-height: 275px;
-    max-width: 80%;
     margin-bottom: 0.3rem;
     line-height: 1.0;
     font-size: 0.9rem;
