@@ -374,6 +374,9 @@ function handleBaristaOrder(item) {
     appendMessage("The barista says: 'Coming right up.' She disappears through a small door behind the counter, and returns with a delicious slice of cake. 'Here you go, lovie. On the house. Enjoy!'");
     inventory.push("cake");
     npcs.barista.waitingForOrder = false;
+  } else {
+	  appendMessage("The barista says: 'Sorry lovie, I don't have any of that. Talk to me again if you want a drink or a bit of cake.'");
+    npcs.barista.waitingForOrder = false;
   }
   
 }
@@ -401,7 +404,7 @@ const dialogue = {
 			{
         // toolbox hint
         check: () => !flags.givenToolbox,
-        text: "The caretaker says: 'Say, if you find my toolbox anywhere around here, would you mind bringing it to me? You'll need something to carry it in, it's a pretty heavy old thing. A handcart would do the trick.'"
+        text: "The caretaker says: 'Say, if you find my toolbox anywhere around here, would you mind bringing it to me? I think I left it in the yard somewhere on the west side of the complex. You'll need something to carry it in, it's a pretty heavy old thing. A handcart would do the trick.'"
       },
       {
         // toolbox ask
@@ -1332,6 +1335,10 @@ function describeRoom(showIntro = true) {
   if (showIntro && room.intro) appendMessage(room.intro);
   if (room.description) appendMessage(room.description);
 
+	if (room === "white room" && inventory.includes("small key") && !flags.smallKeyholeRevealed) {
+		appendMessage("You are exhausted after spending so long wandering around this place. That rickety old bench suddenly looks a lot more comfortable. Surely it wouldn't hurt to sit down for a moment?");
+	}
+	
   const exits = Object.keys(room.exits || {});
   if (exits.length > 0) {
     appendMessage("Exits: " + exits.join(", "));
@@ -1355,10 +1362,6 @@ function goDirection(dir) {
     flags.gameWin = true;
     return;
   }
-
-	if (player.location === "white room" && inventory.includes("small key") && !flags.smallKeyholeRevealed) {
-		appendMessage("You are exhausted after spending so long wandering around this place. That rickety old bench suddenly looks a lot more comfortable. Surely it wouldn't hurt to sit down for a moment?");
-	}
 	
   if (!room.exits || !room.exits[dir]) {
     appendMessage(`You can't go ${dir} from here.`);
