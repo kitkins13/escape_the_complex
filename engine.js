@@ -31,16 +31,16 @@ function appendMessage(text) {
 
 // new map layout allowing for larger rooms
 const mapLayout = {
-  "white room":        { x: 1, y: 4, w: 1, h: 1 },
-  "glass corridor":    { x: 1, y: 3, w: 1, h: 1 },
-  "fossil exhibit":    { x: 2, y: 4, w: 1, h: 1 },
-  "gift shop":         { x: 3, y: 4, w: 1, h: 1 },
-  "secret room":       { x: 2, y: 5, w: 1, h: 1 },
+  "white room":        { x: 1, y: 5, w: 1, h: 1 },
+  "glass corridor":    { x: 1, y: 4, w: 1, h: 1 },
+  "fossil exhibit":    { x: 2, y: 5, w: 1, h: 1 },
+  "gift shop":         { x: 3, y: 5, w: 1, h: 1 },
+  "secret room":       { x: 2, y: 6, w: 1, h: 1 },
 
   // red corridor spans (1,1) and (1,2)
   "red corridor":      { x: 2, y: 3, w: 1, h: 2 },
 
-  "cleaners' store":   { x: 3, y: 3, w: 1, h: 1 },
+  "cleaners' store":   { x: 3, y: 4, w: 1, h: 1 },
   "hidden store":      { x: 4, y: 3, w: 1, h: 1 },
 
   "art gallery":       { x: 2, y: 2, w: 1, h: 1 },
@@ -48,9 +48,9 @@ const mapLayout = {
   "yard":              { x: 0, y: 2, w: 1, h: 1 },
 
   // blue corridor spans (2,3) and (2,4)
-  "blue corridor":     { x: 3, y: 2, w: 1, h: 2 },
+  "blue corridor":     { x: 3, y: 1, w: 1, h: 2 },
 
-  "bathroom":          { x: 2, y: 2, w: 1, h: 1 },
+  "bathroom":          { x: 3, y: 3, w: 1, h: 1 },
 
   // observatory spans (1,5) and (2,5)
   "observatory":       { x: 3, y: 0, w: 2, h: 1 },
@@ -62,7 +62,7 @@ const mapLayout = {
 };
 
 let visitedRooms = new Set(["white room"]);
-const discoveredRooms = new Set();
+let discoveredRooms = new Set();
 
 
 // map rendering
@@ -90,6 +90,16 @@ for (const [id, room] of Object.entries(mapLayout)) {
   }
 }
 
+const cellToRoom = {};
+
+for (const [roomKey, room] of Object.entries(mapLayout)) {
+  const cells = getCellsFor(room);
+  for (const cell of cells) {
+    cellToRoom[cell] = roomKey;
+  }
+}
+
+
 // map object for engine.js
 function renderMap() {
   const grid = document.getElementById("mapGrid");
@@ -100,19 +110,26 @@ function renderMap() {
       const cell = document.createElement("div");
       cell.classList.add("map-cell");
 
-      const roomKey = Object.keys(mapLayout).find(
-        r => mapLayout[r].x === x && mapLayout[r].y === y
-      );
+      const roomKey = cellToRoom[`${x},${y}`];
       
-      if (!occupied.has(roomKey)) {
+      // empty or undiscovered room
+      if (!roomKey || !discoveredRooms.has(roomKey)) {
         cell.classList.add("empty");
+        grid.appendChild(cell);
+        continue;
       }
       
-      if (roomKey) {
-        cell.textContent = roomKey;
-        if (!visitedRooms.has(roomKey)) cell.classList.add("unvisited");
-        if (discoveredRooms.has(roomKey)) cell.classList.add("discovered");
-        if (roomKey === currentRoom) cell.classList.add("current");
+      // visible room cell
+      
+      cell.classList.add("discovered");
+      cell.textContent = roomKey;
+      
+      if (!visitedRooms.has(roomKey)) {
+        cell.classList.add("unvisited");
+      }
+
+      if (roomKey === currentRoom) {
+        cell.classList.add("current");
       }
 
       grid.appendChild(cell);
@@ -157,23 +174,34 @@ function handleSit() {
     if (npcs.puppy.following && !flags.smallKeyholeRevealed) {
       appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
       flags.smallKeyholeRevealed = true;
+      autoSave("Digger revealed the small keyhole");
     } else {
       appendMessage("You sit on the bench gingerly. It creaks, but holds up. The old wood is a bit splintery, though. Probably best not to stay sat for too long.");
     }
-  } else if (loc === "blue corridor") {
+  } 
+  
+  else if (loc === "blue corridor") {
     appendMessage("You sit down on one of the cushioned benches. It's nice to take a break after all the exploring you've been doing.");
-  } else if (loc === "cafe") {
+  } 
+  
+  else if (loc === "cafe") {
     appendMessage("You pull out one of the chairs and sit for a minute.");
-  } else if (loc === "garden") {
+  } 
+  
+  else if (loc === "garden") {
     if (!inventory.includes("iron key")){
       appendMessage("You sit down on the wrought iron bench, and immediately regret it as part of the filigree falls off. You quickly stand to check the damage, and realise that what fell wasn't part of the bench, but a rusted iron key.");
       items.ironKey.location = "garden";
     } else {
       appendMessage("The wrought iron bench doesn't look all that comfy, but it's better than the damp grass. Barely.");
     }
-  } else if (loc === "bathroom") {
+  } 
+  
+  else if (loc === "bathroom") {
     appendMessage("You sit on one of the toilets. Hey, when the lid's down, it's a chair!");
-  } else {
+  } 
+  
+  else {
     appendMessage("There are no seats here, but you're exhausted enough to sit on the floor for a moment.");
   }
 }
@@ -191,15 +219,23 @@ function handleJump() {
     } else {
       appendMessage("You jump again, but nothing else happens.\n");
     }
-  } else if (loc === "cleaners' store" || loc === "secret lab") {
+  } 
+  
+  else if (loc === "cleaners' store" || loc === "secret lab") {
     appendMessage("You can't jump here, the ceiling is too low.\n");
-  } else if (loc === "fossil exhibit" && !player.notes.note1Found) {
+  } 
+  
+  else if (loc === "fossil exhibit" && !player.notes.note1Found) {
     appendMessage("You spot a note stuck to the triceratops skull. You carefully reach up and take it.");
     player.notes.note1 = true;
-  } else if (loc === "garden" && !player.notes.note4Found) {
+  } 
+  
+  else if (loc === "garden" && !player.notes.note4Found) {
     appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.\n");
     player.notes.note4 = true;
-  } else {
+  } 
+  
+  else {
     appendMessage("You jump, but nothing unusual happens.\n");
   }
 }
@@ -212,16 +248,21 @@ function handleExamine() {
     if (npcs.puppy.following && !flags.smallKeyholeRevealed) {
       appendMessage("You don't spot anything, but the puppy barks, scrabbling at the crumbling stone leg of the bench. You look very closely at where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
       flags.smallKeyholeRevealed = true;
+      autoSave("Digger revealed the small keyhole");
     } else {
       appendMessage("You can't see anything here, but you have a feeling you're missing something. Maybe someone with better senses could find something.");
     }
-  } else if (loc === "art gallery") {
+  } 
+  
+  else if (loc === "art gallery") {
     appendMessage("You take a good look at some of the paintings. They're even creepier up close.");
     if (!player.notes.note2) {
       appendMessage("One of the surreal landscapes has a note tucked into the frame. You take it gently, trying to avoid disturbing the artwork.");
       player.notes.note2 = true;
     }
-  } else if (loc === "yard") {
+  } 
+  
+  else if (loc === "yard") {
     appendMessage("The junk piles seem even more rusty and decrepit the closer you look at them. Who dumped all this mess here, anyway?");
     if (!player.notes.note3) {
       appendMessage("You spot a slightly damp note under a big stone beside one pile. Careful not to nudge the teetering junk, you take the note.");
@@ -230,12 +271,18 @@ function handleExamine() {
     if (!inventory.includes("toolbox")) {
       appendMessage("There's a heavy-looking, slightly battered toolbox sitting under a couple of planks in one corner. It might be useful, but you'll need something to help you carry it.'");
     }
-  } else if (loc === "garden") {
+  } 
+  
+  else if (loc === "garden") {
     if (!inventory.includes("iron key")) {
       appendMessage("You take your time examining things around the garden. When you get to the old wrought iron bench, you notice something a little off about the filigree workings. There's a rusted key wedged in between a couple of the iron whirls... maybe it fits somewhere important?");
       items.ironKey.location = "garden";
+    } else {
+      appendMessage("You wander around the garden trying to see what plants you can identify. ")
     }
-  } else if (loc === "observatory") {
+  } 
+  
+  else if (loc === "observatory") {
     if (!flags.placedLever) {
       appendMessage("You go and take a better look at those mechanisms. Most seem to operate the big telescope, but one isn't connected to anything you can see. It's missing its lever... maybe the caretaker knows something about it?");
     } else if (!flags.discoveredLab) {
@@ -243,7 +290,9 @@ function handleExamine() {
     } else {
       appendMessage("The mechanisms are rather interesting, even if you're not quite sure what they all do. You try and resist the urge to play with them.");
     }
-  } else if (loc === "fossil exhibit") {
+  } 
+  
+  else if (loc === "fossil exhibit") {
     const fossilFacts = [
       "The word 'fossil' comes from the Latin 'fossilis', meaning 'dug up.'",
       "Most fossils form in sedimentary rock, created by layers of sediment compressing over time.",
@@ -256,15 +305,33 @@ function handleExamine() {
     ];
     const fact = fossilFacts[Math.floor(Math.random() * fossilFacts.length)];
     appendMessage(`A nearby sign reads: ${fact}`);
-  } else if (loc === "secret room") {
+  } 
+  
+  else if (loc === "secret room") {
     appendMessage("On closer inspection, the pedestals have fine wires inlaid down their length, joining with a circuit-like pattern embedded in the floor.");
-  } else if (loc === "workshop") {
+  } 
+  
+  else if (loc === "workshop") {
     appendMessage("Several design sketches are strewn across the workbench. Most are beyond you, but a few look interesting: a simple birdhouse, a tall bookshelf, and a handcart. You could probably make those, looking at the careful detail put into the drawings.");
-  } else if (loc === "cleaners' store") {
+  } 
+  
+  else if (loc === "cleaners' store") {
     appendMessage("You take a closer look at those shelves, intrigued by the scattered, flaky rust. You can just make out a thin crack in the wall behind them, and a rusted up keyhole mostly hidden by the edge of one shelf.");
-  } else if (loc === "secret lab") {
+  } 
+  
+  else if (loc === "secret lab") {
     appendMessage("There's a lot of scientific equipment here, both familiar and unfamiliar. Beakers of strange fluids are lined up along one side of the bench. Some are emitting steam, despite being nowhere near a heat source. Probably best to leave them alone.");
-  } else {
+  } 
+  
+  else if (loc === "gift shop") {
+    appendMessage("You take a closer look at the items on the dusty shelves. Most are uninteresting, the usual kitschy knick-knacks, but a snowglobe and a dog toy catch your eye.");
+  } 
+  
+  else if (loc === "hidden store") {
+    appendMessage("You take a better look at the boxes stacked on the towering shelves. Most are plain and boring, but a faint glimmer of metal catches your eye. There's a tiny key tucked between two of the boxes.");
+  } 
+  
+  else {
     appendMessage("There's nothing interesting enough to examine here.");
   }
 }
@@ -871,6 +938,7 @@ function build(item) {
       if (!player.builtCart) {
         appendMessage("You build a simple, yet sturdy cart. It could carry something heavy or bulky.");
         player.builtCart = true;
+        autoSave("Gained the ability to transport large or heavy objects");
         inventory.push("cart");
       } else {
         appendMessage("You already built a cart.");
@@ -927,8 +995,11 @@ function placeBookshelf() {
   appendMessage("You place the tall bookshelf against the wall next to the scientist. He gives you a grateful nod.");
   appendMessage("As you stand back, you hear a click to the south. Part of the wall slides open, revealing a hidden doorway.");
 
-  // Open the secret exit
+  // open the secret exit
   rooms["fossil exhibit"].exits.south = "secret room";
+  
+  // autosave at this point
+  autoSave("Unlocked the secret exhibit");
 }
 
 // place birdhouse in garden to get gem for secret ending puzzle
@@ -957,6 +1028,9 @@ function placeBirdhouse() {
 
   // add battery to inventory
   inventory.push("battery");
+  
+  // autosave at this point
+  autoSave("Earned the gratitude of local birds");
 }
 
 function dig() {
@@ -968,6 +1042,7 @@ function dig() {
   } else if (player.location === "white room" && npcs.puppy.following && !flags.smallKeyholeRevealed) {
     appendMessage("You tell your furry friend to dig, thinking he might be able to reveal something you can't see. He barks and scrabbles at a stone leg of that old bench. You take a closer look, and spot a tiny keyhole that almost looks like one of the pockmarks in the rock. A tiny key might fit...");
     flags.smallKeyholeRevealed = true;
+    autoSave("Digger revealed the small keyhole");
   }
 }
 
@@ -981,9 +1056,15 @@ function pullLever() {
   } else if (flags.leverPlaced && !flags.discoveredLab) {
     appendMessage("You pull the newly placed lever. Clicking and grinding noises travel through the walls, and a hidden panel swings open in the south west corner.");
     flags.discoveredLab = true;
+    autoSave("Unlocked the secret lab");
+    
     // unlocks the secret lab exit
     const obs = rooms["observatory"];
     obs.exits["south west"] = "secret lab";
+    
+    // adds the lab to the minimap
+    discoveredRooms.add("secret lab");
+    appendMessage("A hidden section of the map reveals itself.");
   } else if (flags.discoveredLab) {
     appendMessage("The lever’s already done its job.");
   } else {
@@ -1374,7 +1455,7 @@ function lookForItem() {
   const foundItems = Object.values(items).filter(i => i.location === player.location);
 
   if (foundItems.length === 0) {
-    appendMessage("You don’t see anything useful here.");
+    appendMessage("You don’t see anything you could take with you, but a couple of things might be worth a closer examination.");
   } else {
     appendMessage("You notice:");
     foundItems.forEach(i => print(` - ${i.name}: ${i.description}`));
@@ -1794,21 +1875,25 @@ function handleCommand(cmdInput) {
   // Print user input into the game log
   print(`> ${cmd}`, "command");
 
+  // restarts the game after winning/losing, or if players somehow break everything
   if (cmd === "restart") {
     location.reload();
     return;
   }
   
+  // lose the game if the lab explodes and player dies :c
   if (flags.gameLose) {
     appendMessage("The lab exploded. You're no longer among the living.\nType RESTART to play again.");
     return;
   }
-
+  
+  // win the game by escaping :D
   if (flags.gameWin) {
     appendMessage("You've already escaped! Refresh the page or type RESTART to play again.");
     return;
   }
-
+  
+  // allows barista order commands
   if (npcs.barista.waitingForOrder) {
     handleBaristaOrder(cmd);
     return;
@@ -1816,16 +1901,17 @@ function handleCommand(cmdInput) {
 
   if (cmd.startsWith("go ")) {
     const dir = cmd.substring(3).trim();
+    
     if (dir) {
       goDirection(dir);
     } else {
       appendMessage("Go where?");
     }
-  } else if (cmd === "look around") {
+  } else if (cmd.includes("look around")) {
     describeRoom(false);
   } else if (cmd.includes("sit")) {
     handleSit();
-  } else if (cmd.includes("jump")) {
+  } else if (cmd.includes("jump") || cmd.includes("leap") || cmd.includes("boing")) {
     handleJump();
   } else if (cmd.includes("examine")) {
     handleExamine();
@@ -1834,6 +1920,7 @@ function handleCommand(cmdInput) {
   } else if (cmd.includes("poke")) {
     handlePoke();
   } else if (cmd.includes("order")) {
+    
     if (player.location === "cafe") {
       appendMessage("The barista says: 'What can I get you, lovie?'");
       npc.barista.waitingForOrder = true;
@@ -1842,13 +1929,15 @@ function handleCommand(cmdInput) {
     }
   } else if (cmd.startsWith("eat ")) {
       const food = cmd.substring(4).trim();
+      
       if (!food) {
         appendMessage("Eat what?");
       } else {
        consume(food); 
       }
   } else if (cmd.startsWith("drink ")) {
-    const drink = cmd.substring(6).trim();
+      const drink = cmd.substring(6).trim();
+      
       if (!drink) {
         appendMessage("Drink what?");
       } else {
@@ -1856,6 +1945,7 @@ function handleCommand(cmdInput) {
       }
   } else if (cmd.startsWith("build ")) {
     const target = cmd.substring(6).trim();
+    
     if (target) {
       build(target);
     } else {
@@ -1871,6 +1961,7 @@ function handleCommand(cmdInput) {
     dig();
   } else if (cmd.startsWith("take ")) {
     const item = cmd.substring(5).trim();
+    
     if (item) {
       takeItem(item);
     } else {
@@ -1885,6 +1976,7 @@ function handleCommand(cmdInput) {
     }
   } else if (cmd.startsWith("drop ")) {
     const item = cmd.substring(5).trim();
+    
     if (item) {
       dropItem(item);
     } else {
@@ -1892,6 +1984,7 @@ function handleCommand(cmdInput) {
     }
   } else if (cmd.startsWith("use ")) {
     const item = cmd.substring(4).trim();
+    
     if (item) {
       useItem(item);
     } else {
@@ -1902,23 +1995,32 @@ function handleCommand(cmdInput) {
     return;
   } else if (cmd === "place birdhouse" || cmd === "use birdhouse") {
     placeBirdhouse();
+    return;
   } else if (cmd.startsWith("give ")){
     const parts = cmd.slice(5).split(" to ");
+    
     if (parts.length === 2) {
       giveItem(parts[0].trim(), parts[1].trim());
       return true;
     }
+    
     appendMessage("Give what to whom?");
     return true;
   } else if (cmd.startsWith("talk to ")) {
     talkTo(cmd.slice(8).trim());
     return true;
   } else if (cmd.startsWith("ask ")) {
-    const npcId = cmd.slice(4).split(" for");
+    const cleaned = cmd
+      .replace(/^ask\s+/, "")
+      .replace(/^the\s+/, "");
+
+    const npcId = cleaned.split(" for")[0].trim();
+
     if (npcId === "barista" || npcId === "caretaker" || npcId === "scientist") {
       getHint(npcId);
       return true;
     }
+    appendMessage("There's nobody here to help you. Check another room.");
     return true;
   } else if (cmd === "inventory" || cmd === "check bag" || cmd === "bag") {
     showInventory();
@@ -2044,6 +2146,7 @@ compass.addEventListener("click", (e) => {
   handleCommand(cmd);
 });
 
+// show help panel
 helpBtn.addEventListener("click", () => toggleHelp(true));
 closeHelp.addEventListener("click", () => toggleHelp(false));
 
@@ -2067,7 +2170,7 @@ document.getElementById("closeMap").addEventListener("click", () => {
 function saveGame() {
   const saveData = {
     currentRoom,
-    //visitedRooms: Array.from(visitedRooms),
+    visitedRooms: Array.from(visitedRooms),
     inventory,
     player,
     flags,
@@ -2078,6 +2181,42 @@ function saveGame() {
   print("💾 Game saved!");
 }
 
+// autosave at key points
+function autoSave(reason = "") {
+  const saveData = {
+    currentRoom,
+    visitedRooms: Array.from(visitedRooms),
+    inventory,
+    player,
+    flags,
+    npcs
+  };
+
+  localStorage.setItem("escapeAutoSave", JSON.stringify(saveData));
+  console.log(`🔁 Autosaved (${reason})`);
+}
+
+// load autosaves
+function loadAutoSave() {
+  const saved = localStorage.getItem("escapeAutoSave");
+  if (!saved) {
+    print("⚠️ No autosave found.");
+    return;
+  }
+
+  const data = JSON.parse(saved);
+  currentRoom = data.currentRoom;
+  visitedRooms = new Set(data.visitedRooms);
+  inventory = data.inventory;
+  Object.assign(player, data.player);
+  Object.assign(flags, data.flags);
+  Object.assign(npcs, data.npcs);
+
+  print("📂 Autosave loaded!");
+  describeRoom();
+  renderMap();
+}
+
 // load game function
 function loadGame() {
   const saved = localStorage.getItem("escapeSave");
@@ -2085,15 +2224,16 @@ function loadGame() {
   if (!saved) {
     if (autosave) {
       loadAutoSave();
-    } else {
-      print("⚠️ No saved game found.");
     }
+    
+    print("⚠️ No saved game found.");
+    
     return;
   }
 
   const data = JSON.parse(saved);
   currentRoom = data.currentRoom;
-  //visitedRooms = new Set(data.visitedRooms);
+  visitedRooms = new Set(data.visitedRooms);
   inventory = data.inventory;
   Object.assign(player, data.player);
   Object.assign(flags, data.flags);
@@ -2107,7 +2247,6 @@ function loadGame() {
 // save/load button event listeners
 document.getElementById("saveBtn").addEventListener("click", saveGame);
 document.getElementById("loadBtn").addEventListener("click", loadGame);
-
 
 // Initialize the game
 async function startGame() {

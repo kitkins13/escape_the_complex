@@ -92,7 +92,7 @@
   {
     "id": "cafe",
     "intro": "You enter a cozy cafe. It looks as if nobody has been here in a while.",
-    "description": "This would probably be a cozy, bustling little cafe if it didn't feel so abandoned. The tables and chairs are highly polished, as if expecting customers any minute, but the only one here is a barista, smiling from behind the counter.\nThere are some canned drinks and pre-packaged snacks left on a shelf, and a small first aid box on the wall.\nThe door to the west leads back to the blue corridor. Grimy windows and a locked glass door line the south wall, and you can just about see a garden through them.",
+    "description": "This would probably be a cozy, bustling little cafe if it didn't feel so abandoned. The tables and chairs are highly polished, as if expecting customers any minute, but the only one here is a barista, smiling from behind the counter. There are some canned drinks and pre-packaged snacks left on a shelf, and a small first aid box on the wall.\nThe door to the west leads back to the blue corridor. Grimy windows and a locked glass door line the south wall, and you can just about see a garden through them.",
     "exits": {
       "west": "blue corridor"
     }
@@ -100,7 +100,7 @@
   {
     "id": "observatory",
     "intro": "There's an elaborate observatory here. Some interesting mechanisms are installed along one wall.",
-    "description": "This is an old fashioned observatory. Antique telescopes are set up to look out of skylights far above, and there's one huge, intricate mechanism that operates the main telescope in the middle.\nAlong the west wall, there are several smaller bits of machinery. Most look as if they're too clogged with old dust and grime to work, but one seems cleaner than the others.\nA door to the south east leads back to the blue corridor.",
+    "description": "This is an old fashioned observatory. Antique telescopes are set up to look out of skylights far above, and there's one huge, intricate mechanism that operates the main telescope in the middle. Along the west wall, there are several smaller bits of machinery. Most look as if they're too clogged with old dust and grime to work, but one seems cleaner than the others.\nA door to the south east leads back to the blue corridor.",
     "exits": {
       "south east": "blue corridor"
     }
@@ -117,7 +117,7 @@
   {
     "id": "secret lab",
     "intro": "You go through the secret door. It looks like someone hid a very fancy science lab here.",
-    "description": "You would never have suspected there was a high-tech science lab hidden behind that wall. \nThere's all kinds of weird, sciency stuff in here, and you have no idea what any of it does.\nThe north door leads back to the observatory. \nThere's a door to the east that goes to the blue corridor, and a door to the south that leads to the art gallery. Both only seem to open from this side.",
+    "description": "You would never have suspected there was a high-tech science lab hidden behind that wall. There's all kinds of weird, sciency stuff in here, and you have no idea what any of it does.\nThe north door leads back to the observatory. There's a door to the east that goes to the blue corridor, and a door to the south that leads to the art gallery. Both only seem to open from this side.",
     "exits": {
       "north": "observatory",
       "east": "blue corridor",
@@ -127,7 +127,7 @@
   {
     "id": "hidden store",
     "intro": "You open the concealed door and enter a hidden storeroom. There are dusty shelves lining the walls.",
-    "description": "The shelves tower over you, reaching all the way to the ceiling. \nThere are unlabelled boxes of all sizes stacked on each shelf. \nThe door to the west leads back to the cleaners' store.",
+    "description": "The shelves tower over you, reaching all the way to the ceiling. There are unlabelled boxes of all sizes stacked on each shelf. \nThe door to the west leads back to the cleaners' store.",
     "exits": {
       "west": "cleaners' store"
     }
