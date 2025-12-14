@@ -44,10 +44,11 @@
         <div class="button-row">
           <button id="invButton" class="btn secondary">Bag</button>
           <button id="notesButton" class="btn secondary">Notes</button>
-          <button id="help" class="btn secondary">Help</button>
-          <button id="settingsButton" class="btn secondary">Settings</button>
+          <button id="mapButton" class="btn secondary">Map</button>
+          <button id="help" class="btn secondary">Commands</button>
         </div>
-        <div class="button-row" id="save-load-buttons">
+        <div class="button-row" id="system-buttons">
+          <button id="settingsButton" class="btn secondary">Settings</button>
           <button id="saveBtn" class="btn">Save</button>
           <button id="loadBtn" class="btn">Load</button>
         </div>
@@ -99,6 +100,13 @@
           <p>Notes found:</p>
           <ul id="playerNotes"></ul>
         <button id="closeNotes" class="btn">Close</button>
+      </div>
+      
+      <!-- map panel -->
+      <div id="mapPanel" class="panel hidden">
+        <h2>Complex Map</h2>
+        <div id="mapGrid" class="map-grid"></div>
+        <button id="closeMap" class="btn">Close</button>
       </div>
     </section>
 

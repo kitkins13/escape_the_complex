@@ -201,7 +201,7 @@ a:hover {
   padding: 10px;
 }
 
-#save-load-buttons {
+#system-buttons {
   align-self: center;
 }
 
@@ -272,8 +272,55 @@ a:hover {
 }
 
 #notesPanel {
-  width: 600px;
+  width: 450px;
   overflow: auto;
+}
+
+/* ---- Minimap ---- */
+
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 60px);
+  grid-template-rows: repeat(6, 60px);
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.map-cell {
+  width: 60px;
+  height: 60px;
+  border: 1px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  text-align: center;
+  padding: 2px;
+}
+
+.map-cell.unvisited {
+  opacity: 0.2;
+}
+
+.map-cell.current {
+  border: 2px solid var(--text);
+  font-weight: bold;
+}
+
+.map-cell.empty {
+  border: none;
+  opacity: 0;
+}
+
+// NPC location icons
+.map-icon {
+  font-size: 14px;
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+}
+.map-cell {
+  position: relative; /* allows icons to be positioned inside */
 }
 
 /* ---- Footer ---- */

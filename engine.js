@@ -25,6 +25,126 @@ function appendMessage(text) {
   log.scrollTop = log.scrollHeight; // auto-scroll
 }
 
+// ~~~~~~~~~~~~~~~
+// IN-GAME MINIMAP
+// ~~~~~~~~~~~~~~~
+
+// new map layout allowing for larger rooms
+const mapLayout = {
+  "white room":        { x: 1, y: 4, w: 1, h: 1 },
+  "glass corridor":    { x: 1, y: 3, w: 1, h: 1 },
+  "fossil exhibit":    { x: 2, y: 4, w: 1, h: 1 },
+  "gift shop":         { x: 3, y: 4, w: 1, h: 1 },
+  "secret room":       { x: 2, y: 5, w: 1, h: 1 },
+
+  // red corridor spans (1,1) and (1,2)
+  "red corridor":      { x: 2, y: 3, w: 1, h: 2 },
+
+  "cleaners' store":   { x: 3, y: 3, w: 1, h: 1 },
+  "hidden store":      { x: 4, y: 3, w: 1, h: 1 },
+
+  "art gallery":       { x: 2, y: 2, w: 1, h: 1 },
+  "workshop":          { x: 1, y: 2, w: 1, h: 1 },
+  "yard":              { x: 0, y: 2, w: 1, h: 1 },
+
+  // blue corridor spans (2,3) and (2,4)
+  "blue corridor":     { x: 3, y: 2, w: 1, h: 2 },
+
+  "bathroom":          { x: 2, y: 2, w: 1, h: 1 },
+
+  // observatory spans (1,5) and (2,5)
+  "observatory":       { x: 3, y: 0, w: 2, h: 1 },
+
+  "cafe":              { x: 4, y: 1, w: 1, h: 1 },
+  "garden":            { x: 4, y: 2, w: 1, h: 1 },
+
+  "secret lab":        { x: 2, y: 1, w: 1, h: 1 }
+};
+
+let visitedRooms = new Set(["white room"]);
+const discoveredRooms = new Set();
+
+
+// map rendering
+
+function getCellsFor(room) {
+  let cells = [];
+  for (let dx = 0; dx < room.w; dx++) {
+    for (let dy = 0; dy < room.h; dy++) {
+       cells.push(`${room.x + dx},${room.y + dy}`);
+    }
+  }
+  return cells;
+}
+
+let occupied = new Set();
+
+for (const [id, room] of Object.entries(mapLayout)) {
+  const cells = getCellsFor(room);
+
+  for (const cell of cells) {
+    if (occupied.has(cell)) {
+      console.warn(`⚠️ Overlap detected at ${cell} for ${id}`);
+    }
+    occupied.add(cell);
+  }
+}
+
+// map object for engine.js
+function renderMap() {
+  const grid = document.getElementById("mapGrid");
+  grid.innerHTML = "";
+
+  for (let y = 0; y < 6; y++) {
+    for (let x = 0; x < 6; x++) {
+      const cell = document.createElement("div");
+      cell.classList.add("map-cell");
+
+      const roomKey = Object.keys(mapLayout).find(
+        r => mapLayout[r].x === x && mapLayout[r].y === y
+      );
+      
+      if (!occupied.has(roomKey)) {
+        cell.classList.add("empty");
+      }
+      
+      if (roomKey) {
+        cell.textContent = roomKey;
+        if (!visitedRooms.has(roomKey)) cell.classList.add("unvisited");
+        if (discoveredRooms.has(roomKey)) cell.classList.add("discovered");
+        if (roomKey === currentRoom) cell.classList.add("current");
+      }
+
+      grid.appendChild(cell);
+      
+      if (roomKey) {
+        cell.textContent = roomKey;
+
+        // NPC icon logic
+        const npcsHere = Object.entries(npcLocations).filter(
+        ([npc, room]) => room === roomKey
+        ); 
+
+        if (npcsHere.length > 0) {
+          const icon = document.createElement("div");
+          icon.classList.add("map-icon");
+
+          const npcEmoji = {
+            caretaker: "🧹",
+            barista: "☕",
+            scientist: "🔬",
+            puppy: "🐕",
+            player: "👤"
+          };
+
+          icon.textContent = npcEmoji[npcsHere[0][0]] || "❓";
+          cell.appendChild(icon);
+        }
+      }
+    }
+  }
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 // FLAVOUR TEXT AND SECRETS
 // ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -45,7 +165,12 @@ function handleSit() {
   } else if (loc === "cafe") {
     appendMessage("You pull out one of the chairs and sit for a minute.");
   } else if (loc === "garden") {
-    appendMessage("The wrought iron bench doesn't look all that comfy, but it's better than the damp grass. Barely.");
+    if (!inventory.includes("iron key")){
+      appendMessage("You sit down on the wrought iron bench, and immediately regret it as part of the filigree falls off. You quickly stand to check the damage, and realise that what fell wasn't part of the bench, but a rusted iron key.");
+      items.ironKey.location = "garden";
+    } else {
+      appendMessage("The wrought iron bench doesn't look all that comfy, but it's better than the damp grass. Barely.");
+    }
   } else if (loc === "bathroom") {
     appendMessage("You sit on one of the toilets. Hey, when the lid's down, it's a chair!");
   } else {
@@ -85,10 +210,10 @@ function handleExamine() {
   
   if (loc === "white room"){
     if (npcs.puppy.following && !flags.smallKeyholeRevealed) {
-      appendMessage("The puppy barks, scrabbling at the crumbling stone leg of the bench. You get up and look where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
+      appendMessage("You don't spot anything, but the puppy barks, scrabbling at the crumbling stone leg of the bench. You look very closely at where he's trying to dig, and spot a tiny keyhole. A very small key might fit...");
       flags.smallKeyholeRevealed = true;
     } else {
-      appendMessage("There's not much to examine here.");
+      appendMessage("You can't see anything here, but you have a feeling you're missing something. Maybe someone with better senses could find something.");
     }
   } else if (loc === "art gallery") {
     appendMessage("You take a good look at some of the paintings. They're even creepier up close.");
@@ -102,9 +227,21 @@ function handleExamine() {
       appendMessage("You spot a slightly damp note under a big stone beside one pile. Careful not to nudge the teetering junk, you take the note.");
       player.notes.note3 = true;
     }
+    if (!inventory.includes("toolbox")) {
+      appendMessage("There's a heavy-looking, slightly battered toolbox sitting under a couple of planks in one corner. It might be useful, but you'll need something to help you carry it.'");
+    }
+  } else if (loc === "garden") {
+    if (!inventory.includes("iron key")) {
+      appendMessage("You take your time examining things around the garden. When you get to the old wrought iron bench, you notice something a little off about the filigree workings. There's a rusted key wedged in between a couple of the iron whirls... maybe it fits somewhere important?");
+      items.ironKey.location = "garden";
+    }
   } else if (loc === "observatory") {
-    if (!flags.discoveredLab) {
+    if (!flags.placedLever) {
       appendMessage("You go and take a better look at those mechanisms. Most seem to operate the big telescope, but one isn't connected to anything you can see. It's missing its lever... maybe the caretaker knows something about it?");
+    } else if (!flags.discoveredLab) {
+      appendMessage("You take another good look at those mechanisms. The one you replaced the lever for looks a little different to the rest. Maybe you should give that one a pull and see what happens.");
+    } else {
+      appendMessage("The mechanisms are rather interesting, even if you're not quite sure what they all do. You try and resist the urge to play with them.");
     }
   } else if (loc === "fossil exhibit") {
     const fossilFacts = [
@@ -166,6 +303,15 @@ function handlePoke() {
       appendMessage("You poke the things on the workbench again. One of them whirrs for a moment, then stops. Nothing else happens.");
     }
   }
+  
+  else if (loc === "garden") {
+    if (!inventory.includes("iron key")) {
+      appendMessage("You poke at several things around the garden. When you get to the wrought iron bench, part of it clinks to the ground after a firm prod. When you pick it up, you realise it isn't part of the bench, but a rusted up iron key.");
+      inventory.push("ironKey");
+    } else {
+      appendMessage("You poke and prod at things around the garden. Not much happens, aside from a couple of wilting leaves falling off the bushes.");
+    }
+  }
 
   else {
     appendMessage("You walk around the room poking things. Nothing interesting happens.");
@@ -218,6 +364,8 @@ const npcs = {
     location: "cafe",
     met: false,
     waitingForOrder: false,
+    birdhouseCommentSaid: false,
+    gardenCommentSaid: false,
   },
   scientist: {
     name: "scientist",
@@ -234,9 +382,18 @@ const npcs = {
   }
 };
 
+// defines NPC locations for minimap
+const npcLocations = {
+  caretaker: "blue corridor",
+  barista: "cafe",
+  scientist: "fossil exhibit",
+  puppy: "yard" // update dynamically when puppy follows player
+};
+
+// caretaker general talk function
 function handleCaretakerTalk() {
   if (player.location !== "blue corridor") {
-    appendMessage("The caretaker isn't here.");
+    appendMessage("The caretaker isn't here. Try the blue corridor.");
     return;
   }
 
@@ -260,9 +417,10 @@ function handleCaretakerTalk() {
   appendMessage(dialogue.caretaker.generic[random]);
 }
 
+// scientist general talk function
 function handleScientistTalk() {
   if (player.location !== "fossil exhibit") {
-    appendMessage("The scientist isn't here.");
+    appendMessage("The scientist isn't here. Try the fossil exhibit.");
     return;
   }
 
@@ -286,41 +444,122 @@ function handleScientistTalk() {
   appendMessage(dialogue.scientist.generic[random]);
 }
 
+// barista general talk function
 function handleBaristaTalk() {
   if (player.location !== "cafe") {
     appendMessage("The barista isn't here. Try the cafe.");
     return;
   }
 
+  // First meeting
   if (!npcs.barista.met) {
-    appendMessage("The barista says: 'Hello, lovie! You're the first customer I've had in ages!'");
+    dialogue.barista.firstMeet.forEach(line => appendMessage(line));
     npcs.barista.met = true;
-    appendMessage("'Can I get you anything? We have coffee, tea, juice, or soda, and there's some cake in the back.'");
-    npcs.barista.waitingForOrder = true;
-  } else {
-    print("The barista says: 'Back again, lovie? Same choices as before!'");
-    npcs.barista.waitingForOrder = true;
-  }
-}
-
-// simple talk system - expand later
-function talkTo(npcName) {
-  const npc = npcs[npcName];
-  if (!npc || npc.location !== player.location) {
-    appendMessage(`The ${npcName} isn't here.`);
     return;
   }
 
+  // Check priority conditions
+  const match = dialogue.barista.conditions.find(c => c.check());
+  if (match) {
+    appendMessage(match.text);
+    if (match.onSay()) match.onSay(); // prevent repeating conditional dialogue
+    return;
+  }
+
+  // Generic fallback
+  const random = Math.floor(Math.random() * dialogue.barista.generic.length);
+  appendMessage(dialogue.barista.generic[random]);
+}
+
+// caretaker hint function
+function caretakerHints() {
+  if (player.location !== "blue corridor") {
+    appendMessage("The caretaker isn't here. Try the blue corridor.");
+    return;
+  }
+  
+  // First meeting
+  if (!npcs.caretaker.met) {
+    dialogue.caretaker.firstMeet.forEach(line => appendMessage(line));
+    npcs.caretaker.met = true;
+  }
+  
+  // Check priority conditions
+  const match = dialogue.caretaker.hints.find(c => c.check());
+  if (match) {
+    appendMessage(match.text);
+    return;
+  }
+  
+  // default when no hint available
+  appendMessage("The caretaker says: 'I'm sorry, there's not much I can help you with right now. See if there's anything you can do with what you've already got, I might be able to advise you better later.'");
+}
+
+// scientist hint function
+function scientistHints() {
+  if (player.location !== "fossil exhibit") {
+    appendMessage("The scientist isn't here. Try the fossil exhibit.");
+    return;
+  }
+  
+  // First meeting
+  if (!npcs.scientist.met) {
+    dialogue.scientist.firstMeet.forEach(line => appendMessage(line));
+    npcs.scientist.met = true;
+  }
+  
+  // Check priority conditions
+  const match = dialogue.scientist.hints.find(c => c.check());
+  if (match) {
+    appendMessage(match.text);
+    return;
+  }
+  
+  // default when no hint available
+  appendMessage("The scientist says: 'I can't help you with much for now, I'm afraid. Come back when you've explored the place a little more, and let me know what you've found. I might be able to give you some pointers then.'");
+}
+
+// barista hint function
+function baristaHints() {
+  if (player.location !== "cafe") {
+    appendMessage("The barista isn't here. Try the cafe.");
+    return;
+  }
+  
+  // First meeting
+  if (!npcs.barista.met) {
+    dialogue.barista.firstMeet.forEach(line => appendMessage(line));
+    npcs.barista.met = true;
+  }
+  
+  // Check priority conditions
+  const match = dialogue.barista.hints.find(c => c.check());
+  if (match) {
+    appendMessage(match.text);
+    return;
+  }
+  
+  // default when no hint available
+  appendMessage("The barista says: 'I don't know how much help I can give you just now, lovie. Come back later, I might know a little more about what's giving you grief then. Or you could ask the old caretaker, just outside in the corridor. He's been here a long time and knows the place better than me.'");
+}
+
+// npc talk system
+function talkTo(npcName) {
+  const npc = npcs[npcName];
+
   if (npcName === "caretaker") {
     handleCaretakerTalk();
+    return;
   }
 
   if (npcName === "barista") {
     handleBaristaTalk();
+    return;
   }
 
   if (npcName === "scientist") {
     handleScientistTalk();
+    return;
   }
   
   if (npcName === "puppy") {
@@ -335,6 +574,23 @@ function talkTo(npcName) {
   }
 }
 
+// npc hint system
+function getHint(npcName) {
+  const npc = npcs[npcName];
+
+  if (npcName === "caretaker") {
+    caretakerHints();
+  }
+
+  if (npcName === "barista") {
+    baristaHints();
+  }
+
+  if (npcName === "scientist") {
+    scientistHints();
+  }
+}
+
 // puppy follows player
 function puppyFollow() {
   const follow = npcs.puppy.following;
@@ -342,6 +598,8 @@ function puppyFollow() {
   if (follow) {
     npcs.puppy.location = player.location;
     appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾");
+    npcLocations.puppy = currentRoom;
+    renderMap();
   }
 }
 
@@ -375,10 +633,9 @@ function handleBaristaOrder(item) {
     inventory.push("cake");
     npcs.barista.waitingForOrder = false;
   } else {
-	  appendMessage("The barista says: 'Sorry lovie, I don't have any of that. Talk to me again if you want a drink or a bit of cake.'");
+	  appendMessage("The barista says: 'Oh, I'm sorry lovie, I don't have any of that. Talk to me again if you want a drink or a bit of cake.'");
     npcs.barista.waitingForOrder = false;
   }
-  
 }
 
 // npc dialogue tables
@@ -422,7 +679,7 @@ const dialogue = {
       {
         // hidden stores comment
         check: () => flags.shelvesMoved && !npcs.caretaker.shelfCommentSaid,
-        text: "The caretaker says: 'A hidden door in my cleaning cupboard, you say? Well, I'll be. I never knew that was there. Did you go through it? Could be all sorts of interesting things in there.'",
+        text: "The caretaker says: 'You managed to move that heavy shelving unit in my cupboard? Well done! Did you manage to get the old door open? Could be all sorts of interesting things in there.'",
         onSay: () => {
           npcs.caretaker.shelfCommentSaid = true;
         }
@@ -443,6 +700,32 @@ const dialogue = {
           npcs.caretaker.labCommentSaid = true;
         }
       },
+    ],
+    hints: [
+      {
+        check: () => !flags.givenToolbox,
+        text: "The caretaker says: 'You know, I had a spare lever for the observatory mechanisms in my toolbox. If you can bring it to me, I can give you the lever. I'm pretty sure I left my toolbox in the yard, to the west of the art gallery.'",
+      },
+      {
+        check: () => !flags.leverPlaced || !flags.discoveredLab,
+        text: "The caretaker says: 'The scientist was saying the other day that he couldn't get into his lab anymore. Maybe that's what the old lever I gave you opens? Give it a pull and see what happens.'",
+      },
+      {
+        check: () => flags.gardenOpen && !inventory.includes("iron key"),
+        text: "The caretaker says: 'I see the garden door's unlocked again. Good to see it, that was a lovely old place to sit and collect your thoughts. If you're feeling stuck, I'd go and have a good look around there and see if it knocks something loose for you.'",
+      },
+      {
+        check: () => !flags.shelvesMoved && inventory.includes("iron key"),
+        text: "The caretaker says: 'I could swear there used to be an extra storage room at the back of my cleaning cupboard, just off the red corridor. It's like an extra set of shelves appeared one day and blocked it off. If only I had the strength to drag them out of the way...'",
+      },
+      {
+        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("small key"),
+        text: "The caretaker says: 'You found a tiny key labelled 'exit'? Hmm. Sounds promising, but there's no keyhole in the white room that I've ever found. Did you try examining everything closely? Your eyes are probably better than mine. Or maybe Digger there could detect something we're all missing.'",
+      },
+      {
+        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("small key"),
+        text: "The caretaker says: 'You found a tiny key labelled 'exit'? Hmm. Sounds promising, but there's no keyhole in the white room that I've ever found. Digger, the puppy who lives out in the yard, might be able to find something we can't. Give him a toy and he'll be happy to follow you anywhere.'",
+      }
     ],
     generic: [
       "The caretaker says: 'Hello again. How are you doing?'",
@@ -480,12 +763,86 @@ const dialogue = {
         }
       },
     ],
+    hints: [
+      {
+        check: () => !flags.givenSnowglobe,
+        text: "The scientist says: 'I've found a few strange things in my time here. Most of them I've found a use for, but I can't figure out this little crystal for the life of me. Tell you what - I'll trade you for a snowglobe. I always liked those things, and maybe you can figure out what the crystal does.'",
+      },
+      {
+        check: () => !flags.leverPlaced || !flags.discoveredLab,
+        text: "The scientist says: 'You've visited the observatory, you say? It's a wonderful old room, isn't it? I used to be able to access my lab through there, but the door sealed itself a while back and I couldn't get it open again. Maybe there's something you could do with those mechanisms along the walls? I'd really appreciate being able to get back to my research in there.'",
+      },
+      {
+        check: () => !flags.shelvesMoved && inventory.includes("iron key"),
+        text: "The scientist says: 'I heard the caretaker complaining about losing half their storage space a while back. Something about a heavy shelf in the way? You look strong enough to move them, if you feel like helping out. The cupboard's just off the red corridor.'",
+      },
+      {
+        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("small key"),
+        text: "The scientist says: 'There's a key for the exit after all? Let me take a look... It says white room here, but there's no keyhole in the white room that I've ever found. Maybe your furry friend there could sniff something out.'",
+      },
+      {
+        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("small key"),
+        text: "The scientist says: 'There's a key for the exit after all? Let me take a look... It says white room here, but there's no keyhole in the white room that I've ever found. Maybe that puppy that lives in the yard could sniff something out. He'd probably follow you back here if you give him a dog toy, there should be one in the gift shop.'",
+      }
+    ],
     generic: [
       "The scientist says: 'Hello again. How are you doing?'",
       "The scientist says: 'These fossils are quite fascinating, don't you think? I could study them forever.'",
       "The scientist says: 'I gave up looking for a way out some time ago. Being here is far more peaceful than my old life. You keep at it, though! I'm sure you'll find one eventually.'",
       "The scientist says: 'Have you found the observatory yet? I used to spend a fair amount of time in there, watching the skies.'",
 			"The scientist says: 'Oh, where did I leave that book? It's a wonder I can ever find any of them in this chaos. If only I had a shelf to organise them on properly...'"
+    ]
+  },
+  barista: {
+    firstMeet: [
+      "You smile at the barista, glad to see a friendly face in this odd place. She smiles back and says: 'Hello, lovie! You're the first customer I've had in ages! I barely even see the caretaker or the scientist these days. You let me know if I can get you anything to eat or drink, or if you just want a litle chitchat.'"
+    ],
+    conditions: [
+      {
+        // birdhouse placement hint
+        check: () => inventory.includes("birdhouse") && flags.gardenOpen,
+        text: "The barista says: 'Oh, that's a lovely little birdhouse you've got there. Did you build that yourself? I'm sure the birds out in the garden would love it, if you want to leave it out there for them. They might even give you a little present in return.'"
+      },
+      {
+        // reaction to birdhouse
+        check: () => flags.birdhousePlaced && !npcs.barista.birdhouseCommentSaid,
+        text: "The barista says: 'That looks just right out there, lovie. Thank you for helping out... oh, I see the birds thanked you too! That's an odd little thing, isn't it? I wonder where it goes?'",
+        onSay: () => {
+          npcs.barista.birdhouseCommentSaid = true;
+        }
+      },
+      {
+        // garden unlocked reaction
+        check: () => flags.gardenOpen && !npcs.barista.gardenCommentSaid,
+        text: "The barista says: 'Oh, thank you for unlocking the garden, lovie. I'm not sure how that managed to close itself up, but it's nice to be able to spend time out there again.'",
+        onSay: () => {
+          npcs.barista.gardenCommentSaid = true;
+        }
+      },
+    ],
+    hints: [
+      {
+        check: () => flags.gardenOpen && !inventory.includes("iron key"),
+        text: "The barista says: 'Feeling a bit stuck, lovie? I know what that's like. Sometimes I find having a sit down in the garden helps me think better. Why don't you pop on out there and relax for a moment on that old bench? I promise it's comfier than it looks!'",
+      },
+      {
+        check: () => !flags.shelvesMoved && inventory.includes("iron key"),
+        text: "The barista says: 'The last time the caretaker was in here, lovie, they were talking about some big heavy shelf that cut off their back storage room. Now, I'm not entirely sure what they meant, but maybe you could figure it out? The cleaning cupboard is just off the red corridor, if you fancy taking a look at what's going on in there.'",
+      },
+      {
+        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("small key"),
+        text: "The barista says: 'A tiny key labelled 'exit'? Oh, that's such a dear little thing, it almost looks like it would fit a dollhouse. I'm not sure where it might go, I've never come across a keyhole that small. Maybe your puppy there might be able to sniff out the keyhole, if you can't quite spot it? Pop over to the white room and have a real close look at things.'",
+      },
+      {
+        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("small key"),
+        text: "The barista says: 'A tiny key labelled 'exit'? Oh, that's such a dear little thing, it almost looks like it would fit a dollhouse. I'm not sure where it might go, I've never come across a keyhole that small. I'm not sure how you'd go about finding it... the puppy from the old yard might be able to sniff out the keyhole, if you can't quite spot it? Give the little guy a dog toy, he'll follow a friend anywhere.'",
+      }
+    ],
+    generic: [
+      "The barista says: 'Hello again lovie!'",
+      "The barista says: 'You know, a nice bunch of flowers would look pretty on the counter here. Maybe I'll pop out in the garden and see what's growing.'",
+      "The barista says: 'Have you found anything interesting while you've been wandering about here? There's all sorts of secrets hidden if you look close enough. Mind what you touch, though, you wouldn't want to damage yourself lovie!'",
+      "The barista says: 'When I was your age, I used to love jumping about. I'd find all kinds of interesting things hidden up high.'"
     ]
   }
 };
@@ -600,6 +957,18 @@ function placeBirdhouse() {
 
   // add battery to inventory
   inventory.push("battery");
+}
+
+function dig() {
+  if (player.location === "garden" && npcs.puppy.following && !inventory.includes("iron key")) {
+    appendMessage("You tell your loyal companion to dig in the spot he seems interested in. He digs a hole, and comes to you with a sturdy iron key. You take the key and give him a pat on the head.");
+    inventory.push("ironKey");
+  } else if (player.location === "garden" && !npcs.puppy.following) {
+    appendMessage("You can't dig by yourself. You need some kind of digging expert to help you.");
+  } else if (player.location === "white room" && npcs.puppy.following && !flags.smallKeyholeRevealed) {
+    appendMessage("You tell your furry friend to dig, thinking he might be able to reveal something you can't see. He barks and scrabbles at a stone leg of that old bench. You take a closer look, and spot a tiny keyhole that almost looks like one of the pockmarks in the rock. A tiny key might fit...");
+    flags.smallKeyholeRevealed = true;
+  }
 }
 
 // use the lever in the observatory - superseded by general useItem function
@@ -911,7 +1280,7 @@ const items = {
     id: "ironKey",
     name: "iron key",
     description: "A plain iron key. A label attached says: 'Stockroom'.",
-    location: "garden",
+    location: "null",
     pickupable: true,
     droppable: false,
     usable: true,
@@ -1396,10 +1765,17 @@ function goDirection(dir) {
   appendMessage(`You move ${dir} into the ${nextRoom.id}.`);
   describeRoom(true);
   
+  // updates puppy location on minimap
+  npcLocations.puppy = currentRoom;
+  
   if (npcs.puppy.following && !flags.labExploded && !flags.winGame) {
     puppyFollow(true);
   }
-
+  
+  // update map when moving rooms
+  visitedRooms.add(currentRoom);
+  discoveredRooms.add(currentRoom);
+  renderMap();
   
   if (player.isInjured) {
     if (!inventory.includes("first aid kit")) {
@@ -1414,6 +1790,9 @@ function goDirection(dir) {
 // command handler
 function handleCommand(cmdInput) {
   const cmd = cmdInput.trim().toLowerCase();
+
+  // Print user input into the game log
+  print(`> ${cmd}`, "command");
 
   if (cmd === "restart") {
     location.reload();
@@ -1444,16 +1823,23 @@ function handleCommand(cmdInput) {
     }
   } else if (cmd === "look around") {
     describeRoom(false);
-  } else if (cmd === "sit") {
+  } else if (cmd.includes("sit")) {
     handleSit();
-  } else if (cmd === "jump") {
+  } else if (cmd.includes("jump")) {
     handleJump();
-  } else if (cmd === "examine") {
+  } else if (cmd.includes("examine")) {
     handleExamine();
   } else if (cmd === "pick flowers") {
     pickFlowers();
-  } else if (cmd === "poke" || cmd === "poke stuff") {
+  } else if (cmd.includes("poke")) {
     handlePoke();
+  } else if (cmd.includes("order")) {
+    if (player.location === "cafe") {
+      appendMessage("The barista says: 'What can I get you, lovie?'");
+      npc.barista.waitingForOrder = true;
+    } else {
+      appendMessage("There's nobody to order anything from here. Try asking the barista in the cafe.");
+    }
   } else if (cmd.startsWith("eat ")) {
       const food = cmd.substring(4).trim();
       if (!food) {
@@ -1475,14 +1861,23 @@ function handleCommand(cmdInput) {
     } else {
       appendMessage("Build what?");
     }
-  } else if (cmd === "pull lever") {
+  } else if (cmd === "pull lever" || (cmd === "use lever" && flags.leverPlaced)) {
     pullLever();
   } else if (cmd === "move shelf" || cmd === "move shelves") {
     moveShelf();
-  } else if (cmd === "search") {
+  } else if (cmd.includes("search")) {
     lookForItem();
+  } else if (cmd.includes("dig")) {
+    dig();
   } else if (cmd.startsWith("take ")) {
     const item = cmd.substring(5).trim();
+    if (item) {
+      takeItem(item);
+    } else {
+      appendMessage("Take what?");
+    }
+  } else if (cmd.startsWith("pick up ")) {
+    const item = cmd.substring(8).trim();
     if (item) {
       takeItem(item);
     } else {
@@ -1505,7 +1900,7 @@ function handleCommand(cmdInput) {
   } else if (cmd === "place shelf" || cmd === "place bookshelf" || cmd === "use bookshelf" || cmd === "use shelf") {
     placeBookshelf();
     return;
-  } else if (cmd ==="place birdhouse" || cmd === "use birdhouse") {
+  } else if (cmd === "place birdhouse" || cmd === "use birdhouse") {
     placeBirdhouse();
   } else if (cmd.startsWith("give ")){
     const parts = cmd.slice(5).split(" to ");
@@ -1518,10 +1913,19 @@ function handleCommand(cmdInput) {
   } else if (cmd.startsWith("talk to ")) {
     talkTo(cmd.slice(8).trim());
     return true;
+  } else if (cmd.startsWith("ask ")) {
+    const npcId = cmd.slice(4).split(" for");
+    if (npcId === "barista" || npcId === "caretaker" || npcId === "scientist") {
+      getHint(npcId);
+      return true;
+    }
+    return true;
   } else if (cmd === "inventory" || cmd === "check bag" || cmd === "bag") {
     showInventory();
   } else if (cmd === "read note" || cmd === "read notes" || cmd === "notes") {
     showNotes();
+  } else if (cmd === "help") {
+    toggleHelp(show);
   } else {
     appendMessage("You can't do that.");
   }
@@ -1617,7 +2021,7 @@ document.querySelectorAll('input[name="theme"]').forEach(radio => {
   });
 });
 
-// Input handling
+// typed input handling
 sendBtn.addEventListener("click", () => {
   const input = cmdInput.value;
   cmdInput.value = "";
@@ -1632,7 +2036,7 @@ cmdInput.addEventListener("keydown", (e) => {
   }
 });
 
-// Compass click handling
+// compass click handling
 compass.addEventListener("click", (e) => {
   const btn = e.target.closest(".dir");
   if (!btn) return;
@@ -1642,6 +2046,16 @@ compass.addEventListener("click", (e) => {
 
 helpBtn.addEventListener("click", () => toggleHelp(true));
 closeHelp.addEventListener("click", () => toggleHelp(false));
+
+// map open/close buttons
+const mapPanel = document.getElementById("mapPanel");
+document.getElementById("mapButton").addEventListener("click", () => {
+  renderMap();
+  mapPanel.classList.remove("hidden");
+});
+document.getElementById("closeMap").addEventListener("click", () => {
+  mapPanel.classList.add("hidden");
+});
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // GAME START, SAVE & LOAD SYSTEM
@@ -1655,7 +2069,9 @@ function saveGame() {
     currentRoom,
     //visitedRooms: Array.from(visitedRooms),
     inventory,
-    player
+    player,
+    flags,
+    npcs
   };
 
   localStorage.setItem("escapeSave", JSON.stringify(saveData));
@@ -1665,8 +2081,13 @@ function saveGame() {
 // load game function
 function loadGame() {
   const saved = localStorage.getItem("escapeSave");
+  const autosave = localStorage.getItem("escapeAutoSave");
   if (!saved) {
-    print("⚠️ No saved game found.");
+    if (autosave) {
+      loadAutoSave();
+    } else {
+      print("⚠️ No saved game found.");
+    }
     return;
   }
 
@@ -1675,6 +2096,8 @@ function loadGame() {
   //visitedRooms = new Set(data.visitedRooms);
   inventory = data.inventory;
   Object.assign(player, data.player);
+  Object.assign(flags, data.flags);
+  Object.assign(npcs, data.npcs);
 
   print("📂 Game loaded!");
   describeRoom();
@@ -1692,6 +2115,7 @@ async function startGame() {
   const ok = await loadRooms();
   if (!ok) return;
   currentRoom = Object.keys(rooms)[0];
+  discoveredRooms.add(currentRoom);
   appendMessage("Welcome to Escape the Complex!");
   br();
   describeRoom(true);
