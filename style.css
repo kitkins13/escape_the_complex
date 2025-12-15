@@ -410,8 +410,10 @@ body::after {
     font-size: 0.9rem;
   }
   
-  #notesPanel {
-    width: 90%;
+  .panel {
+    width: 80%;
+    max-height: 75%;
+    overflow: scroll;
   }
 
 }
@@ -428,12 +430,10 @@ body::after {
     font-size: 0.9rem;
   }
   
-  .footer {
-    display: none;
-  }
-  
-  #notesPanel {
-    width: 90%;
+  .panel {
+    width: 80%;
+    max-height: 75%;
+    overflow: scroll;
   }
   
 }

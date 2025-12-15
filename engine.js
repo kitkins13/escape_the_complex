@@ -677,25 +677,26 @@ function handleBaristaOrder(item) {
   if (!order || order === "nothing" || order === "no thanks") {
     appendMessage("The barista says: 'Changed your mind, lovie? I'll be here if you decide you want anything.'");
     npcs.barista.waitingForOrder = false;
+    return;
   }
 
-  if (order === "coffee") {
+  if (order.includes("coffee")) {
     appendMessage("The barista says: 'One coffee, got it. Just a moment...' She turns to the machine behind her, and hands you a steaming cup of coffee. 'On the house, lovie. Enjoy!");
     inventory.push("coffee");
     npcs.barista.waitingForOrder = false;
-  } else if (order === "tea") {
+  } else if (order.includes("tea")) {
     appendMessage("The barista says: 'One tea, got it. Just a moment...' She turns to the machine behind her, and hands you a steaming cup of tea. 'On the house, lovie. Enjoy!'");
     inventory.push("tea");
     npcs.barista.waitingForOrder = false;
-  } else if (order === "juice") {
+  } else if (order.includes("juice")) {
     appendMessage("The barista says: 'One juice, got it. Just a moment...' She goes over to the fridge behind her, and hands you a glass of chilled juice. 'On the house, lovie. Enjoy!'");
     inventory.push("juice");
     npcs.barista.waitingForOrder = false;
-  } else if (order === "soda") {
+  } else if (order.includes("soda")) {
     appendMessage("The barista says: 'One soda, got it. Just a moment...' She goes over to the fridge behind her, and hands you a glass of chilled soda. 'On the house, lovie. Enjoy!'");
     inventory.push("soda");
     npcs.barista.waitingForOrder = false;
-  } else if (order === "cake") {
+  } else if (order.includes("cake")) {
     appendMessage("The barista says: 'Coming right up.' She disappears through a small door behind the counter, and returns with a delicious slice of cake. 'Here you go, lovie. On the house. Enjoy!'");
     inventory.push("cake");
     npcs.barista.waitingForOrder = false;
@@ -771,10 +772,10 @@ const dialogue = {
     hints: [
       {
         check: () => !flags.givenToolbox,
-        text: "The caretaker says: 'You know, I had a spare lever for the observatory mechanisms in my toolbox. If you can bring it to me, I can give you the lever. I'm pretty sure I left my toolbox in the yard, to the west of the art gallery.'",
+        text: "The caretaker says: 'You know, I had a spare lever for the observatory mechanisms in my toolbox. If you can bring it to me, I can give you the lever. I'm pretty sure I left my toolbox in the yard, to the west of the art gallery. You'll need something to help you carry it, it's a heavy old thing.'",
       },
       {
-        check: () => !flags.leverPlaced || !flags.discoveredLab,
+        check: () => inventory.includes("lever") && (!flags.leverPlaced || !flags.discoveredLab),
         text: "The caretaker says: 'The scientist was saying the other day that he couldn't get into his lab anymore. Maybe that's what the old lever I gave you opens? Give it a pull and see what happens.'",
       },
       {
@@ -836,7 +837,7 @@ const dialogue = {
         text: "The scientist says: 'I've found a few strange things in my time here. Most of them I've found a use for, but I can't figure out this little crystal for the life of me. Tell you what - I'll trade you for a snowglobe. I always liked those things, and maybe you can figure out what the crystal does.'",
       },
       {
-        check: () => !flags.leverPlaced || !flags.discoveredLab,
+        check: () => flags.observatoryVisited && (!flags.leverPlaced || !flags.discoveredLab),
         text: "The scientist says: 'You've visited the observatory, you say? It's a wonderful old room, isn't it? I used to be able to access my lab through there, but the door sealed itself a while back and I couldn't get it open again. Maybe there's something you could do with those mechanisms along the walls? I'd really appreciate being able to get back to my research in there.'",
       },
       {
@@ -1713,12 +1714,13 @@ const flags = {
   givenSnowglobe : false,
   befriendedPuppy: false,
   learnedPuppyName: false,
+  observatoryVisited: false,
   leverPlaced: false,
+  discoveredLab: false,
+  gardenOpen: false,
   shelvesMoved: false,
   wrExitOpen: false,
   smallKeyholeRevealed: false,
-  discoveredLab: false,
-  gardenOpen: false,
   teleGemPlaced: false,
   batteryPlaced: false,
   exitUnlocked: false,
@@ -1828,7 +1830,7 @@ function goDirection(dir) {
   }
   
   if (flags.carryingToolbox && !flags.usingCart) {
-    appendMessage("The toolbox is too heavy to carry for long. Try building a cart to help you move it.");
+    appendMessage("The toolbox is too heavy to carry for long. Try building a cart in the workshop to help you move it.");
     return;
   } else if (flags.carryingBookshelf && !flags.usingCart) {
     appendMessage("The bookshelf is too bulky to move by yourself. Try building a cart to help you move it.");
@@ -1841,16 +1843,21 @@ function goDirection(dir) {
   // update both trackers
   currentRoom = nextRoomId;
   player.location = nextRoomId.toLowerCase();
-
+  
+  // set flags for various rooms visited so NPC hint system provides appropriate hints
+  if (currentRoom === "observatory" && !flags.observatoryVisited) {
+    flags.observatoryVisited = true;
+  }
+  
   // print the new room description
   appendMessage(`You move ${dir} into the ${nextRoom.id}.`);
   describeRoom(true);
   
-  // updates puppy location on minimap
-  npcLocations.puppy = currentRoom;
-  
   if (npcs.puppy.following && !flags.labExploded && !flags.winGame) {
     puppyFollow(true);
+    
+    // updates puppy location on minimap
+    npcLocations.puppy = currentRoom;
   }
   
   // update map when moving rooms
@@ -1923,10 +1930,12 @@ function handleCommand(cmdInput) {
     
     if (player.location === "cafe") {
       appendMessage("The barista says: 'What can I get you, lovie?'");
-      npc.barista.waitingForOrder = true;
+      npcs.barista.waitingForOrder = true;
     } else {
       appendMessage("There's nobody to order anything from here. Try asking the barista in the cafe.");
     }
+    return;
+    
   } else if (cmd.startsWith("eat ")) {
       const food = cmd.substring(4).trim();
       
