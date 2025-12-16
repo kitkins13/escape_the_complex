@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&family=Sixtyfour:SCAN@-5&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -15,12 +15,25 @@
     <header class="header">
       <h1>Escape the Complex</h1>
       <div class="subtitle">a game by xZnu0us</div>
+      
+      <!-- Mobile friendly version of game buttons -->
+      <div id="mobileMenu" class="mobile-hidden">
+        <button id="invBtnMobile" class="btn secondary">Bag</button>
+        <button id="notesBtnMobile" class="btn secondary">Notes</button>
+        <button id="mapBtnMobile" class="btn secondary">Map</button>
+        <button id="helpMobile" class="btn secondary">Commands</button>
+        <button id="setBtnMobile" class="btn secondary">Settings</button>
+        <button id="saveBtnMobile" class="btn">Save</button>
+        <button id="loadBtnMobile" class="btn">Load</button>
+        <button id="closeMobileMenu" class="btn">Close Menu</button>
+      </div>
     </header>
 
     <section id="game" class="game">
       <!-- Output area: scrollable, preserves line-breaks -->
       <div id="output" class="output" aria-live="polite" role="log"></div>
-
+      
+      
       <!-- Controls: compass + typed input -->
       <div class="controls">
         <div id="compass" class="compass" role="group" aria-label="Movement">
@@ -40,6 +53,8 @@
         <div class="input-row">
           <input id="cmd" class="cmdInput" placeholder="Type a command (e.g. jump, look around, go east)" autocomplete="off" />
           <button id="send" class="btn">Send</button>
+          <button id="mobileMenuBtn" class="btn">☰</button>
+
         </div>
         <div class="button-row">
           <button id="invButton" class="btn secondary">Bag</button>
@@ -48,7 +63,7 @@
           <button id="help" class="btn secondary">Commands</button>
         </div>
         <div class="button-row" id="system-buttons">
-          <button id="settingsButton" class="btn secondary">Settings</button>
+          <button id="settingsButton" class="btn">Settings</button>
           <button id="saveBtn" class="btn">Save</button>
           <button id="loadBtn" class="btn">Load</button>
         </div>
@@ -59,7 +74,7 @@
       <div id="inventoryPanel" class="panel hidden" aria-hidden="true">
         <h2>Inventory</h2>
         <ul id="inventoryList"></ul>
-        <button id="closeInv" class="btn secondary">Close</button>
+        <button id="closeInv" class="btn close">Close</button>
       </div>
 
       <!-- theme select panel -->
@@ -68,10 +83,11 @@
 
         <label><input type="radio" name="theme" value="amber" checked> Amber Terminal</label><br>
         <label><input type="radio" name="theme" value="green"> Green Retro</label><br>
+        <label><input type="radio" name="theme" value="retro-dark"> 80's Nostalgia</label><br>
         <label><input type="radio" name="theme" value="light"> Light Mode</label><br>
         <label><input type="radio" name="theme" value="dark"> Dark Mode</label><br>
 
-        <button id="closeSettings" class="btn">Close</button>
+        <button id="closeSettings" class="btn close">Close</button>
       </div>
 
       <!-- game help panel -->
@@ -92,7 +108,7 @@
           <li><code>build &lt;item&gt;</code> — build in the workshop (cart, birdhouse, shelf)</li>
           <li><code>place &lt;item&gt;</code> — place workshop items to solve puzzles</li>
         </ul>
-        <button id="closeHelp" class="btn">Close</button>
+        <button id="closeHelp" class="btn close">Close</button>
       </aside>
       
       <!-- notes panel -->
@@ -100,14 +116,14 @@
         <h2>Notes</h2>
           <p>Notes found:</p>
           <ul id="playerNotes"></ul>
-        <button id="closeNotes" class="btn">Close</button>
+        <button id="closeNotes" class="btn close">Close</button>
       </div>
       
       <!-- map panel -->
       <div id="mapPanel" class="panel hidden">
         <h2>Complex Map</h2>
         <div id="mapGrid" class="map-grid"></div>
-        <button id="closeMap" class="btn">Close</button>
+        <button id="closeMap" class="btn close">Close</button>
       </div>
     </section>
 

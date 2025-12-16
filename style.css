@@ -8,6 +8,7 @@
   --text-dim: #cc9955;
   --accent: #ffaa33;
   --border: #643;
+  --panel-border: #643;
   --btn-bg: #403020;
   --btn-hover: #554020;
   --glow: rgba(255, 204, 102, 0.6);
@@ -23,51 +24,57 @@
   --text-dim: #00dd40;
   --accent: #00dd40;
   --border: #061;
+  --panel-border: #061;
   --btn-bg: #003b04;
   --btn-hover: #005d02;
-  --glow: rgba(10, 225, 40, 0.6);
+  --glow: rgba(10, 225, 60, 0.6);
 }
 
-.theme-light {
-  --bg: #f5f5f5;
-  --text: #111;
+.theme-retro-light {
+  --bg: #f3f3f3;
+  --text: #121212;
   --text-dim: #515151;
   --accent: #444;
   --border: #333;
+  --panel-border: #333;
   --btn-bg: #e2e2e2;
   --btn-hover: #f3f3f3;
   --glow: rgba(25, 25, 25, 0.6);
 }
 
-.theme-dark {
+.theme-retro-dark {
   --bg: #111;
   --text: #ddd;
   --text-dim: #aaa;
   --accent: #b1b1b1;
   --border: #aaa;
+  --panel-border: #aaa;
   --btn-bg: #222;
   --btn-hover: #2c2c2c;
   --glow: rgba(245, 245, 245, 0.6);
+  --font: "Sixtyfour";
 }
 
-.theme-modern-dark {
-  --bg: #333;
+.theme-dark {
+  --bg: #111;
   --text: #eee;
   --text-dim: #eee;
   --accent: #d3d3d3;
   --border: none;
+  --panel-border: #aaa;
   --btn-bg: #222;
   --btn-hover: #2c2c2c;
-  --glow: rgba(245, 245, 245, 0);
+  --glow: rgba(0, 0, 0, 0);
   --font: sans-serif;
 }
 
-.theme-modern-light {
-  --bg: #d2d2d2;
+.theme-light {
+  --bg: #f3f3f3;
   --text: #121212;
   --text-dim: #101010;
   --accent: #333;
   --border: none;
+  --panel-border: #333;
   --btn-bg: #eee;
   --btn-hover: #ccc;
   --glow: rgba(0, 0, 0, 0);
@@ -108,6 +115,21 @@ a:hover {
   color: var(--text);
 }
 
+#mobileMenu {
+  position: fixed;
+  bottom: 70px;
+  right: 10px;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.mobile-hidden {
+  display: none;
+}
+
+
 /* ---- Header ---- */
 
 .header {
@@ -132,6 +154,7 @@ a:hover {
 .game {
   flex: 1;
   width: 95%;
+  height: 80%;
   display: flex;
   flex-direction: column;
   border: 2px solid var(--border);
@@ -139,7 +162,7 @@ a:hover {
   padding: 1rem;
   background: var(--bg);
   color: var(--text);
-  box-shadow: 0 0 15px rgba(255, 170, 51, 0.15);
+  box-shadow: 0 0 15px var(--glow);
 }
 
 .output {
@@ -151,7 +174,6 @@ a:hover {
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 6px;
-  max-height: 450px;
   margin-bottom: 1rem;
   line-height: 1.4;
   font-size: 0.95rem;
@@ -221,6 +243,11 @@ a:hover {
   opacity: 1;
 }
 
+.btn.close {
+  margin-top: 20px;
+  margin-left: 40%;
+}
+
 .button-row {
   padding: 10px;
 }
@@ -258,7 +285,7 @@ a:hover {
 
 .panel {
   background-color: var(--bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--panel-border);
   border-radius: 10px;
   padding: 1rem;
   color: var(--text);
@@ -269,7 +296,7 @@ a:hover {
   width: 400px;
   max-height: 80%;
   overflow-y: auto;
-  box-shadow: 0 0 20px rgba(255, 204, 102, 0.3);
+  box-shadow: 0 0 20px var(--glow);
   z-index: 10;
   font-size: 0.9rem;
 }
@@ -297,7 +324,6 @@ a:hover {
 }
 
 #notesPanel {
-  width: 450px;
   overflow: auto;
 }
 
@@ -378,55 +404,17 @@ body::after {
 }
 
 /* Media queries */
-@media screen and (min-device-width: 1024px) and (max-device-width: 1600px) 
-  and (-webkit-min-device-pixel-ratio: 1) { /* for small screens & laptops */
-  .output {
-    max-height: 330px;
-    margin-bottom: 0.5rem;
-    line-height: 1.2;
-    font-size: 0.9rem;
-  }
-}
-
-@media screen and (min-device-width: 700px) and (max-device-width: 1024px) and (orientation: landscape) { /* for tablets - landscape orientation */
-  .output {
-    max-height: 250px;
-    margin-bottom: 0.5rem;
-    line-height: 0.9;
-    font-size: 0.9rem;
-  }
-  
-  .footer {
+@media screen and (min-width: 768px) {
+  #mobileMenuBtn {
     display: none;
   }
 }
 
-@media screen and (min-device-width: 480px) and (max-device-width: 768px) and (orientation: portrait) { /* for tablets - portrait orientation */
+@media screen and (max-width: 768px) { /* for small screens */
   .output {
     max-height: 300px;
-    max-width: 90%;
     margin-bottom: 0.5rem;
-    line-height: 0.9;
-    font-size: 0.9rem;
-  }
-  
-  .panel {
-    width: 80%;
-    max-height: 75%;
-    overflow: scroll;
-  }
-
-}
-
-@media screen and (max-device-width: 480px) { /* for phones */
-  .container {
-    
-  }
-  
-  .output {
-    max-height: 275px;
-    margin-bottom: 0.3rem;
-    line-height: 1.0;
+    line-height: 1.1;
     font-size: 0.9rem;
   }
   
@@ -436,4 +424,7 @@ body::after {
     overflow: scroll;
   }
   
+  .button-row {
+    display: none;
+  }
 }

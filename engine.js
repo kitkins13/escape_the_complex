@@ -2036,7 +2036,7 @@ function handleCommand(cmdInput) {
   } else if (cmd === "read note" || cmd === "read notes" || cmd === "notes") {
     showNotes();
   } else if (cmd === "help") {
-    toggleHelp(show);
+    toggleHelp(true);
   } else {
     appendMessage("You can't do that.");
   }
@@ -2046,11 +2046,62 @@ function handleCommand(cmdInput) {
 // UI CONTROLS & FUNCTIONS
 // ~~~~~~~~~~~~~~~~~~~~~~~
 
+// mobile menu show/hide
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+const closeMobileMenu = document.getElementById("closeMobileMenu");
+
+mobileMenuBtn.addEventListener("click", () => {
+  document.getElementById("mobileMenu").classList.toggle("mobile-hidden");
+})
+
+closeMobileMenu.addEventListener("click", () => {
+  document.getElementById("mobileMenu").classList.toggle("mobile-hidden");
+})
+
+// mobile menu button event listeners
+const mobileBag = document.getElementById("invBtnMobile");
+const mobileNotes = document.getElementById("notesBtnMobile");
+const mobileMap = document.getElementById("mapBtnMobile");
+const mobileHelp = document.getElementById("helpMobile");
+const mobileSetting = document.getElementById("setBtnMobile");
+const mobileSave = document.getElementById("saveBtnMobile");
+const mobileLoad = document.getElementById("loadBtnMobile");
+
+mobileBag.addEventListener("click", () => {
+  updateInventoryUI();
+  inventoryPanel.classList.remove("hidden");
+});
+
+mobileNotes.addEventListener("click", () => {
+  updateJournal();
+  notesPanel.classList.remove("hidden");
+});
+
+mobileMap.addEventListener("click", () => {
+  renderMap();
+  mapPanel.classList.remove("hidden");
+});
+
+mobileHelp.addEventListener("click", () => {
+  toggleHelp(true);
+})
+
+mobileSetting.addEventListener("click", () => {
+  settingsPanel.classList.remove("hidden");
+});
+
+mobileSave.addEventListener("click", saveGame);
+mobileLoad.addEventListener("click", loadGame);
+
 // toggle help panel
 function toggleHelp(show) {
   helpPanel.classList.toggle("hidden", !show);
   helpPanel.setAttribute("aria-hidden", !show);
 }
+
+// show/hide help panel
+helpBtn.addEventListener("click", () => toggleHelp(true));
+closeHelp.addEventListener("click", () => toggleHelp(false));
 
 // notes panel show/hide
 const notesButton = document.getElementById("notesButton");
@@ -2155,16 +2206,14 @@ compass.addEventListener("click", (e) => {
   handleCommand(cmd);
 });
 
-// show help panel
-helpBtn.addEventListener("click", () => toggleHelp(true));
-closeHelp.addEventListener("click", () => toggleHelp(false));
-
 // map open/close buttons
 const mapPanel = document.getElementById("mapPanel");
+
 document.getElementById("mapButton").addEventListener("click", () => {
   renderMap();
   mapPanel.classList.remove("hidden");
 });
+
 document.getElementById("closeMap").addEventListener("click", () => {
   mapPanel.classList.add("hidden");
 });
