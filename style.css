@@ -53,6 +53,7 @@
   --btn-hover: #2c2c2c;
   --glow: rgba(245, 245, 245, 0.6);
   --font: "Sixtyfour";
+  --font-size: 0.8rem;
 }
 
 .theme-dark {
@@ -118,11 +119,17 @@ a:hover {
 #mobileMenu {
   position: fixed;
   bottom: 70px;
-  right: 10px;
   background: var(--bg);
   border: 1px solid var(--accent);
   padding: 10px;
   border-radius: 8px;
+  align-self: center;
+  text-align: center;
+}
+
+#top-row, #bottom-row {
+  padding: 5px;
+  align-items: center;
 }
 
 .mobile-hidden {
@@ -196,7 +203,8 @@ a:hover {
 .input-row {
   display: flex;
   align-items: center;
-  width: 100%;
+  justify-content: center;
+  width: 80%;
   gap: 0.5rem;
   margin-top: 0.5rem;
 }

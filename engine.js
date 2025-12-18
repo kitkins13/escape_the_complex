@@ -1880,7 +1880,7 @@ function handleCommand(cmdInput) {
   const cmd = cmdInput.trim().toLowerCase();
 
   // Print user input into the game log
-  print(`> ${cmd}`, "command");
+  appendMessage(`> ${cmd}`, "command");
 
   // restarts the game after winning/losing, or if players somehow break everything
   if (cmd === "restart") {
@@ -1924,7 +1924,7 @@ function handleCommand(cmdInput) {
     handleExamine();
   } else if (cmd === "pick flowers") {
     pickFlowers();
-  } else if (cmd.includes("poke")) {
+  } else if (cmd.includes("poke") || cmd.includes("prod")) {
     handlePoke();
   } else if (cmd.includes("order")) {
     
@@ -2016,14 +2016,24 @@ function handleCommand(cmdInput) {
     appendMessage("Give what to whom?");
     return true;
   } else if (cmd.startsWith("talk to ")) {
-    talkTo(cmd.slice(8).trim());
-    return true;
+    const cleaned = cmd
+      .replace(/^talk\s+/, "")
+      .replace(/^to\s+/, "")
+      .replace(/^the\s+/, "");
+    
+    const npc = cleaned.split(" ")[0].trim();
+    
+    if (npc === "barista" || npc === "caretaker" || npc === "scientist" || npc === "puppy") {
+      talkTo(npc);
+      return true;
+    }
+    appendMessage("That person isn't here.");
   } else if (cmd.startsWith("ask ")) {
     const cleaned = cmd
       .replace(/^ask\s+/, "")
       .replace(/^the\s+/, "");
 
-    const npcId = cleaned.split(" for")[0].trim();
+    const npcId = cleaned.split(" ")[0].trim();
 
     if (npcId === "barista" || npcId === "caretaker" || npcId === "scientist") {
       getHint(npcId);
