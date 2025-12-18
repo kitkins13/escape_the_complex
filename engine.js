@@ -53,7 +53,7 @@ const mapLayout = {
   "bathroom":          { x: 3, y: 3, w: 1, h: 1 },
 
   // observatory spans (1,5) and (2,5)
-  "observatory":       { x: 3, y: 0, w: 2, h: 1 },
+  "observatory":       { x: 2, y: 0, w: 2, h: 1 },
 
   "cafe":              { x: 4, y: 1, w: 1, h: 1 },
   "garden":            { x: 4, y: 2, w: 1, h: 1 },
@@ -189,7 +189,7 @@ function handleSit() {
   } 
   
   else if (loc === "garden") {
-    if (!inventory.includes("iron key")){
+    if (!inventory.includes("ironKey")){
       appendMessage("You sit down on the wrought iron bench, and immediately regret it as part of the filigree falls off. You quickly stand to check the damage, and realise that what fell wasn't part of the bench, but a rusted iron key.");
       items.ironKey.location = "garden";
     } else {
@@ -274,7 +274,7 @@ function handleExamine() {
   } 
   
   else if (loc === "garden") {
-    if (!inventory.includes("iron key")) {
+    if (!inventory.includes("ironKey")) {
       appendMessage("You take your time examining things around the garden. When you get to the old wrought iron bench, you notice something a little off about the filigree workings. There's a rusted key wedged in between a couple of the iron whirls... maybe it fits somewhere important?");
       items.ironKey.location = "garden";
     } else {
@@ -372,7 +372,7 @@ function handlePoke() {
   }
   
   else if (loc === "garden") {
-    if (!inventory.includes("iron key")) {
+    if (!inventory.includes("ironKey")) {
       appendMessage("You poke at several things around the garden. When you get to the wrought iron bench, part of it clinks to the ground after a firm prod. When you pick it up, you realise it isn't part of the bench, but a rusted up iron key.");
       inventory.push("ironKey");
     } else {
