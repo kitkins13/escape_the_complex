@@ -335,6 +335,10 @@ a:hover {
   overflow: auto;
 }
 
+#mapPanel {
+  width: 600px;
+}
+
 /* ---- Minimap ---- */
 
 .map-grid {

@@ -2008,7 +2008,7 @@ function handleCommand(cmdInput) {
     }
     return;
     
-  } else if ((cmd.includes("coffee") || cmd.includes("tea") || cmd.includes("cake") || cmd.includes("juice") || cmd.includes("soda")) && !cmd.includes("drink ")) {
+  } else if ((cmd.includes("coffee") || cmd.includes("tea") || cmd.includes("cake") || cmd.includes("juice") || cmd.includes("soda")) && (!cmd.includes("drink ") && !cmd.includes("eat ")) {
     if (player.location === "cafe") {
       handleBaristaOrder(cmd);
       return true;
@@ -2043,7 +2043,7 @@ function handleCommand(cmdInput) {
     pullLever();
   } else if (cmd === "move shelf" || cmd === "move shelves") {
     moveShelf();
-  } else if (cmd.includes("search ")) {
+  } else if (cmd.includes("search") && !cmd.includes("researcher")) {
     lookForItem();
   } else if (cmd.includes("dig")) {
     dig();
