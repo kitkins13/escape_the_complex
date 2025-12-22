@@ -1978,7 +1978,7 @@ function handleCommand(cmdInput) {
     return true;
   }
 
-  if (cmd.startsWith("go ") && !cmd.includes("to") {
+  if (cmd.startsWith("go ") && !cmd.includes("to")) {
     const dir = cmd.substring(3).trim();
     
     if (dir) {
