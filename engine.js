@@ -105,8 +105,8 @@ function renderMap() {
   const grid = document.getElementById("mapGrid");
   grid.innerHTML = "";
 
-  for (let y = 0; y < 6; y++) {
-    for (let x = 0; x < 6; x++) {
+  for (let y = 0; y < 7; y++) {
+    for (let x = 0; x < 7; x++) {
       const cell = document.createElement("div");
       cell.classList.add("map-cell");
 
@@ -160,6 +160,37 @@ function renderMap() {
       }
     }
   }
+}
+
+// handles room aliases for fast travel
+function resolveRoomFromText(text) {
+  const lower = text.toLowerCase();
+
+  for (const room of Object.values(rooms)) {
+    for (const alias of room.aliases) {
+      if (lower.includes(alias)) {
+        return room.id;
+      }
+    }
+  }
+
+  return null;
+}
+
+// fast travel check
+function canFastTravelTo(roomId) {
+  return discoveredRooms.has(roomId);
+}
+
+// allows fast travel between discovered rooms
+function movePlayerTo(roomId) {
+  currentRoom = roomId;
+  visitedRooms.add(roomId);
+  discoveredRooms.add(roomId);
+
+  appendMessage(`You make your way back to the ${roomId}.`);
+  describeRoom(roomId);
+  renderMap();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -419,6 +450,7 @@ function showNotes() {
 const npcs = {
   caretaker: {
     name: "caretaker",
+    aliases: ["caretaker", "janitor", "cleaner", "old man"],
     location: "blue corridor",
     met: false,
     playerThanked: false,
@@ -428,6 +460,7 @@ const npcs = {
   },
   barista: {
     name: "barista",
+    aliases: ["barista", "cafe lady", "server", "waitress"],
     location: "cafe",
     met: false,
     waitingForOrder: false,
@@ -436,6 +469,7 @@ const npcs = {
   },
   scientist: {
     name: "scientist",
+    aliases: ["scientist", "researcher", "doctor", "professor"],
     location: "fossil exhibit",
     met: false,
     shelfCommentSaid: false,
@@ -443,6 +477,7 @@ const npcs = {
   },
   puppy: {
     name: "puppy",
+    aliases: ["puppy", "dog", "little dog", "digger"],
     location: "yard",
     met: false,
     following: false,
@@ -456,6 +491,21 @@ const npcLocations = {
   scientist: "fossil exhibit",
   puppy: "yard" // update dynamically when puppy follows player
 };
+
+// handles NPC aliases
+function resolveNpcFromText(text) {
+  const lower = text.toLowerCase();
+
+  for (const [npcId, npc] of Object.entries(npcs)) {
+    for (const alias of npc.aliases) {
+      if (lower.includes(alias)) {
+        return npcId;
+      }
+    }
+  }
+
+  return null;
+}
 
 // caretaker general talk function
 function handleCaretakerTalk() {
@@ -1906,6 +1956,28 @@ function handleCommand(cmdInput) {
     return;
   }
 
+  if (cmd.startsWith("go to ") || cmd.startsWith("travel to ")) {
+  const destination = resolveRoomFromText(cmd);
+
+    if (!destination) {
+      appendMessage("You're not sure where you're trying to go.");
+      return true;
+    }
+
+    if (!canFastTravelTo(destination)) {
+      appendMessage("You don't know how to get there yet.");
+      return true;
+    }
+
+    if (destination === currentRoom) {
+      appendMessage("You're already there.");
+      return true;
+    }
+
+    movePlayerTo(destination);
+    return true;
+  }
+
   if (cmd.startsWith("go ")) {
     const dir = cmd.substring(3).trim();
     
@@ -1936,6 +2008,13 @@ function handleCommand(cmdInput) {
     }
     return;
     
+  } else if ((cmd.includes("coffee") || cmd.includes("tea") || cmd.includes("cake") || cmd.includes("juice") || cmd.includes("soda")) && !cmd.includes("drink ")) {
+    if (player.location === "cafe") {
+      handleBaristaOrder(cmd);
+      return true;
+    } else {
+      appendMessage("You can't order anything here. Try the cafe.");
+    }
   } else if (cmd.startsWith("eat ")) {
       const food = cmd.substring(4).trim();
       
@@ -1964,7 +2043,7 @@ function handleCommand(cmdInput) {
     pullLever();
   } else if (cmd === "move shelf" || cmd === "move shelves") {
     moveShelf();
-  } else if (cmd.includes("search")) {
+  } else if (cmd.includes("search ")) {
     lookForItem();
   } else if (cmd.includes("dig")) {
     dig();
@@ -2015,13 +2094,17 @@ function handleCommand(cmdInput) {
     
     appendMessage("Give what to whom?");
     return true;
-  } else if (cmd.startsWith("talk to ")) {
+  } else if (cmd.startsWith("talk ") || cmd.startsWith("chat ")) {
     const cleaned = cmd
+      .replace(/^chat\s+/, "")
       .replace(/^talk\s+/, "")
+      .replace(/^with\s+/, "")
       .replace(/^to\s+/, "")
       .replace(/^the\s+/, "");
     
-    const npc = cleaned.split(" ")[0].trim();
+    const npcId = resolveNpcFromText(cleaned);
+    
+    const npc = npcId.split(" ")[0].trim();
     
     if (npc === "barista" || npc === "caretaker" || npc === "scientist" || npc === "puppy") {
       talkTo(npc);
@@ -2032,11 +2115,13 @@ function handleCommand(cmdInput) {
     const cleaned = cmd
       .replace(/^ask\s+/, "")
       .replace(/^the\s+/, "");
+      
+    const npcId = resolveNpcFromText(cleaned);
 
-    const npcId = cleaned.split(" ")[0].trim();
+    const npc = npcId.split(" ")[0].trim();
 
-    if (npcId === "barista" || npcId === "caretaker" || npcId === "scientist") {
-      getHint(npcId);
+    if (npc === "barista" || npc === "caretaker" || npc === "scientist") {
+      getHint(npc);
       return true;
     }
     appendMessage("There's nobody here to help you. Check another room.");
