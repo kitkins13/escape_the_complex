@@ -105,8 +105,8 @@ function renderMap() {
   const grid = document.getElementById("mapGrid");
   grid.innerHTML = "";
 
-  for (let y = 0; y < 7; y++) {
-    for (let x = 0; x < 7; x++) {
+  for (let y = 0; y <= 6; y++) {
+    for (let x = 0; x <= 6; x++) {
       const cell = document.createElement("div");
       cell.classList.add("map-cell");
 
@@ -2147,11 +2147,11 @@ const closeMobileMenu = document.getElementById("closeMobileMenu");
 
 mobileMenuBtn.addEventListener("click", () => {
   document.getElementById("mobileMenu").classList.toggle("mobile-hidden");
-})
+});
 
 closeMobileMenu.addEventListener("click", () => {
   document.getElementById("mobileMenu").classList.toggle("mobile-hidden");
-})
+});
 
 // mobile menu button event listeners
 const mobileBag = document.getElementById("invBtnMobile");
@@ -2179,7 +2179,7 @@ mobileMap.addEventListener("click", () => {
 
 mobileHelp.addEventListener("click", () => {
   toggleHelp(true);
-})
+});
 
 mobileSetting.addEventListener("click", () => {
   settingsPanel.classList.remove("hidden");
