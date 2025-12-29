@@ -187,7 +187,14 @@ function movePlayerTo(roomId) {
   currentRoom = roomId;
   visitedRooms.add(roomId);
   discoveredRooms.add(roomId);
-
+  
+  // allows puppy to fast travel with player
+  if (npcs.puppy.following) {
+    puppyFollow(true);
+    npcLocations.puppy = currentRoom;
+  }
+  
+  player.location = currentRoom;
   appendMessage(`You make your way back to the ${roomId}.`);
   describeRoom(roomId);
   renderMap();
@@ -309,7 +316,7 @@ function handleExamine() {
       appendMessage("You take your time examining things around the garden. When you get to the old wrought iron bench, you notice something a little off about the filigree workings. There's a rusted key wedged in between a couple of the iron whirls... maybe it fits somewhere important?");
       items.ironKey.location = "garden";
     } else {
-      appendMessage("You wander around the garden trying to see what plants you can identify. ")
+      appendMessage("You wander around the garden trying to see what plants you can identify.");
     }
   } 
   
@@ -428,6 +435,30 @@ function pickFlowers() {
   }
 }
 
+// lets the player use the bathroom
+function pee() {
+  const location = player.location;
+
+  if (location === "bathroom") {
+    appendMessage("You go into one of the cubicles and relieve yourself.\n");
+  } else {
+    appendMessage("Probably shouldn't do that here.\n");
+  }
+}
+
+// always wash your hands after using the bathroom!
+function washHands() {
+  const location = player.location;
+  
+  if (location === "bathroom") {
+    appendMessage("You wash your hands in one of the sinks lining the wall.\n");
+  } else if (location === "cafe") {
+    appendMessage("You go behind the counter and wash your hands in the small sink there.\n");
+  } else {
+    appendMessage("There's nowhere to do that here.\n");
+  }
+}
+
 // show notes function
 function showNotes() {
   const found = Object.keys(player.notes).filter(n => player.notes[n]);
@@ -440,6 +471,62 @@ function showNotes() {
   found.forEach(n => {
     appendMessage("\n" + notes[n] + "\n");
   });
+}
+
+// array for locked doors
+const unlockables = {
+  "garden door": {
+    aliases: ["garden door", "glass door", "locked door", "door"],
+    rooms: ["cafe", "blue corridor"],
+    key: "brass key",
+    success: () => {
+      appendMessage("You unlock the garden door. It swings open with a soft creak.");
+      flags.gardenOpen = true;
+      discoveredRooms.add("garden");
+    },
+    fail: "The garden door is locked."
+  },
+  "storeroom door": {
+    aliases: ["storeroom door", "hidden door", "secret door", "stockroom door", "door"],
+    rooms: ["cleaners' store"],
+    key: "iron key",
+    success: () => {
+      appendMessage("You unlock the hidden door behind the shelves. ");
+      discoveredRooms.add("hidden store");
+    },
+    fail: "The door remains locked."
+  }
+};
+
+// unlocking doors
+function handleUnlock(cmd) {
+  const lower = cmd.toLowerCase();
+
+  // find a door whose aliases appear in the command
+  const targetKey = Object.entries(unlockables).find(
+    ([_, data]) => data.aliases.some(alias => lower.includes(alias))
+  )?.[0];
+
+  if (!targetKey) {
+    appendMessage("What are you trying to unlock?");
+    return;
+  }
+
+  const lock = unlockables[targetKey];
+
+  // check room context
+  if (!lock.rooms.includes(player.location)) {
+    appendMessage("You don't see that here.");
+    return;
+  }
+
+  // check key
+  if (!inventory.includes(lock.key)) {
+    appendMessage("You don't have the right key.");
+    return;
+  }
+
+  lock.success();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1159,6 +1246,7 @@ const items = {
   lever: {
     id: "lever",
     name: "lever",
+    aliases: ["lever", "metal lever"],
     description: "A sturdy lever that probably belongs to some machinery.",
     location: "null",
     pickupable: true,
@@ -1184,6 +1272,7 @@ const items = {
   keyring: {
     id: "keyring",
     name: "keyring",
+    aliases: ["keyring", "keychain"],
     description: "A plain leather keyring.",
     location: "gift shop",
     pickupable: true,
@@ -1193,6 +1282,7 @@ const items = {
   dogToy: {
     id: "dogToy",
     name: "dog toy",
+    aliases: ["dog toy", "squeaky dog toy"],
     description: "A brightly coloured squeaky dog toy.",
     location: "gift shop",
     pickupable: true,
@@ -1208,6 +1298,7 @@ const items = {
   snowglobe: {
     id: "snowglobe",
     name: "snowglobe",
+    aliases: ["snowglobe", "snow globe", "snowstorm", "snowdome", "snow dome"],
     description: "A small and intricate snowglobe. The cottage inside reminds you of home, somehow.",
     location: "gift shop",
     pickupable: true,
@@ -1224,6 +1315,7 @@ const items = {
   toolbox: {
     id: "toolbox",
     name: "toolbox",
+    aliases: ["toolbox", "tool box", "box of tools", "tools", "tool chest", "heavy toolbox"],
     description: "A heavy metal toolbox filled with tools. It looks like it belongs to the caretaker.",
     location: "yard",
     pickupable: true,
@@ -1248,6 +1340,7 @@ const items = {
   bookshelf: {
     id: "bookshelf",
     name: "bookshelf",
+    aliases: ["bookshelf", "bookcase", "shelf", "book shelf", "book case", "shelves"],
     description: "A tall shelving unit, suitable for keeping books off the floor.",
     location: "null",
     pickupable: true,
@@ -1256,6 +1349,7 @@ const items = {
   birdhouse: {
     id: "birdhouse",
     name: "birdhouse",
+    aliases: ["birdhouse", "bird house", "nest box", "perch"],
     description: "A simple freestanding wooden birdhouse, it might look nice in a garden.",
     location: "null",
     pickupable: true,
@@ -1264,6 +1358,7 @@ const items = {
   flowers: {
     id: "flowers",
     name: "flowers",
+    aliases: ["flowers", "bouquet", "bunch of flowers"],
     description: "A bunch of colourful flowers you picked from the garden.",
     location: "null",
     pickupable: true,
@@ -1279,6 +1374,7 @@ const items = {
   cake: {
     id: "cake",
     name: "cake",
+    aliases: ["cake", "cupcake", "muffin", "sweet treat", "sticky bun"],
     description: "A tasty looking slice of cake, neatly wrapped in a to-go box.",
     location: "null",
     pickupable: false,
@@ -1293,6 +1389,7 @@ const items = {
   coffee: {
     id: "coffee",
     name: "coffee",
+    aliases: ["coffee", "cup of coffee", "cappuccino"],
     description: "A steaming hot cup of coffee, skillfully prepared by the barista.",
     location: "null",
     pickupable: false,
@@ -1307,6 +1404,7 @@ const items = {
   tea: {
     id: "tea",
     name: "tea",
+    aliases: ["tea", "cup of tea", "cuppa"],
     description: "A hot cup of tea, skillfully prepared by the barista.",
     location: "null",
     pickupable: false,
@@ -1321,6 +1419,7 @@ const items = {
   juice: {
     id: "juice",
     name: "juice",
+    aliases: ["juice", "fruit juice"],
     description: "A fresh glass of chilled juice.",
     location: "null",
     pickupable: false,
@@ -1335,6 +1434,7 @@ const items = {
   soda: {
     id: "soda",
     name: "soda",
+    aliases: ["soda", "fizzy", "pop"],
     description: "A fizzing glass of soda.",
     location: "null",
     pickupable: false,
@@ -1349,6 +1449,7 @@ const items = {
   drink: {
     id: "drink",
     name: "canned drink",
+    aliases: ["canned drink", "can of drink", "tinnie", "tinny"],
     description: "A can of... something vaguely drinkable. You don't recognise the brand.",
     location: "cafe",
     pickupable: true,
@@ -1363,6 +1464,7 @@ const items = {
   snack: {
     id: "snack",
     name: "packaged snack",
+    aliases: ["packaged snack", "snack bar", "protein bar", "granola bar"],
     description: "A snack bar in unfamiliar packaging. There are only dashes in place of an expiry date.",
     location: "cafe",
     pickupable: true,
@@ -1377,6 +1479,7 @@ const items = {
   smallKey: {
     id: "smallKey",
     name: "small key",
+    aliases: ["small key", "little key", "tiny key", "exit key", "white room key"],
     description: "A tiny tarnished key. There's a faded, dusty label: 'White Room - Exit'.",
     location: "hidden store",
     pickupable: true,
@@ -1393,6 +1496,7 @@ const items = {
   brassKey: {
     id: "brassKey",
     name: "brass key",
+    aliases: ["brass key", "garden key", "shiny key"],
     description: "A heavy brass key. There's a tag on it that reads: 'Garden'.",
     location: "secret lab",
     pickupable: true,
@@ -1411,6 +1515,7 @@ const items = {
   ironKey: {
     id: "ironKey",
     name: "iron key",
+    aliases: ["iron key", "rusty key", "old key", "stockroom key"],
     description: "A plain iron key. A label attached says: 'Stockroom'.",
     location: "null",
     pickupable: true,
@@ -1426,6 +1531,7 @@ const items = {
   firstAidKit: {
     id: "firstAidKit",
     name: "first aid kit",
+    aliases: ["first aid kit", "first aid box", "bandages", "medical kit", "medical box", "medical supplies"],
     description: "A basic first aid box, handy for dealing with minor injuries.",
     location: "cafe",
     pickupable: true,
@@ -1443,6 +1549,7 @@ const items = {
   teleGem: {
     id: "teleGem",
     name: "green gem",
+    aliases: ["green gem", "strange gem", "green crystal", "strange crystal", "crystal", "glowing gem", "glowing crystal", "gem"],
     description: "It glows faintly with a mysterious energy. Might fit somewhere important.",
     location: "null",
     pickupable: true,
@@ -1466,6 +1573,7 @@ const items = {
   battery: {
     id: "battery",
     name: "battery",
+    aliases: ["battery", "power source", "strange object", "power pack", "battery pack"],
     description: "It's cold and rather light. There seem to be connectors on each end, and a green bar down one side, with a lightning bolt above it. Maybe a power source for something?",
     location: "null",
     pickupable: true,
@@ -1506,11 +1614,32 @@ function lookForItem() {
   const foundItems = Object.values(items).filter(i => i.location === player.location);
 
   if (foundItems.length === 0) {
-    appendMessage("You don’t see anything you could take with you, but a couple of things might be worth a closer examination.");
+    if (player.location === "white room" || player.location === "observatory" || player.location === "garden" || player.location === "art gallery" || player.location === "workshop") {
+      appendMessage("You don’t see anything you could take with you, but a couple of things might be worth a closer examination.");
+    } else {
+      appendMessage("You don't see anything here.");
+    }  
   } else {
     appendMessage("You notice:");
     foundItems.forEach(i => print(` - ${i.name}: ${i.description}`));
   }
+}
+
+// handles item aliases
+function resolveItemFromText(text) {
+  const lower = text.toLowerCase();
+
+  for (const item of Object.values(items)) {
+    if (!Array.isArray(item.aliases)) continue;
+
+    for (const alias of item.aliases) {
+      if (lower.includes(alias)) {
+        return item.id;
+      }
+    }
+  }
+
+  return null;
 }
 
 // show player inventory
@@ -1528,6 +1657,21 @@ function showInventory() {
       }
     });
   }
+}
+
+// verb groups for natural command phrasing
+const verbGroups = {
+  take: ["take", "pick up", "grab"],
+  drop: ["drop", "leave", "abandon"],
+  give: ["give", "hand", "offer"],
+  build: ["build", "craft", "make"],
+  use: ["use", "place"],
+  unlock: ["unlock", "open"]
+};
+
+// verb parsing helper
+function startsWithVerb(cmd, verbs) {
+  return verbs.some(v => cmd.startsWith(v + " "));
 }
 
 // player takes item
@@ -1699,10 +1843,8 @@ function giveItem(itemName, npcName) {
 }
 
 // use items
-function useItem(itemName) {
-  const item = Object.values(items).find(
-    i => i.name.toLowerCase() === itemName.toLowerCase()
-  );
+function useItem(itemId) {
+  const item = items[itemId];
   
   if (!item) {
     appendMessage("What do you want to use?");
@@ -1955,7 +2097,8 @@ function handleCommand(cmdInput) {
     handleBaristaOrder(cmd);
     return;
   }
-
+  
+  // fast travel system
   if (cmd.startsWith("go to ") || cmd.startsWith("travel to ")) {
   const destination = resolveRoomFromText(cmd);
 
@@ -1977,9 +2120,12 @@ function handleCommand(cmdInput) {
     movePlayerTo(destination);
     return true;
   }
-
-  if (cmd.startsWith("go ") && !cmd.includes("to")) {
-    const dir = cmd.substring(3).trim();
+  
+  // main command parser
+  if ((cmd.startsWith("go ") || cmd.startsWith("head")) && !cmd.includes("to")) {
+    const dir = cmd
+      .replace(/^head\s+/, "")
+      .replace(/^go\s+/, "");
     
     if (dir) {
       goDirection(dir);
@@ -2031,14 +2177,16 @@ function handleCommand(cmdInput) {
       } else {
        consume(drink); 
       }
-  } else if (cmd.startsWith("build ")) {
-    const target = cmd.substring(6).trim();
-    
-    if (target) {
-      build(target);
-    } else {
+  } else if (startsWithVerb(cmd, verbGroups.build)) {
+    const itemId = resolveItemFromText(cmd);
+
+    if (!itemId) {
       appendMessage("Build what?");
+      return true;
     }
+
+    build(itemId);
+    return true;
   } else if (cmd === "pull lever" || (cmd === "use lever" && flags.leverPlaced)) {
     pullLever();
   } else if (cmd === "move shelf" || cmd === "move shelves") {
@@ -2047,52 +2195,64 @@ function handleCommand(cmdInput) {
     lookForItem();
   } else if (cmd.includes("dig")) {
     dig();
-  } else if (cmd.startsWith("take ")) {
-    const item = cmd.substring(5).trim();
-    
-    if (item) {
-      takeItem(item);
-    } else {
-      appendMessage("Take what?");
-    }
-  } else if (cmd.startsWith("pick up ")) {
-    const item = cmd.substring(8).trim();
-    if (item) {
-      takeItem(item);
-    } else {
-      appendMessage("Take what?");
-    }
-  } else if (cmd.startsWith("drop ")) {
-    const item = cmd.substring(5).trim();
-    
-    if (item) {
-      dropItem(item);
-    } else {
-      appendMessage("Drop what?");
-    }
-  } else if (cmd.startsWith("use ")) {
-    const item = cmd.substring(4).trim();
-    
-    if (item) {
-      useItem(item);
-    } else {
-      appendMessage("Use what?");
-    }
-  } else if (cmd === "place shelf" || cmd === "place bookshelf" || cmd === "use bookshelf" || cmd === "use shelf") {
-    placeBookshelf();
+  } else if (startsWithVerb(cmd, verbGroups.unlock)) {
+    handleUnlock(cmd);
     return;
-  } else if (cmd === "place birdhouse" || cmd === "use birdhouse") {
-    placeBirdhouse();
-    return;
-  } else if (cmd.startsWith("give ")){
-    const parts = cmd.slice(5).split(" to ");
-    
-    if (parts.length === 2) {
-      giveItem(parts[0].trim(), parts[1].trim());
+} else if (startsWithVerb(cmd, verbGroups.take)) {
+    const itemId = resolveItemFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Take what?");
       return true;
     }
-    
-    appendMessage("Give what to whom?");
+
+    takeItem(itemId);
+    return true;
+  } else if (startsWithVerb(cmd, verbGroups.drop)) {
+    const itemId = resolveItemFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Drop what?");
+      return true;
+    }
+
+    dropItem(itemId);
+    return true;
+  } else if (startsWithVerb(cmd, verbGroups.use)) {
+    const itemId = resolveItemFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Use what?");
+      return true;
+    }
+
+    if (itemId === "bookshelf") {
+      placeBookshelf();
+      return true;
+    }
+
+    if (itemId === "birdhouse") {
+      placeBirdhouse();
+      return true;
+    }
+
+    useItem(itemId);
+    return true;
+  } else if (startsWithVerb(cmd, verbGroups.give)) {
+    const itemId = resolveItemFromText(cmd);
+    const npcId = resolveNpcFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Give what?");
+      return true;
+    }
+
+    if (!npcId) {
+      appendMessage("Give it to whom?");
+      return true;
+    }
+
+    giveItem(itemId, npcId);
     return true;
   } else if (cmd.startsWith("talk ") || cmd.startsWith("chat ")) {
     const cleaned = cmd
@@ -2126,11 +2286,15 @@ function handleCommand(cmdInput) {
     }
     appendMessage("There's nobody here to help you. Check another room.");
     return true;
-  } else if (cmd === "inventory" || cmd === "check bag" || cmd === "bag") {
+  } else if (cmd.includes("pee")) {
+    pee();
+  } else if (cmd.includes("wash hands")) {
+    washHands();
+  } else if (cmd.includes("inventory") || cmd.includes("bag")) {
     showInventory();
-  } else if (cmd === "read note" || cmd === "read notes" || cmd === "notes") {
+  } else if (cmd.includes("note")) {
     showNotes();
-  } else if (cmd === "help") {
+  } else if (cmd === "help" || cmd === "commands" || cmd === "command list") {
     toggleHelp(true);
   } else {
     appendMessage("You can't do that.");
@@ -2154,6 +2318,7 @@ closeMobileMenu.addEventListener("click", () => {
 });
 
 // mobile menu button event listeners
+const mobileSend = document.getElementById("mobileSend");
 const mobileBag = document.getElementById("invBtnMobile");
 const mobileNotes = document.getElementById("notesBtnMobile");
 const mobileMap = document.getElementById("mapBtnMobile");
@@ -2161,6 +2326,13 @@ const mobileHelp = document.getElementById("helpMobile");
 const mobileSetting = document.getElementById("setBtnMobile");
 const mobileSave = document.getElementById("saveBtnMobile");
 const mobileLoad = document.getElementById("loadBtnMobile");
+
+mobileSend.addEventListener("click", () => {
+  const input = cmdInput.value;
+  cmdInput.value = "";
+  handleCommand(input);
+  cmdInput.focus();
+});
 
 mobileBag.addEventListener("click", () => {
   updateInventoryUI();
