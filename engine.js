@@ -1333,6 +1333,7 @@ const items = {
   cart: {
     id: "cart",
     name: "cart",
+	aliases: ["cart", "handcart", "trolley", "wagon", "barrow", "wheelbarrow", "truck"],
     description: "A sturdy wooden cart, suitable for transporting heavy items.",
     pickupable: true,
     droppable: false
