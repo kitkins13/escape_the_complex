@@ -1675,25 +1675,63 @@ function startsWithVerb(cmd, verbs) {
 }
 
 // player takes item
-function takeItem(name) {
-  const found = Object.values(items).find(
-    i => i.location === player.location && i.name.toLowerCase() === name.toLowerCase()
-  );
+function takeItem(nameOrId) {
+  // Accept either an item id (e.g. "lever") or freeform text (e.g. "take the small key")
+  if (!nameOrId) {
+    appendMessage("Take what?");
+    return;
+  }
 
+  let found = null;
+  const lower = nameOrId.toLowerCase();
+
+  // 1) If caller passed an exact item id that exists in items, use it
+  if (items[nameOrId]) {
+    found = items[nameOrId];
+    // ensure it's in the current room (unless it's already in inventory)
+    if (found.location !== player.location && found.location !== "inventory") {
+      appendMessage("There’s no " + found.name + " here.");
+      return;
+    }
+  } else {
+    // 2) Try to find an item in the current room that matches the provided text:
+    //    match by id, exact name, or any alias
+    found = Object.values(items).find(i => {
+      if (i.location !== player.location) return false;
+      if (i.id && i.id.toLowerCase() === lower) return true;
+      if (i.name && i.name.toLowerCase() === lower) return true;
+      if (Array.isArray(i.aliases)) {
+        return i.aliases.some(a => lower.includes(a));
+      }
+      return false;
+    });
+
+    // 3) If still not found, try the general resolver
+    if (!found) {
+      const resolvedId = resolveItemFromText(nameOrId);
+      if (resolvedId && items[resolvedId] && items[resolvedId].location === player.location) {
+        found = items[resolvedId];
+      }
+    }
+  }
+  
+  // if item not present in the current room
   if (!found) {
     appendMessage("You don’t see that here.");
     return;
   }
-
+  
+  // if item cannot be picked up
   if (!found.pickupable) {
     appendMessage("You can’t take that.");
     return;
   }
-  
+
+  // special handling for large/heavy items that use the cart
   if (found.id === "toolbox") {
     if (player.location !== items.toolbox.location) {
-    appendMessage("There’s no toolbox here.");
-    return;
+      appendMessage("There’s no toolbox here.");
+      return;
     }
 
     if (flags.carryingBookshelf || flags.carryingBirdhouse) {
@@ -1710,13 +1748,13 @@ function takeItem(name) {
     flags.usingCart = true;
     appendMessage("You load the heavy toolbox onto the cart. You can now move it around easily.");
   }
-  
+
   if (found.id === "bookshelf") {
     if (!inventory.includes("cart")) {
       appendMessage("You can't drag that around the place by yourself. Maybe if you had a cart you could move it more easily.");
       return;
     }
-    
+
     if (flags.carryingToolbox || flags.carryingBirdhouse) {
       appendMessage("The cart is sturdy but small. There's only room for one thing at a time.");
       return;
@@ -1725,23 +1763,23 @@ function takeItem(name) {
       appendMessage("You haven't built a bookshelf yet.");
       return;
     }
-    
+
     if (player.location !== items.bookshelf.location) {
       appendMessage("The bookshelf isn't here.");
       return;
-    } 
-    
+    }
+
     flags.carryingBookshelf = true;
     flags.usingCart = true;
     appendMessage("You load the bookshelf onto the cart. Now to find where it belongs.");
   }
-  
+
   if (found.id === "birdhouse") {
     if (!inventory.includes("cart")) {
       appendMessage("You can't drag that around the place by yourself. Maybe if you had a cart you could move it more easily.");
       return;
     }
-    
+
     if (flags.carryingToolbox || flags.carryingBookshelf) {
       appendMessage("The cart is sturdy but small. There's only room for one thing at a time.");
       return;
@@ -1750,18 +1788,21 @@ function takeItem(name) {
       appendMessage("You haven't built a birdhouse yet.");
       return;
     }
-    
+
     if (player.location !== items.birdhouse.location) {
       appendMessage("The birdhouse isn't here.");
       return;
-    } 
-    
+    }
+
     flags.carryingBirdhouse = true;
     flags.usingCart = true;
     appendMessage("You load the birdhouse onto the cart. Now to find where it belongs.");
   }
 
-  inventory.push(found.id);
+  // add to player inventory and mark as carried
+  if (!inventory.includes(found.id)) {
+    inventory.push(found.id);
+  }
   found.location = "inventory";
   appendMessage(`You take the ${found.name}.`);
 }
