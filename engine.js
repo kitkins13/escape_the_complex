@@ -1237,6 +1237,27 @@ function moveShelf() {
 
 }
 
+// secret teleport ending
+function teleportEnding() {
+  if (player.location !== "secret room") {
+    appendMessage("There’s nothing like that to press here.");
+    return;
+  }
+
+  if (!flags.teleGemPlaced || !flags.batteryPlaced) {
+    appendMessage("You press against the crystal, but nothing happens. It seems the system isn’t fully powered yet.");
+    return;
+  }
+
+  appendMessage("You place your hand on the glowing crystal and press gently. The circuits beneath your feet grow warmer, and the crystals flash with bright pulses of strange light.");
+
+  appendMessage("When the light fades, you find yourself outside in the fresh air. You made it out! Now you just need to figure out where you are, and how to get home... that shouldn't be too hard though... right?");
+  
+  appendMessage("~~~ 🏆 YOU WIN! 🏆 ~~~");
+
+  flags.gameWin = true;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~
 // INVENTORY + ITEM SYSTEM
 // ~~~~~~~~~~~~~~~~~~~~~~~
@@ -1333,7 +1354,7 @@ const items = {
   cart: {
     id: "cart",
     name: "cart",
-	aliases: ["cart", "handcart", "trolley", "wagon", "barrow", "wheelbarrow", "truck"],
+    aliases: ["cart", "handcart", "trolley", "wagon", "barrow", "wheelbarrow", "truck"],
     description: "A sturdy wooden cart, suitable for transporting heavy items.",
     pickupable: true,
     droppable: false
@@ -1558,13 +1579,13 @@ const items = {
     usable: true,
     onUse: () => {
       if (player.location === "secret room" && !flags.batteryPlaced) {
-        appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits complete. Please insert power source and press the central crystal to continue.'");
+        appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits complete. Please insert power source to activate teleportation system.'");
         inventory = inventory.filter(i => i !== "teleGem");
         flags.teleGemPlaced = true;
       } else if (player.location === "secret room" && flags.batteryPlaced) {
         appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Please press the central crystal to continue.'");
-        appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
-        flags.gameWin = true;
+        flags.teleGemPlaced = true;
+        flags.teleporterReady = true;
         return;
       } else {
         appendMessage("You can't use that here.");
@@ -1582,13 +1603,13 @@ const items = {
     usable: true,
     onUse: () => {
       if (player.location === "secret room" && !flags.teleGemPlaced) {
-        appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the floor lights up with a soft glow, and a synthetic voice says: 'Power source connected. Please complete the crystal circuit to activate teleportation system.'");
+        appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the crystals light up with a soft glow, and a synthetic voice says: 'Power source connected. Please complete the crystal circuit to activate teleportation system.'");
         inventory = inventory.filter(i => i !== "battery");
         flags.batteryPlaced = true;
       } else if (player.location === "secret room" && flags.teleGemPlaced) {
       appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the floor lights up with a soft glow, and a synthetic voice says: 'Power source connected. Please press the central crystal to continue.'");
-        appendMessage("You do as the voice said, and a bright light envelops you. When the light fades, you find yourself outside, free at last.");
-        flags.gameWin = true;
+        flags.batteryPlaced = true;
+        flags.teleporterReady = true;
         return;
       } else {
         appendMessage("You can't use that here.");
@@ -1667,7 +1688,9 @@ const verbGroups = {
   give: ["give", "hand", "offer"],
   build: ["build", "craft", "make"],
   use: ["use", "place"],
-  unlock: ["unlock", "open"]
+  unlock: ["unlock", "open"],
+  search: ["search", "look for"],
+  go: ["go", "head"]
 };
 
 // verb parsing helper
@@ -1814,33 +1837,39 @@ function dropItem(name) {
     id => items[id].name.toLowerCase() === name.toLowerCase()
   );
   
+  if (index === -1) {
+    appendMessage("You don’t have that.");
+    return;
+  }
+  
   const item = items[inventory[index]];
   
   if (!item.droppable) {
     appendMessage("That's too useful to leave behind.");
     return;
   }
-	
-  if (index === -1) {
-    appendMessage("You don’t have that.");
-    return;
-  }
   
-  if (item === "birdhouse") {
+  if (item.id === "birdhouse") {
     appendMessage("The birdhouse might be useful later. You make a note of where you left it, in case you need to come back.");
     carryingBirdhouse = false;
+    inventory.splice(index, 1);
+    item.location = player.location;
     return;
   }
   
-  if (item === "bookshelf") {
+  if (item.id === "bookshelf") {
     appendMessage("The bookshelf might be useful later. You make a note of where you left it, in case you need to come back.");
     carryingBookshelf = false;
+    inventory.splice(index, 1);
+    item.location = player.location;
     return;
   }
   
-  if (item === "toolbox") {
+  if (item.id === "toolbox") {
     appendMessage("The toolbox might be useful later. You make a note of where you left it, in case you need to come back.");
     carryingToolbox = false;
+    inventory.splice(index, 1);
+    item.location = player.location;
     return;
   }
   
@@ -1957,6 +1986,7 @@ const flags = {
   smallKeyholeRevealed: false,
   teleGemPlaced: false,
   batteryPlaced: false,
+  teleporterReady: false,
   exitUnlocked: false,
   gameLose: false,
   gameWin: false,
@@ -2021,7 +2051,7 @@ function describeRoom(showIntro = true) {
   if (showIntro && room.intro) appendMessage(room.intro);
   if (room.description) appendMessage(room.description);
 
-	if (room === "white room" && inventory.includes("small key") && !flags.smallKeyholeRevealed) {
+	if (room === "white room" && inventory.includes("smallKey") && !flags.smallKeyholeRevealed) {
 		appendMessage("You are exhausted after spending so long wandering around this place. That rickety old bench suddenly looks a lot more comfortable. Surely it wouldn't hurt to sit down for a moment?");
 	}
 	
@@ -2327,6 +2357,9 @@ function handleCommand(cmdInput) {
       return true;
     }
     appendMessage("There's nobody here to help you. Check another room.");
+    return true;
+  } else if (cmd.includes("press") && (cmd.includes("button") || cmd.includes("crystal") || cmd.includes("pedestal"))) {
+    teleportEnding()
     return true;
   } else if (cmd.includes("pee")) {
     pee();
