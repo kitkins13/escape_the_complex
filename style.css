@@ -390,7 +390,6 @@ a:hover {
 
 footer {
   text-align: center;
-  background-color: var(--bg);
   color: var(--text-dim);
   font-size: 0.8rem;
   margin-top: 0.5rem;
@@ -413,6 +412,26 @@ body::after {
   );
   opacity: 0.15;
   z-index: 999;
+}
+
+
+#help-page {
+  margin: 15px;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.expandable {
+  transition: all 0.5s;
+}
+
+.expandable.hide {
+  transform: translateY(-100%);
+  opacity: 0;
+  visibility: hidden;
+  height: 0; padding: 0; margin: 0;
 }
 
 /* Media queries */

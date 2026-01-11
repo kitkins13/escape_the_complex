@@ -37,7 +37,7 @@ const mapLayout = {
   "gift shop":         { x: 3, y: 5, w: 1, h: 1 },
   "secret room":       { x: 2, y: 6, w: 1, h: 1 },
 
-  // red corridor spans (1,1) and (1,2)
+  // red corridor spans 2 tiles vertically
   "red corridor":      { x: 2, y: 3, w: 1, h: 2 },
 
   "cleaners' store":   { x: 3, y: 4, w: 1, h: 1 },
@@ -47,12 +47,12 @@ const mapLayout = {
   "workshop":          { x: 1, y: 2, w: 1, h: 1 },
   "yard":              { x: 0, y: 2, w: 1, h: 1 },
 
-  // blue corridor spans (2,3) and (2,4)
+  // blue corridor spans 2 tiles vertically
   "blue corridor":     { x: 3, y: 1, w: 1, h: 2 },
 
   "bathroom":          { x: 3, y: 3, w: 1, h: 1 },
 
-  // observatory spans (1,5) and (2,5)
+  // observatory spans 2 tiles horizontally
   "observatory":       { x: 2, y: 0, w: 2, h: 1 },
 
   "cafe":              { x: 4, y: 1, w: 1, h: 1 },
@@ -151,6 +151,7 @@ function renderMap() {
             barista: "☕",
             scientist: "🔬",
             puppy: "🐕",
+            customer: "🚶",
             player: "👤"
           };
 
@@ -537,7 +538,7 @@ function handleUnlock(cmd) {
 const npcs = {
   caretaker: {
     name: "caretaker",
-    aliases: ["caretaker", "janitor", "cleaner", "old man"],
+    aliases: ["caretaker", "janitor", "cleaner", "custodian"],
     location: "blue corridor",
     met: false,
     playerThanked: false,
@@ -553,6 +554,7 @@ const npcs = {
     waitingForOrder: false,
     birdhouseCommentSaid: false,
     gardenCommentSaid: false,
+    happyToServe: false,
   },
   scientist: {
     name: "scientist",
@@ -568,6 +570,11 @@ const npcs = {
     location: "yard",
     met: false,
     following: false,
+  },
+  customer: {
+    name: "customer",
+    aliases : ["customer", "cafe customer", "cafe patron", "visitor"],
+    location: "null",
   }
 };
 
@@ -576,7 +583,8 @@ const npcLocations = {
   caretaker: "blue corridor",
   barista: "cafe",
   scientist: "fossil exhibit",
-  puppy: "yard" // update dynamically when puppy follows player
+  puppy: "yard", // update dynamically when puppy follows player
+  customer: "null" // update to cafe when glass corridor exit has been open for a while
 };
 
 // handles NPC aliases
@@ -675,6 +683,23 @@ function handleBaristaTalk() {
   appendMessage(dialogue.barista.generic[random]);
 }
 
+// cafe customer talk function
+function handleCustomerTalk() {
+  if (player.location !== "cafe") {
+    appendMessage("There are no customers here. Check the cafe.");
+    return;
+  }
+  
+  if (!flags.customersPresent) {
+    appendMessage("Although you'd expect a cafe like this to have customers, there's nobody here but you and the barista.");
+    return;
+  }
+  
+  // random dialogue line
+  const random = Math.floor(Math.random() * dialogue.customer.generic.length);
+  appendMessage(dialogue.customer.generic[random]);
+}
+
 // caretaker hint function
 function caretakerHints() {
   if (player.location !== "blue corridor") {
@@ -766,6 +791,11 @@ function talkTo(npcName) {
     return;
   }
   
+  if (npcName === "customer") {
+    handleCustomerTalk();
+    return;
+  }
+  
   if (npcName === "puppy") {
 	
 		npcs.puppy.met = true;
@@ -776,6 +806,7 @@ function talkTo(npcName) {
       appendMessage("The puppy seems a little uncertain of you. Maybe if you had a toy he'd be more interested?");
     }
   }
+  
 }
 
 // npc hint system
@@ -801,7 +832,7 @@ function puppyFollow() {
   
   if (follow) {
     npcs.puppy.location = player.location;
-    appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth. 🐾");
+    appendMessage("🐾 The puppy trots after you, proudly carrying his new toy in his mouth.");
     npcLocations.puppy = currentRoom;
     renderMap();
   }
@@ -818,20 +849,24 @@ function handleBaristaOrder(item) {
   }
 
   if (order.includes("coffee")) {
-    appendMessage("The barista says: 'One coffee, got it. Just a moment...' She turns to the machine behind her, and hands you a steaming cup of coffee. 'On the house, lovie. Enjoy!");
+    appendMessage("The barista says: 'One coffee, got it. Just a moment...' She turns to the machine behind her, and prepares you a steaming cup of coffee. 'On the house, lovie. Enjoy!");
     inventory.push("coffee");
     npcs.barista.waitingForOrder = false;
   } else if (order.includes("tea")) {
-    appendMessage("The barista says: 'One tea, got it. Just a moment...' She turns to the machine behind her, and hands you a steaming cup of tea. 'On the house, lovie. Enjoy!'");
+    appendMessage("The barista says: 'One tea, got it. Just a moment...' She turns to the machine behind her, and prepares you a steaming cup of tea. 'On the house, lovie. Enjoy!'");
     inventory.push("tea");
     npcs.barista.waitingForOrder = false;
   } else if (order.includes("juice")) {
-    appendMessage("The barista says: 'One juice, got it. Just a moment...' She goes over to the fridge behind her, and hands you a glass of chilled juice. 'On the house, lovie. Enjoy!'");
+    appendMessage("The barista says: 'One juice, got it. Just a moment...' She goes over to the fridge behind her, and pours you a glass of chilled juice. 'On the house, lovie. Enjoy!'");
     inventory.push("juice");
     npcs.barista.waitingForOrder = false;
   } else if (order.includes("soda")) {
-    appendMessage("The barista says: 'One soda, got it. Just a moment...' She goes over to the fridge behind her, and hands you a glass of chilled soda. 'On the house, lovie. Enjoy!'");
+    appendMessage("The barista says: 'One soda, got it. Just a moment...' She goes over to the fridge behind her, and pours you a glass of chilled soda. 'On the house, lovie. Enjoy!'");
     inventory.push("soda");
+    npcs.barista.waitingForOrder = false;
+  } else if (order.includes("water")) {
+    appendMessage("The barista says: 'Simple tastes, lovie? I don't blame you. A nice glass of fresh water is just what you need sometimes.' She pours you a tall glass of clear, cool water. 'Here you go. Enjoy!'");
+    inventory.push("water");
     npcs.barista.waitingForOrder = false;
   } else if (order.includes("cake")) {
     appendMessage("The barista says: 'Coming right up.' She disappears through a small door behind the counter, and returns with a delicious slice of cake. 'Here you go, lovie. On the house. Enjoy!'");
@@ -916,20 +951,32 @@ const dialogue = {
         text: "The caretaker says: 'The scientist was saying the other day that he couldn't get into his lab anymore. Maybe that's what the old lever I gave you opens? Give it a pull and see what happens.'",
       },
       {
-        check: () => flags.gardenOpen && !inventory.includes("iron key"),
+        check: () => flags.gardenOpen && !inventory.includes("ironKey"),
         text: "The caretaker says: 'I see the garden door's unlocked again. Good to see it, that was a lovely old place to sit and collect your thoughts. If you're feeling stuck, I'd go and have a good look around there and see if it knocks something loose for you.'",
       },
       {
-        check: () => !flags.shelvesMoved && inventory.includes("iron key"),
+        check: () => !flags.shelvesMoved && inventory.includes("ironKey"),
         text: "The caretaker says: 'I could swear there used to be an extra storage room at the back of my cleaning cupboard, just off the red corridor. It's like an extra set of shelves appeared one day and blocked it off. If only I had the strength to drag them out of the way...'",
       },
       {
-        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("small key"),
+        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("smallKey"),
         text: "The caretaker says: 'You found a tiny key labelled 'exit'? Hmm. Sounds promising, but there's no keyhole in the white room that I've ever found. Did you try examining everything closely? Your eyes are probably better than mine. Or maybe Digger there could detect something we're all missing.'",
       },
       {
-        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("small key"),
+        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("smallKey"),
         text: "The caretaker says: 'You found a tiny key labelled 'exit'? Hmm. Sounds promising, but there's no keyhole in the white room that I've ever found. Digger, the puppy who lives out in the yard, might be able to find something we can't. Give him a toy and he'll be happy to follow you anywhere.'",
+      },
+      {
+        check: () => flags.carryingBookshelf,
+        text: "The caretaker says: 'That's a sturdy bookshelf you have there. You know, the scientist has books scattered all over the floor in the fossil exhibit. Maybe he'd appreciate somewhere to keep them.'"
+      },
+      {
+        check: () => flags.carryingBirdhouse,
+        text: "The caretaker says: 'Well, that's a very nice birdhouse. Simple, yet effective. There's a garden just through the south east door here, if you can get the door unlocked. There must be some birds out there who would enjoy your work.'"
+      },
+      {
+        check: () => flags.carryingToolbox,
+        text: "The caretaker says: 'You found my toolbox! I've been missing that for a while, and between you and me, I'm getting a little behind on the maintenance work. Would you mind handing it over? I'm sure I can find something useful for you in exchange.'"
       }
     ],
     generic: [
@@ -978,16 +1025,28 @@ const dialogue = {
         text: "The scientist says: 'You've visited the observatory, you say? It's a wonderful old room, isn't it? I used to be able to access my lab through there, but the door sealed itself a while back and I couldn't get it open again. Maybe there's something you could do with those mechanisms along the walls? I'd really appreciate being able to get back to my research in there.'",
       },
       {
-        check: () => !flags.shelvesMoved && inventory.includes("iron key"),
+        check: () => !flags.shelvesMoved && inventory.includes("ironKey"),
         text: "The scientist says: 'I heard the caretaker complaining about losing half their storage space a while back. Something about a heavy shelf in the way? You look strong enough to move them, if you feel like helping out. The cupboard's just off the red corridor.'",
       },
       {
-        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("small key"),
+        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("smallKey"),
         text: "The scientist says: 'There's a key for the exit after all? Let me take a look... It says white room here, but there's no keyhole in the white room that I've ever found. Maybe your furry friend there could sniff something out.'",
       },
       {
-        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("small key"),
+        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("smallKey"),
         text: "The scientist says: 'There's a key for the exit after all? Let me take a look... It says white room here, but there's no keyhole in the white room that I've ever found. Maybe that puppy that lives in the yard could sniff something out. He'd probably follow you back here if you give him a dog toy, there should be one in the gift shop.'",
+      },
+      {
+        check: () => flags.carryingBookshelf,
+        text: "The scientist says: 'That is a fine-looking bookshelf you have there. If you don't have any other plans for it, would you mind leaving it here for me? I could do with getting some of these books off the floor.'"
+      },
+      {
+        check: () => flags.carryingBirdhouse,
+        text: "The scientist says: 'Is that a birdhouse? There's a certain rustic charm to it, I suppose. I heard the barista talking about some birds nesting in the garden outside the cafe, maybe they'd appreciate your creation there.'"
+      },
+      {
+        check: () => flags.carryingToolbox,
+        text: "The scientist says: 'You found the caretaker's toolbox, I see. They'll be pleased, if you give it back to them. Check the blue corridor, just east of the art gallery. They're usually around there somewhere.'"
       }
     ],
     generic: [
@@ -1011,7 +1070,7 @@ const dialogue = {
       {
         // reaction to birdhouse
         check: () => flags.birdhousePlaced && !npcs.barista.birdhouseCommentSaid,
-        text: "The barista says: 'That looks just right out there, lovie. Thank you for helping out... oh, I see the birds thanked you too! That's an odd little thing, isn't it? I wonder where it goes?'",
+        text: "The barista says: 'That looks just right out there, lovie. Thank you for helping out... oh, I see the birds thanked you too! That's an odd little thing, isn't it? I wonder where it belongs?'",
         onSay: () => {
           npcs.barista.birdhouseCommentSaid = true;
         }
@@ -1024,23 +1083,43 @@ const dialogue = {
           npcs.barista.gardenCommentSaid = true;
         }
       },
+      {
+        // customer arrival reaction
+        check: () => flags.customersPresent,
+        text: "The barista says: 'It's so nice to see this place busy again. Thank you for getting that old door open, lovie.'",
+        onSay: () => {
+          npcs.barista.happyToServe = true;
+        }
+      }
     ],
     hints: [
       {
-        check: () => flags.gardenOpen && !inventory.includes("iron key"),
+        check: () => flags.gardenOpen && !inventory.includes("ironKey"),
         text: "The barista says: 'Feeling a bit stuck, lovie? I know what that's like. Sometimes I find having a sit down in the garden helps me think better. Why don't you pop on out there and relax for a moment on that old bench? I promise it's comfier than it looks!'",
       },
       {
-        check: () => !flags.shelvesMoved && inventory.includes("iron key"),
+        check: () => !flags.shelvesMoved && inventory.includes("ironKey"),
         text: "The barista says: 'The last time the caretaker was in here, lovie, they were talking about some big heavy shelf that cut off their back storage room. Now, I'm not entirely sure what they meant, but maybe you could figure it out? The cleaning cupboard is just off the red corridor, if you fancy taking a look at what's going on in there.'",
       },
       {
-        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("small key"),
+        check: () => !flags.smallKeyholeRevealed && npcs.puppy.following && inventory.includes("smallKey"),
         text: "The barista says: 'A tiny key labelled 'exit'? Oh, that's such a dear little thing, it almost looks like it would fit a dollhouse. I'm not sure where it might go, I've never come across a keyhole that small. Maybe your puppy there might be able to sniff out the keyhole, if you can't quite spot it? Pop over to the white room and have a real close look at things.'",
       },
       {
-        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("small key"),
+        check: () => !flags.smallKeyholeRevealed && !npcs.puppy.following && inventory.includes("smallKey"),
         text: "The barista says: 'A tiny key labelled 'exit'? Oh, that's such a dear little thing, it almost looks like it would fit a dollhouse. I'm not sure where it might go, I've never come across a keyhole that small. I'm not sure how you'd go about finding it... the puppy from the old yard might be able to sniff out the keyhole, if you can't quite spot it? Give the little guy a dog toy, he'll follow a friend anywhere.'",
+      },
+      {
+        check: () => flags.carryingBookshelf,
+        text: "The barista says: 'Oh, that's a nice bookshelf, lovie. '"
+      },
+      {
+        check: () => flags.carryingBirdhouse,
+        text: "The barista says: 'What a lovely little birdhouse! Did you make that? Well done, lovie. '"
+      },
+      {
+        check: () => flags.carryingToolbox,
+        text: "The barista says: 'That looks like the caretaker's toolbox. They'll be most pleased to get that back, lovie. Pop back out to the blue corridor and give it to them, '"
       }
     ],
     generic: [
@@ -1049,8 +1128,128 @@ const dialogue = {
       "The barista says: 'Have you found anything interesting while you've been wandering about here? There's all sorts of secrets hidden if you look close enough. Mind what you touch, though, you wouldn't want to damage yourself lovie!'",
       "The barista says: 'When I was your age, I used to love jumping about. I'd find all kinds of interesting things hidden up high.'"
     ]
+  },
+  customer: {
+    generic: [
+      "The cafe customer says: 'Hello there.'",
+      "The cafe customer says: 'Nice place, isn't it?'",
+      "The cafe customer says: 'I wonder when this place opened?'",
+      "The cafe customer says: 'Hello.'",
+      "The cafe customer says: 'This is an odd sort of museum, don't you think?'",
+      "The cafe customer says: 'Hm?'",
+      "The cafe customer says: 'Sorry, can't talk, I'm busy.'",
+      "The cafe customer says: 'Poking the fossils is fun!'",
+      "The cafe customer says: 'The cakes here are great!'",
+      "The cafe customer says: 'Has anyone ever seen a curator around here? Anybody who might be in charge of the place?'",
+      "The cafe customer says: 'I'm glad this place is open again. It was such a shame when they closed it down.'"
+    ]
   }
 };
+
+// NPC exit reaction dialogue
+
+// caretaker
+const caretakerExitReactions = {
+  glass: [
+    "The caretaker’s eyes light up. They say: 'You found an exit? You're sure? A door in the glass corridor... I'd heard about that corridor, but I never could find it. You say it was behind a secret door in the white room? Well, the surprises never end around here, do they? I'll finish up here and make my way out soon, then. Thank you, friend.'"
+  ],
+  teleporter: [
+    "The caretaker snorts softly. They say: 'You repaired a teleporter? My goodness, that sounds like hard work. I wonder if that's how we all ended up here, somehow pulled in by the broken system? Well, if you're sure it's properly fixed, I suppose it will do. I don't really trust any of that high-tech stuff, though. A regular old door would make me more comfortable, if you find one.'"
+  ],
+  both: [
+    "The caretaker nearly drops their broom. They say: 'Two exits? TWO? Well, look at you, overachieving. Good work, friend, very good work. There's a door through the glass corridor, and a teleporter system that you fixed? No offence to your repair skills, but I'll take that boring old door, I think. All that techy stuff never quite sat right with me.'"
+  ]
+};
+
+// scientist
+const scientistExitReactions = {
+  glass: [
+    "The scientist nods politely. He says: 'An exit through a glass corridor, you say? I'm sure that's very nice, but I found bits of an old instruction booklet for a teleportation system somewhere here. I wouldn't mind seeing that, if you find anything like it.'"
+  ],
+  teleporter: [
+    "The scientist’s eyes go wide. He says: 'You found the teleportation system, and managed to repair it? Well done, indeed! Just off this room, you say? I'll certainly take a look at that before you leave, then. I simply can't pass up the chance to study something like that!'"
+  ],
+  both: [
+    "The scientist's full attention turns to you for the first time. He says: 'Did I hear that right? You found not one, but two ways out of here? I'm very glad you ended up here, then. The caretaker and I must have spent years searching and found nothing. Have you let them know about that glass corridor? They'd be pleased to know they can simply walk out of here. I think I'll take a closer look at that teleportation system.'"
+  ]
+};
+
+// barista
+const baristaExitReactions = {
+  glass: [
+    "The barista smiles warmly. She says: 'You found an exit, lovie? Good for you! It sounds like a pretty corridor, too. I'm happy sticking around here, but the caretaker might like to know, if you haven't already told them.'"
+  ],
+  teleporter: [
+    "The barista smiles and nods. She says: 'A teleporter, lovie? That's certainly a turn-up for the books. I'm glad you've found yourself a way out, but I'm quite happy to stay here. It sounds like something the scientist might be interested in, though.'"
+  ],
+  both: [
+    "The barista looks surprised. She says: 'Two ways out? All the time those other two spent looking, and they couldn't find one! Well done, lovie. A fancy teleporter for the scientist to study, and a nice normal door for the caretaker. Seems like you've managed to wrap everything up nicely! You go on ahead though, I'm quite happy here. Maybe now there's a way in and out of this place, you could come back and visit some time?'"
+  ]
+};
+
+// exit reaction helper
+function getExitStatus() {
+  return {
+    glass: flags.exitUnlocked,
+    teleporter: flags.teleporterReady,
+    both: flags.exitUnlocked && flags.teleporterReady
+  };
+}
+
+// manages NPCs exit reactions
+function tellNpcAboutExit(npcName) {
+  const exits = getExitStatus();
+
+  if (!exits.glass && !exits.teleporter) {
+    appendMessage("You don’t actually know of a way out yet.");
+    return;
+  }
+
+  let reactions;
+
+  switch (npcName) {
+    case "caretaker":
+      reactions = caretakerExitReactions;
+      break;
+    case "scientist":
+      reactions = scientistExitReactions;
+      break;
+    case "barista":
+      reactions = baristaExitReactions;
+      break;
+    default:
+      return;
+  }
+
+  // preference order differs per NPC
+  if (exits.teleporter && reactions.teleporter) {
+    appendMessage(reactions.teleporter[0]);
+    return;
+  }
+
+  if (exits.glass && reactions.glass) {
+    appendMessage(reactions.glass[0]);
+    return;
+  }
+  
+  if (exits.both && reactions.both) {
+    appendMessage(reactions.both[0]);
+  }
+
+  appendMessage("They listen, but don’t seem to have much to say about it.");
+}
+
+// moves customers to the cafe once exit is unlocked
+function spawnCafeCustomers() {
+  flags.customersPresent = true;
+  npcs.customer.location = "cafe";
+  npcLocations.customer = "cafe";
+  
+  if (player.location === "cafe"){
+    appendMessage("You hear footsteps outside in the blue corridor. As you turn towards the sound, the door gently swings open, reveealing a couple of curious visitors. They must have wandered in through the glass corridor exit you unlocked.");
+    appendMessage("The barista smiles at the newcomers, happy to have new customers after so long tending an empty cafe.");
+  };
+}
 
 // ~~~~~~~~~~~~~~~~~~~~
 // PUZZLE RELATED LOGIC
@@ -1181,6 +1380,8 @@ function dig() {
     appendMessage("You tell your furry friend to dig, thinking he might be able to reveal something you can't see. He barks and scrabbles at a stone leg of that old bench. You take a closer look, and spot a tiny keyhole that almost looks like one of the pockmarks in the rock. A tiny key might fit...");
     flags.smallKeyholeRevealed = true;
     autoSave("Digger revealed the small keyhole");
+  } else {
+    appendMessage("There's nothing to dig up here.");
   }
 }
 
@@ -1411,7 +1612,7 @@ const items = {
   coffee: {
     id: "coffee",
     name: "coffee",
-    aliases: ["coffee", "cup of coffee", "cappuccino"],
+    aliases: ["coffee", "cup of coffee", "espresso"],
     description: "A steaming hot cup of coffee, skillfully prepared by the barista.",
     location: "null",
     pickupable: false,
@@ -1427,7 +1628,7 @@ const items = {
     id: "tea",
     name: "tea",
     aliases: ["tea", "cup of tea", "cuppa"],
-    description: "A hot cup of tea, skillfully prepared by the barista.",
+    description: "A hot and fragrant cup of tea, skillfully prepared by the barista.",
     location: "null",
     pickupable: false,
     droppable: false,
@@ -1466,6 +1667,21 @@ const items = {
     onConsume: () => {
       appendMessage("You drink the soda, smiling as the bubbles tickle your nose.");
       inventory = inventory.filter(i => i !== "soda");
+    }
+  },
+  water: {
+    id: "water",
+    name: "water",
+    aliases: ["water", "aqua"],
+    description: "A cool glass of fresh water.",
+    location: "null",
+    pickupable: false,
+    droppable: false,
+    usable: false,
+    consumable: true,
+    onConsume: () => {
+      appendMessage("You drink the water, enjoying the clean and refreshing feeling.");
+      inventory = inventory.filter(i => i !== "water");
     }
   },
   drink: {
@@ -1622,13 +1838,13 @@ const items = {
 const notes = {
   note1: "Note 1 reads:\nIf you're reading this, then you're stuck here too. There is a way out, or so I've heard, but so far none of us have managed to find it. The caretaker's been here the longest, and even they don't know how to get out.\nOn the bright side, nobody here ever seems to get sick or old, so that's something. Just a heads up, though, you can be injured, so be careful what you poke.\nA couple of hints, things I've found out along the way:\n1- Nobody minds if you take things, as long as you're not selfish about keeping them.\n2- Loyal friends are worth their weight in gold around here. Bring a gift and they'll help you out.\n3- If something seems missing, try to find it. Sometimes replacing what's lost can help you find your way.\nGood luck!\n",
 
-  note2: "Note 2 reads:\nDay ???\nI am unsure how long I have been trapped in this place. I lost count of the days a long time ago, if one can say there are such things as 'days' or 'time' here.\nAll I know is that I must find a way to escape. I cannot remain here for eternity, no matter the seeming endlessness of it and the perpetual youth it has granted me.\nThe lab next to the observatory is full of strange equipment, things I've never seen before. Perhaps I can use it to find a way to escape this strange limbo?\n",
+  note2: "Note 2 reads:\nDay ???\nI am unsure how long I have been trapped in this place. I lost count of the days a long time ago, if one can say there are such things as 'days' or 'time' here. All I know is that I must find a way to escape. I cannot remain here for eternity, no matter the seeming endlessness of it and the perpetual youth it has granted me.\nThe lab next to the observatory is full of strange equipment, things I've never seen before. Perhaps I can use it to find a way to escape this strange limbo?\n",
 
-  note3: "Note 3 reads:\nEvery time I try to scale these walls, I reach the top and find myself back at the bottom. What is going on in this place? Why can't any of us leave? Is this a prison? Are we dead, trapped in some endless purgatory?\nI keep finding these small gems, all different colours, that seem to fit in the pedestals in the small chamber off the fossil exhibit.\nI put most of them in place already, there's only one missing. A green one, judging by the colours of the rest. Maybe if I can find that, it will open something up.\nI will get out of here if it's the last thing I ever do.\n",
+  note3: "Note 3 reads:\nEvery time I try to scale these walls, I reach the top and find myself back at the bottom. What is going on in this place? Why can't any of us leave? Is this a prison? Are we dead, trapped in some endless purgatory?\nI keep finding these small gems, all different colours, that seem to fit in the pedestals in the small chamber off the fossil exhibit. I put most of them in place already, there's only one missing. A green one, judging by the colours of the rest. Maybe if I can find that, it will open something up.\nI will get out of here if it's the last thing I ever do.\n",
 
-  note4: "Note 4 reads:\nI think this is the closest to escaping I'll ever get at this point. At least the air is fresh and the flowers are pretty. I still don't know how I got here, but it's a nice enough place to spend my time.\nThe garden keeps me occupied, tending the flowers and watching the birds.\nI wonder if there's any way to get a little birdhouse for them? I'm sure they'd be grateful for somewhere to rest.\n",
+  note4: "Note 4 reads:\nI think this is the closest to escaping I'll ever get at this point. At least the air is fresh and the flowers are pretty. I still don't know how I got here, but it's a nice enough place to spend my time. The garden keeps me occupied, tending the flowers and watching the birds.\nI wonder if there's any way to get a little birdhouse for them? I'm sure they'd be grateful for somewhere to rest.\n",
 
-  note5: "Note 5 reads:\nGuess I'm the cleaner around here now. Not that the place needs much cleaning doing. Things never seem to get dirty or used up, no idea why.\nThe old guy who used to hang around the blue corridor sweeping just vanished a while back. No idea where he went. You'd think if he found a way out, he would have let the rest of us know.\nIt's pretty lonely with just me and the other two, now. The scientist has been complaining lately about his missing bookshelf, none of us can figure out where the blasted thing went. I'll build him a new one next time I'm in the workshop.\nAt least Digger is happy to keep me company while I sweep the floors. He's still as young and energetic as the day we wound up here.\n"
+  note5: "Note 5 reads:\nGuess I'm the cleaner around here now. Not that the place needs much cleaning doing. Things never seem to get dirty or used up, no idea why. The old guy who used to hang around the blue corridor sweeping just vanished a while back. No idea where he went. You'd think if he found a way out, he would have let the rest of us know.\nIt's pretty lonely with just me and the other two, now. The scientist has been complaining lately about his missing bookshelf, none of us can figure out where the blasted thing went. I'll build him a new one next time I'm in the workshop.\nAt least Digger is happy to keep me company while I sweep the floors. He's still as young and energetic as the day we wound up here.\n"
 };
 
 // check items in current room 
@@ -1638,6 +1854,8 @@ function lookForItem() {
   if (foundItems.length === 0) {
     if (player.location === "white room" || player.location === "observatory" || player.location === "garden" || player.location === "art gallery" || player.location === "workshop") {
       appendMessage("You don’t see anything you could take with you, but a couple of things might be worth a closer examination.");
+    } else if ((player.location === "fossil exhibit" && !player.notes.note1) || (player.location === "garden" && !player.notes.note5)) {
+      appendMessage("You spot something stuck high up, but you can't quite tell what it is. Maybe you could jump up and get a better look?'");
     } else {
       appendMessage("You don't see anything here.");
     }  
@@ -1988,6 +2206,8 @@ const flags = {
   batteryPlaced: false,
   teleporterReady: false,
   exitUnlocked: false,
+  customerTimer: 0,
+  customersPresent: false,
   gameLose: false,
   gameWin: false,
 };
@@ -2008,6 +2228,22 @@ const player = {
     note5: false
   }
 };
+
+// enables timer for customer arrival once glass corridor exit is open
+function advanceWorldState() {
+  // only start counting once the door is open
+  if (!flags.exitUnlocked) return;
+
+  // stop counting once customers have arrived
+  if (flags.customersPresent) return;
+
+  flags.customerTimer++;
+
+  // customers should arrive after 10 turns, tweak this later if it seems too slow/fast
+  if (flags.customerTimer >= 10) {
+    spawnCafeCustomers();
+  }
+}
 
 // Utility: print text to output box
 function print(text = "") {
@@ -2145,7 +2381,10 @@ function handleCommand(cmdInput) {
 
   // Print user input into the game log
   appendMessage(`> ${cmd}`, "command");
-
+  
+  // allows the game to track environment changes
+  advanceWorldState();
+  
   // restarts the game after winning/losing, or if players somehow break everything
   if (cmd === "restart") {
     location.reload();
@@ -2359,8 +2598,14 @@ function handleCommand(cmdInput) {
     appendMessage("There's nobody here to help you. Check another room.");
     return true;
   } else if (cmd.includes("press") && (cmd.includes("button") || cmd.includes("crystal") || cmd.includes("pedestal"))) {
-    teleportEnding()
+    teleportEnding();
     return true;
+  } else if ((cmd.includes("tell") || cmd.includes("say")) && (cmd.includes("exit") || cmd.includes("way out") || cmd.includes("door") || cmd.includes("teleporter"))) {
+    const npc = resolveNpcFromText(cmd);
+    if (npc) {
+      tellNpcAboutExit(npc);
+      return true;
+    }
   } else if (cmd.includes("pee")) {
     pee();
   } else if (cmd.includes("wash hands")) {
@@ -2374,6 +2619,7 @@ function handleCommand(cmdInput) {
   } else {
     appendMessage("You can't do that.");
   }
+  
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~
