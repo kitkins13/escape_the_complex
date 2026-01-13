@@ -41,7 +41,7 @@ const mapLayout = {
   "red corridor":      { x: 2, y: 3, w: 1, h: 2 },
 
   "cleaners' store":   { x: 3, y: 4, w: 1, h: 1 },
-  "hidden store":      { x: 4, y: 3, w: 1, h: 1 },
+  "hidden store":      { x: 4, y: 4, w: 1, h: 1 },
 
   "art gallery":       { x: 2, y: 2, w: 1, h: 1 },
   "workshop":          { x: 1, y: 2, w: 1, h: 1 },
@@ -151,7 +151,6 @@ function renderMap() {
             barista: "☕",
             scientist: "🔬",
             puppy: "🐕",
-            customer: "🚶",
             player: "👤"
           };
 
@@ -573,8 +572,11 @@ const npcs = {
   },
   customer: {
     name: "customer",
-    aliases : ["customer", "cafe customer", "cafe patron", "visitor"],
-    location: "null",
+    aliases : ["customer", "cafe customer", "cafe patron", "stranger"],
+  },
+  visitor: {
+    name: "visitor",
+    aliases : ["visitor", "exhibit visitor", "museum visitor", "newcomer"],
   }
 };
 
@@ -584,7 +586,6 @@ const npcLocations = {
   barista: "cafe",
   scientist: "fossil exhibit",
   puppy: "yard", // update dynamically when puppy follows player
-  customer: "null" // update to cafe when glass corridor exit has been open for a while
 };
 
 // handles NPC aliases
@@ -685,8 +686,13 @@ function handleBaristaTalk() {
 
 // cafe customer talk function
 function handleCustomerTalk() {
+  if (!flags.customersPresent && player.location !== "cafe") {
+    appendMessage("The place is deserted. If you could find a door to the outside world, somebody might be able to visit.");
+    return;
+  }
+  
   if (player.location !== "cafe") {
-    appendMessage("There are no customers here. Check the cafe.");
+    appendMessage("You don't see any customers here. Maybe someone's in the cafe.");
     return;
   }
   
@@ -698,6 +704,21 @@ function handleCustomerTalk() {
   // random dialogue line
   const random = Math.floor(Math.random() * dialogue.customer.generic.length);
   appendMessage(dialogue.customer.generic[random]);
+}
+
+// visitor talk function
+function handleVisitorTalk() {
+  if (!flags.visitorsAllowed) {
+    appendMessage("The place is deserted. If you could find a door to the outside world, somebody might be able to visit.");
+    return;
+  }
+  
+  if (player.location === "art gallery" || player.location === "fossil exhibit" || player.location === "observatory") {
+    const random = Math.floor(Math.random() * dialogue.visitor.generic.length);
+    appendMessage(dialogue.visitor.generic[random]);
+  } else {
+    appendMessage("Although you unlocked the doors and people can enter, there are no visitors in this room right now. Try looking in the main exhibits to see if anyone's around.");
+  }
 }
 
 // caretaker hint function
@@ -793,6 +814,11 @@ function talkTo(npcName) {
   
   if (npcName === "customer") {
     handleCustomerTalk();
+    return;
+  }
+  
+  if (npcName === "visitor") {
+    handleVisitorTalk();
     return;
   }
   
@@ -1111,15 +1137,15 @@ const dialogue = {
       },
       {
         check: () => flags.carryingBookshelf,
-        text: "The barista says: 'Oh, that's a nice bookshelf, lovie. '"
+        text: "The barista says: 'Oh, that's a nice bookshelf, lovie. You're quite the handy one, aren't you? You know, the scientist has been piling books on the floor in the fossil exhibit for ages. I'm sure he'd appreciate somewhere to keep them tidy.'"
       },
       {
         check: () => flags.carryingBirdhouse,
-        text: "The barista says: 'What a lovely little birdhouse! Did you make that? Well done, lovie. '"
+        text: "The barista says: 'What a lovely little birdhouse! Did you make that? Well done, lovie. I'm sure the birds out in the garden would appreciate that, if you wanted to leave it out there for them.'"
       },
       {
         check: () => flags.carryingToolbox,
-        text: "The barista says: 'That looks like the caretaker's toolbox. They'll be most pleased to get that back, lovie. Pop back out to the blue corridor and give it to them, '"
+        text: "The barista says: 'That looks like the caretaker's toolbox. They'll be most pleased to get that back, lovie. Pop back out to the blue corridor and give it to them, I imagine they'll find something useful to give you in return.'"
       }
     ],
     generic: [
@@ -1138,10 +1164,24 @@ const dialogue = {
       "The cafe customer says: 'This is an odd sort of museum, don't you think?'",
       "The cafe customer says: 'Hm?'",
       "The cafe customer says: 'Sorry, can't talk, I'm busy.'",
-      "The cafe customer says: 'Poking the fossils is fun!'",
       "The cafe customer says: 'The cakes here are great!'",
-      "The cafe customer says: 'Has anyone ever seen a curator around here? Anybody who might be in charge of the place?'",
+      "The cafe customer says: 'The barista is very friendly, but I haven't seen any other staff around here, have you?'",
       "The cafe customer says: 'I'm glad this place is open again. It was such a shame when they closed it down.'"
+    ]
+  },
+  visitor: {
+    generic: [
+      "The visitor says: 'Hello.'",
+      "The visitor says: 'Hello there.'",
+      "The visitor says: 'These exhibits are quite odd, aren't they?'",
+      "The visitor says: 'How long has this place been here?'",
+      "The visitor says: 'There's a local rumour that this place is really an alien spaceship. I never believed that, though.'",
+      "The visitor says: 'The telescope in the observatory looks really old. I wonder how long ago it was installed?'",
+      "The visitor says: 'Do you know who painted all those pictures in the gallery? I can't find any artist names anywhere.'",
+      "The visitor says: 'Poking the fossils is fun! Have you tried it?'",
+      "The visitor says: 'This place wasn't in any of the tourism brochures...'",
+      "The visitor says: 'Has anyone ever seen a curator around here? Anybody who might be in charge of the place?'",
+      "The visitor says: 'It's good to see this old place reopened. I hope it doesn't disappear on us again.'"
     ]
   }
 };
@@ -1222,6 +1262,11 @@ function tellNpcAboutExit(npcName) {
   }
 
   // preference order differs per NPC
+  if (exits.both && reactions.both) {
+    appendMessage(reactions.both[0]);
+    return;
+  }
+  
   if (exits.teleporter && reactions.teleporter) {
     appendMessage(reactions.teleporter[0]);
     return;
@@ -1232,9 +1277,7 @@ function tellNpcAboutExit(npcName) {
     return;
   }
   
-  if (exits.both && reactions.both) {
-    appendMessage(reactions.both[0]);
-  }
+  
 
   appendMessage("They listen, but don’t seem to have much to say about it.");
 }
@@ -1242,12 +1285,19 @@ function tellNpcAboutExit(npcName) {
 // moves customers to the cafe once exit is unlocked
 function spawnCafeCustomers() {
   flags.customersPresent = true;
-  npcs.customer.location = "cafe";
-  npcLocations.customer = "cafe";
   
   if (player.location === "cafe"){
-    appendMessage("You hear footsteps outside in the blue corridor. As you turn towards the sound, the door gently swings open, reveealing a couple of curious visitors. They must have wandered in through the glass corridor exit you unlocked.");
+    appendMessage("You hear footsteps outside in the blue corridor. As you turn towards the sound, the door gently swings open, revealing a couple of curious strangers. They must have wandered in through the glass corridor exit you unlocked.");
     appendMessage("The barista smiles at the newcomers, happy to have new customers after so long tending an empty cafe.");
+  };
+}
+
+// adds visitors in art gallery, fossil exhibit and observatory after exit is unlocked
+function spawnVisitors() {
+  flags.visitorsAllowed = true;
+  
+  if (player.location === "art gallery" || player.location === "fossil exhibit" || player.location === "observatory") {
+    appendMessage("As you enter, you see a few new people wandering the room. They must have come in through the glass corridor exit you unlocked.");
   };
 }
 
@@ -1918,7 +1968,7 @@ function startsWithVerb(cmd, verbs) {
 
 // player takes item
 function takeItem(nameOrId) {
-  // Accept either an item id (e.g. "lever") or freeform text (e.g. "take the small key")
+  // accept either an item id (e.g. "lever") or freeform text (e.g. "take the small key")
   if (!nameOrId) {
     appendMessage("Take what?");
     return;
@@ -1927,7 +1977,7 @@ function takeItem(nameOrId) {
   let found = null;
   const lower = nameOrId.toLowerCase();
 
-  // 1) If caller passed an exact item id that exists in items, use it
+  // 1) if caller passed an exact item id that exists in items, use it
   if (items[nameOrId]) {
     found = items[nameOrId];
     // ensure it's in the current room (unless it's already in inventory)
@@ -2062,11 +2112,13 @@ function dropItem(name) {
   
   const item = items[inventory[index]];
   
+  // check if the item can be dropped
   if (!item.droppable) {
     appendMessage("That's too useful to leave behind.");
     return;
   }
   
+  // special handling for heavy items using the cart
   if (item.id === "birdhouse") {
     appendMessage("The birdhouse might be useful later. You make a note of where you left it, in case you need to come back.");
     carryingBirdhouse = false;
@@ -2098,14 +2150,14 @@ function dropItem(name) {
 
 // give items to NPCs
 function giveItem(itemName, npcName) {
-  const item = Object.values(items).find(
-    i => i.name.toLowerCase() === itemName.toLowerCase()
+  const item = inventory.findIndex(
+    id => items[id].name.toLowerCase() === name.toLowerCase()
   );
 
   const npc = npcs[npcName];
 
   if (!item) {
-    appendMessage(`You don't seem to have a ${itemName}.`);
+    appendMessage(`You don't seem to have a ${item.name}.`);
     return;
   }
   if (!inventory.includes(item.id)) {
@@ -2113,7 +2165,7 @@ function giveItem(itemName, npcName) {
     return;
   }
   if (!npc) {
-    appendMessage(`The ${npcName} isn't here.`);
+    appendMessage(`The ${npc.name} isn't here.`);
     return;
   }
   if (npc.location !== player.location) {
@@ -2207,7 +2259,9 @@ const flags = {
   teleporterReady: false,
   exitUnlocked: false,
   customerTimer: 0,
+  visitorTimer: 0,
   customersPresent: false,
+  visitorsAllowed: false,
   gameLose: false,
   gameWin: false,
 };
@@ -2229,7 +2283,7 @@ const player = {
   }
 };
 
-// enables timer for customer arrival once glass corridor exit is open
+// enables timer for customer & visitor arrivals once glass corridor exit is open
 function advanceWorldState() {
   // only start counting once the door is open
   if (!flags.exitUnlocked) return;
@@ -2238,10 +2292,16 @@ function advanceWorldState() {
   if (flags.customersPresent) return;
 
   flags.customerTimer++;
+  flags.visitorTimer++;
 
   // customers should arrive after 10 turns, tweak this later if it seems too slow/fast
   if (flags.customerTimer >= 10) {
     spawnCafeCustomers();
+  }
+  
+  // visitors should start arriving a little before customers, start at 7 turns and tweak later if necessary
+  if (flags.visitorTimer >= 7) {
+    spawnVisitors();
   }
 }
 
@@ -2410,7 +2470,7 @@ function handleCommand(cmdInput) {
   }
   
   // fast travel system
-  if (cmd.startsWith("go to ") || cmd.startsWith("travel to ")) {
+  if (cmd.startsWith("return to ") || cmd.startsWith("travel to ") || cmd.startsWith("go back to ")) {
   const destination = resolveRoomFromText(cmd);
 
     if (!destination) {
@@ -2498,9 +2558,9 @@ function handleCommand(cmdInput) {
 
     build(itemId);
     return true;
-  } else if (cmd === "pull lever" || (cmd === "use lever" && flags.leverPlaced)) {
+  } else if (cmd.includes("lever") && flags.leverPlaced) {
     pullLever();
-  } else if (cmd === "move shelf" || cmd === "move shelves") {
+  } else if (cmd.includes("move") && (cmd.includes("shelf") || cmd.includes("shelves"))) {
     moveShelf();
   } else if (cmd.includes("search") && !cmd.includes("researcher")) {
     lookForItem();
@@ -2571,16 +2631,18 @@ function handleCommand(cmdInput) {
       .replace(/^talk\s+/, "")
       .replace(/^with\s+/, "")
       .replace(/^to\s+/, "")
-      .replace(/^the\s+/, "");
+      .replace(/^the\s+/, "")
+      .replace(/^a\s+/, "");
     
     const npcId = resolveNpcFromText(cleaned);
     
     const npc = npcId.split(" ")[0].trim();
     
-    if (npc === "barista" || npc === "caretaker" || npc === "scientist" || npc === "puppy") {
+    if (npc === "barista" || npc === "caretaker" || npc === "scientist" || npc === "puppy" || npc === "customer" || npc === "visitor") {
       talkTo(npc);
       return true;
     }
+    
     appendMessage("That person isn't here.");
   } else if (cmd.startsWith("ask ")) {
     const cleaned = cmd

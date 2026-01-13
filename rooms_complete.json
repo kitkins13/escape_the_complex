@@ -21,7 +21,7 @@
   },
   {
     "id": "gift shop",
-    "aliases": ["gift shop", "shop", "souvenir shop"],
+    "aliases": ["gift shop", "souvenir shop"],
     "intro": "You are in a small room full of random knick-knacks. It looks like a closed gift shop.",
     "description": "A pretty standard gift shop, the shelves full of little trinkets and things, all coated in a fine layer of dust. It looks as if it's been closed for a while. Despite the sorry state of the place, a few of the items might be worth examining.\nThe west door leads back to the fossil exhibit. There is no other door here.",
     "exits": {
@@ -103,7 +103,7 @@
     "id": "cafe",
     "aliases": ["cafe", "coffee shop", "tea room"],
     "intro": "You enter a cozy cafe. It looks as if nobody has been here in a while.",
-    "description": "This would probably be a cozy, bustling little cafe if it didn't feel so abandoned. The tables and chairs are highly polished, as if expecting customers any minute, but the only one here is a barista, smiling from behind the counter. There are some canned drinks and pre-packaged snacks left on a shelf, and a small first aid box on the wall.\nThe door to the west leads back to the blue corridor. Grimy windows and a locked glass door line the south wall, and you can just about see a garden through them.",
+    "description": "This would probably be a cozy, bustling little cafe if it didn't feel so abandoned. The tables and chairs are highly polished, as if expecting customers any minute. A barista smiles at you from behind the counter. There are some canned drinks and pre-packaged snacks left on a shelf, and a small first aid box on the wall.\nThe door to the west leads back to the blue corridor. Grimy windows and a locked glass door line the south wall, and you can just about see a garden through them.",
     "exits": {
       "west": "blue corridor"
     }
