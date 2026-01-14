@@ -1554,7 +1554,7 @@ const items = {
   dogToy: {
     id: "dogToy",
     name: "dog toy",
-    aliases: ["dog toy", "squeaky dog toy"],
+    aliases: ["dog toy", "squeaky dog toy", "chew toy"],
     description: "A brightly coloured squeaky dog toy.",
     location: "gift shop",
     pickupable: true,
@@ -2149,15 +2149,13 @@ function dropItem(name) {
 }
 
 // give items to NPCs
-function giveItem(itemName, npcName) {
-  const item = inventory.findIndex(
-    id => items[id].name.toLowerCase() === name.toLowerCase()
-  );
+function giveItem(itemId, npcName) {
+  const item = items[itemId];
 
   const npc = npcs[npcName];
 
   if (!item) {
-    appendMessage(`You don't seem to have a ${item.name}.`);
+    appendMessage(`You don't seem to have that.`);
     return;
   }
   if (!inventory.includes(item.id)) {
@@ -2178,7 +2176,7 @@ function giveItem(itemName, npcName) {
   }
 
   // give success
-  appendMessage(`You give the ${item.name} to ${npc.name}.`);
+  appendMessage(`You give the ${item.name} to the ${npc.name}.`);
   inventory = inventory.filter(i => i !== item.id);
   if (item.onGive) item.onGive(); // run custom event logic
 }
