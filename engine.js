@@ -266,11 +266,13 @@ function handleJump() {
   else if (loc === "fossil exhibit" && !player.notes.note1Found) {
     appendMessage("You spot a note stuck to the triceratops skull. You carefully reach up and take it.");
     player.notes.note1 = true;
+    player.notesFound++;
   } 
   
   else if (loc === "garden" && !player.notes.note4Found) {
     appendMessage("There's a note pinned high up on one of the trees. You stand on an upturned flowerpot to grab it.\n");
     player.notes.note4 = true;
+    player.notesFound++;
   } 
   
   else {
@@ -297,6 +299,7 @@ function handleExamine() {
     if (!player.notes.note2) {
       appendMessage("One of the surreal landscapes has a note tucked into the frame. You take it gently, trying to avoid disturbing the artwork.");
       player.notes.note2 = true;
+      player.notesFound++;
     }
   } 
   
@@ -305,6 +308,7 @@ function handleExamine() {
     if (!player.notes.note3) {
       appendMessage("You spot a slightly damp note under a big stone beside one pile. Careful not to nudge the teetering junk, you take the note.");
       player.notes.note3 = true;
+      player.notesFound++;
     }
     if (!inventory.includes("toolbox")) {
       appendMessage("There's a heavy-looking, slightly battered toolbox sitting under a couple of planks in one corner. It might be useful, but you'll need something to help you carry it.'");
@@ -313,8 +317,8 @@ function handleExamine() {
   
   else if (loc === "garden") {
     if (!inventory.includes("ironKey")) {
-      appendMessage("You take your time examining things around the garden. When you get to the old wrought iron bench, you notice something a little off about the filigree workings. There's a rusted key wedged in between a couple of the iron whirls... maybe it fits somewhere important?");
-      items.ironKey.location = "garden";
+      appendMessage("You take your time examining things around the garden. When you get to the old wrought iron bench, you notice something a little off about the filigree workings. There's a rusted key wedged in between a couple of the iron whirls... maybe it fits somewhere important? You gently wiggle it out of the bench and pocket it.");
+      inventory.push("ironKey");
     } else {
       appendMessage("You wander around the garden trying to see what plants you can identify.");
     }
@@ -367,6 +371,10 @@ function handleExamine() {
   
   else if (loc === "hidden store") {
     appendMessage("You take a better look at the boxes stacked on the towering shelves. Most are plain and boring, but a faint glimmer of metal catches your eye. There's a tiny key tucked between two of the boxes.");
+  }
+  
+  else if (loc === "red corridor") {
+    appendMessage("Looking too closely at this garish shade of red is making your eyes hurt. There's nothing of interest here, other than the two doors to the east and north.");
   } 
   
   else {
@@ -404,6 +412,7 @@ function handlePoke() {
     if (!player.notes.note5){
       appendMessage("You poke the things on the workbench. One of the half-built whatnots slides across, revealing a scrap of paper underneath it. You take the note.");
       player.notes.note5 = true;
+      player.notesFound++;
     } else {
       appendMessage("You poke the things on the workbench again. One of them whirrs for a moment, then stops. Nothing else happens.");
     }
@@ -432,6 +441,35 @@ function pickFlowers() {
     inventory.push("flowers");
   } else {
     appendMessage("There are no flowers here. Try the garden.");
+  }
+}
+
+// lets player use the telescope in the observatory
+function useTelescope(){
+  if (player.location === "observatory"){
+    const skyThings = [
+      "Arcturus.",
+      "the Orion Nebula.",
+      "Jupiter.",
+      "Rigel.",
+      "Venus.",
+      "the Pleiades.",
+      "the Crab Nebula.",
+      "the ISS passing overhead.",
+    ];
+    const skyThing = skyThings[Math.floor(Math.random() * skyThings.length)];
+    appendMessage(`You gaze through the big telescope, and after a few minutes you tentatively identify ${skyThing}`);
+  } else {
+    appendMessage("There's no telescope here.");
+  }
+}
+
+// mirror interactions in the bathroom
+function mirrorInteractions(input) {
+  if (input.includes("admire") || input.includes("check")) {
+    appendMessage("You spend a few minutes admiring yourself in the mirror. Looking good!");
+  } else if (input.includes("make faces") || input.includes("tongue") || input.includes("funny")) {
+    appendMessage("You spend a few minutes pulling faces in the mirror. It's fun!");
   }
 }
 
@@ -473,12 +511,12 @@ function showNotes() {
   });
 }
 
-// array for locked doors
+// array for locked doors - NEEDS FIXING
 const unlockables = {
   "garden door": {
     aliases: ["garden door", "glass door", "locked door", "door"],
     rooms: ["cafe", "blue corridor"],
-    key: "brass key",
+    key: "brassKey",
     success: () => {
       appendMessage("You unlock the garden door. It swings open with a soft creak.");
       flags.gardenOpen = true;
@@ -498,7 +536,7 @@ const unlockables = {
   }
 };
 
-// unlocking doors
+// unlocking doors - NEEDS FIXING
 function handleUnlock(cmd) {
   const lower = cmd.toLowerCase();
 
@@ -544,6 +582,7 @@ const npcs = {
     shelfCommentSaid: false,
     gardenCommentSaid: false,
     labCommentSaid: false,
+    preferredExit: "glass",
   },
   barista: {
     name: "barista",
@@ -562,6 +601,7 @@ const npcs = {
     met: false,
     shelfCommentSaid: false,
     labCommentSaid: false,
+    preferredExit: "teleport",
   },
   puppy: {
     name: "puppy",
@@ -1246,16 +1286,20 @@ function tellNpcAboutExit(npcName) {
   }
 
   let reactions;
+  let exitPreference;
 
   switch (npcName) {
     case "caretaker":
       reactions = caretakerExitReactions;
+      exitPreference = "glass";
       break;
     case "scientist":
       reactions = scientistExitReactions;
+      exitPreference = "teleport";
       break;
     case "barista":
       reactions = baristaExitReactions;
+      exitPreference = "none";
       break;
     default:
       return;
@@ -1267,17 +1311,15 @@ function tellNpcAboutExit(npcName) {
     return;
   }
   
-  if (exits.teleporter && reactions.teleporter) {
+  if (exits.teleporter && reactions.teleporter && (exitPreference === "teleport" || !flags.exitUnlocked)) {
     appendMessage(reactions.teleporter[0]);
     return;
   }
 
-  if (exits.glass && reactions.glass) {
+  if (exits.glass && reactions.glass && (exitPreference === "glass" || !flags.teleporterReady)) {
     appendMessage(reactions.glass[0]);
     return;
   }
-  
-  
 
   appendMessage("They listen, but don’t seem to have much to say about it.");
 }
@@ -1289,7 +1331,7 @@ function spawnCafeCustomers() {
   if (player.location === "cafe"){
     appendMessage("You hear footsteps outside in the blue corridor. As you turn towards the sound, the door gently swings open, revealing a couple of curious strangers. They must have wandered in through the glass corridor exit you unlocked.");
     appendMessage("The barista smiles at the newcomers, happy to have new customers after so long tending an empty cafe.");
-  };
+  }
 }
 
 // adds visitors in art gallery, fossil exhibit and observatory after exit is unlocked
@@ -1298,7 +1340,46 @@ function spawnVisitors() {
   
   if (player.location === "art gallery" || player.location === "fossil exhibit" || player.location === "observatory") {
     appendMessage("As you enter, you see a few new people wandering the room. They must have come in through the glass corridor exit you unlocked.");
-  };
+  }
+}
+
+// player can wait somewhere
+function playerWait() {
+  
+}
+
+// tell the puppy to wait somewhere
+function puppyWait() {
+  const following = npcs.puppy.following;
+  
+  if (following) {
+    appendMessage("You tell the puppy to wait here. He barks, and sits obediently.");
+    following = false;
+    npcs.puppy.location = player.location;
+  } else {
+    appendMessage("The puppy isn't following you right now.");
+  }
+}
+
+// tell the puppy to follow again
+function puppyFollowAgain() {
+  const following = npcs.puppy.following;
+  const friend = flags.befriendedPuppy;
+  const puppyLoc = npcs.puppy.location;
+  
+  if (puppyLoc !== player.location) {
+    appendMessage("You're not near the puppy right now. Head back to where you left him.");
+    return;
+  }
+  
+  if (!following && friend) {
+    appendMessage("You tell the puppy to follow you again. He trots over to you, carrying the toy you gave him earlier.");
+    following = true;
+  } else if (!friend) {
+    appendMessage("The puppy seems a little unsure of you. Try giving him a dog toy to make friends!");
+  } else {
+    appendMessage("The puppy is already following you.");
+  }
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -1810,10 +1891,14 @@ const items = {
     droppable: false,
     usable: true,
     onUse: () => {
-      appendMessage("The key turns with a squeak and a clunk, but the secret door opens.");
-      // opens the hidden store exit
-      const store = rooms["cleaners' store"];
-      store.exits["east"] = "hidden store";
+      if (!flags.shelvesMoved) {
+        appendMessage("You can't quite get at the keyhole. Try moving those shelves out of the way first.'");
+      } else {
+        appendMessage("The key turns with a squeak and a clunk, but the secret door opens.");
+        // opens the hidden store exit
+        const store = rooms["cleaners' store"];
+        store.exits["east"] = "hidden store";
+      }
     }
   },
   firstAidKit: {
@@ -2100,17 +2185,12 @@ function takeItem(nameOrId) {
 }
 
 // player drops item
-function dropItem(name) {
-  const index = inventory.findIndex(
-    id => items[id].name.toLowerCase() === name.toLowerCase()
-  );
-  
-  if (index === -1) {
-    appendMessage("You don’t have that.");
-    return;
+function dropItem(itemId) {
+  if (!inventory.includes(itemId)) {
+    appendMessage("You don't have that.");
   }
   
-  const item = items[inventory[index]];
+  const item = items[itemId];
   
   // check if the item can be dropped
   if (!item.droppable) {
@@ -2205,10 +2285,12 @@ function useItem(itemId) {
 }
 
 // handles eating and drinking items from the cafe
-function consume(itemName) {
-  const item = Object.values(items).find(
-    i => i.name.toLowerCase() === itemName.toLowerCase()
-  );
+function consume(itemId) {
+  const item = items[itemId];
+  
+  if (!item) {
+    appendMessage("What are you trying to consume?");
+  }
   
   if (!inventory.includes(item.id)) {
     appendMessage("You're not carrying that.");
@@ -2216,8 +2298,14 @@ function consume(itemName) {
   }
   
   if (!item.consumable) {
-    appendMessage("You can't eat/drink that.");
+    appendMessage("You can't eat or drink that.");
     return;
+  }
+  
+  if ((item === "canned drink" || item === "packaged snack") && player.location === "cafe") {
+    appendMessage(`You grab a ${item} from the shelf and open it up. It's bland and tasteless, but perks you up a little.`);
+  } else if (item === "water" && (player.location === "cafe" || player.location === "bathroom")) {
+    appendMessage("You're thirsty enough to drink straight from the tap. The water's tepid and has a slight metallic tang, but quenches some thirst.");
   }
   
   if (item.onConsume) item.onConsume(); // run custom event logic
@@ -2272,6 +2360,7 @@ const player = {
   builtBirdhouse: false,
   isInjured: false,
   isDead: false,
+  notesFound: 0,
   notes: {
     note1: false,
     note2: false,
@@ -2280,6 +2369,28 @@ const player = {
     note5: false
   }
 };
+
+// allows output to print important player status notices
+function playerState() {
+  // alerts player of injury
+  if (player.isInjured) {
+    if (!inventory.includes("first aid kit")) {
+      appendMessage("You have a minor injury. It might be a good idea to look for a first aid kit.");
+    } else {
+      appendMessage("You have a minor injury. Maybe you should use the first aid kit you picked up.");
+    }
+  }
+  
+  // hint for revealing small keyhole in white room
+  if (player.location === "white room" && inventory.includes("smallKey") && !flags.smallKeyholeRevealed && npcs.puppy.following) {
+		appendMessage("You are exhausted after spending so long wandering around this place. That rickety old bench suddenly looks a lot more comfortable. Surely it wouldn't hurt to sit down for a moment?");
+	}
+	
+	// tells the player how many notes they have
+	if (player.notesFound > 0) {
+	  appendMessage(`You have found ${notesFound} notes.`);
+	}
+}
 
 // enables timer for customer & visitor arrivals once glass corridor exit is open
 function advanceWorldState() {
@@ -2292,13 +2403,13 @@ function advanceWorldState() {
   flags.customerTimer++;
   flags.visitorTimer++;
 
-  // customers should arrive after 10 turns, tweak this later if it seems too slow/fast
-  if (flags.customerTimer >= 10) {
+  // customers should arrive after 20 turns, changed from 10 as it seemed too quick
+  if (flags.customerTimer >= 20) {
     spawnCafeCustomers();
   }
   
-  // visitors should start arriving a little before customers, start at 7 turns and tweak later if necessary
-  if (flags.visitorTimer >= 7) {
+  // visitors should start arriving a little before customers, changed from 7 to 15
+  if (flags.visitorTimer >= 15) {
     spawnVisitors();
   }
 }
@@ -2344,10 +2455,6 @@ function describeRoom(showIntro = true) {
 
   if (showIntro && room.intro) appendMessage(room.intro);
   if (room.description) appendMessage(room.description);
-
-	if (room === "white room" && inventory.includes("smallKey") && !flags.smallKeyholeRevealed) {
-		appendMessage("You are exhausted after spending so long wandering around this place. That rickety old bench suddenly looks a lot more comfortable. Surely it wouldn't hurt to sit down for a moment?");
-	}
 	
   const exits = Object.keys(room.exits || {});
   if (exits.length > 0) {
@@ -2422,14 +2529,6 @@ function goDirection(dir) {
   visitedRooms.add(currentRoom);
   discoveredRooms.add(currentRoom);
   renderMap();
-  
-  if (player.isInjured) {
-    if (!inventory.includes("first aid kit")) {
-      appendMessage("You have a minor injury. It might be a good idea to look for a first aid kit.");
-    } else {
-      appendMessage("You have a minor injury. Maybe you should use the first aid kit you picked up.");
-    }
-  }
 
 }
 
@@ -2503,16 +2602,6 @@ function handleCommand(cmdInput) {
     }
   } else if (cmd.includes("look around")) {
     describeRoom(false);
-  } else if (cmd.includes("sit")) {
-    handleSit();
-  } else if (cmd.includes("jump") || cmd.includes("leap") || cmd.includes("boing")) {
-    handleJump();
-  } else if (cmd.includes("examine")) {
-    handleExamine();
-  } else if (cmd === "pick flowers") {
-    pickFlowers();
-  } else if (cmd.includes("poke") || cmd.includes("prod")) {
-    handlePoke();
   } else if (cmd.includes("order")) {
     
     if (player.location === "cafe") {
@@ -2530,17 +2619,23 @@ function handleCommand(cmdInput) {
     } else {
       appendMessage("You can't order anything here. Try the cafe.");
     }
-  } else if (cmd.startsWith("eat ")) {
-      const food = cmd.substring(4).trim();
+  } else if (cmd.includes("eat ")) {
+      const food = cmd
+      .replace(/^eat\s+/, "")
+      .replace(/^the\s+/, "")
+      .replace(/^a\s+/, "");
       
       if (!food) {
         appendMessage("Eat what?");
       } else {
        consume(food); 
       }
-  } else if (cmd.startsWith("drink ")) {
-      const drink = cmd.substring(6).trim();
-      
+  } else if (cmd.includes("drink ")) {
+      const drink = cmd
+      .replace(/^drink\s+/, "")
+      .replace(/^the\s+/, "")
+      .replace(/^a\s+/, "");
+            
       if (!drink) {
         appendMessage("Drink what?");
       } else {
@@ -2556,18 +2651,10 @@ function handleCommand(cmdInput) {
 
     build(itemId);
     return true;
-  } else if (cmd.includes("lever") && flags.leverPlaced) {
-    pullLever();
-  } else if (cmd.includes("move") && (cmd.includes("shelf") || cmd.includes("shelves"))) {
-    moveShelf();
-  } else if (cmd.includes("search") && !cmd.includes("researcher")) {
-    lookForItem();
-  } else if (cmd.includes("dig")) {
-    dig();
   } else if (startsWithVerb(cmd, verbGroups.unlock)) {
     handleUnlock(cmd);
     return;
-} else if (startsWithVerb(cmd, verbGroups.take)) {
+  } else if (startsWithVerb(cmd, verbGroups.take)) {
     const itemId = resolveItemFromText(cmd);
 
     if (!itemId) {
@@ -2674,6 +2761,32 @@ function handleCommand(cmdInput) {
     showInventory();
   } else if (cmd.includes("note")) {
     showNotes();
+  } else if (cmd.includes("lever") && flags.leverPlaced) {
+    pullLever();
+  } else if (cmd.includes("move") && (cmd.includes("shelf") || cmd.includes("shelves"))) {
+    moveShelf();
+  } else if (cmd.includes("search") && !cmd.includes("researcher")) {
+    lookForItem();
+  } else if (cmd.includes("dig")) {
+    dig();
+  } else if (cmd.includes("sit")) {
+    handleSit();
+  } else if (cmd.includes("jump") || cmd.includes("leap") || cmd.includes("boing")) {
+    handleJump();
+  } else if (cmd.includes("examine")) {
+    handleExamine();
+  } else if (cmd.includes("pick") || cmd.includes("flower")) {
+    pickFlowers();
+  } else if (cmd.includes("poke") || cmd.includes("prod")) {
+    handlePoke();
+  } else if (cmd.includes("telescope")) {
+    useTelescope();
+  } else if (cmd.includes("mirror")) {
+    if (player.location === "bathroom") {
+      mirrorInteractions(cmd);
+    } else {
+      appendMessage("There's no mirror here.");
+    }
   } else if (cmd === "help" || cmd === "commands" || cmd === "command list") {
     toggleHelp(true);
   } else {
@@ -2872,6 +2985,46 @@ document.getElementById("closeMap").addEventListener("click", () => {
 
 // Save/Load system
 
+// function to reopen previously unlocked doors on saving
+function revealDoors() {
+  if (flags.wrExitOpen) {
+    const room = rooms["white room"];
+    room.exits["east"] = "fossil exhibit";
+  }
+  
+  // glass corridor unlock
+  if (flags.exitUnlocked) {
+    const room = rooms["white room"];
+    room.exits["north"] = "glass corridor";
+  }
+  
+  // teleport room exit
+  if (flags.bookshelfPlaced) {
+    const room = rooms["fossil exhibit"];
+    room.exits["south"] = "secret room";
+  }
+  
+  // lab door open
+  if (flags.discoveredLab) {
+    const room = rooms["observatory"];
+    room.exits["south west"] = "secret lab";
+  }
+  
+  // garden doors
+  if (flags.gardenOpen) {
+    const room1 = rooms["cafe"];
+    const room2 = rooms["blue corridor"];
+    room1.exits["south"] = "garden";
+    room2.exits["south east"] = "garden";
+  }
+  
+  // hidden store exit
+  if (flags.shelvesMoved) {
+    const room = rooms["cleaners' store"];
+    room.exits["east"] = "hidden store";
+  }
+}
+
 // save game function
 function saveGame() {
   const saveData = {
@@ -2897,7 +3050,7 @@ function autoSave(reason = "") {
     flags,
     npcs
   };
-
+  
   localStorage.setItem("escapeAutoSave", JSON.stringify(saveData));
   console.log(`🔁 Autosaved (${reason})`);
 }
@@ -2919,6 +3072,7 @@ function loadAutoSave() {
   Object.assign(npcs, data.npcs);
 
   print("📂 Autosave loaded!");
+  revealDoors();
   describeRoom();
   renderMap();
 }
@@ -2946,6 +3100,7 @@ function loadGame() {
   Object.assign(npcs, data.npcs);
 
   print("📂 Game loaded!");
+  revealDoors();
   describeRoom();
   renderMap();
 }
