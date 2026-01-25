@@ -2084,7 +2084,7 @@ const verbGroups = {
 
 // verb parsing helper
 function startsWithVerb(cmd, verbs) {
-  console.log("startsWithVerb cmd:", cmd, typeof cmd);
+  if (typeof cmd !== "string") return false;
   return verbs.some(v => cmd.startsWith(v + " "));
 }
 
@@ -2581,7 +2581,7 @@ function hasWord(cmd, word) {
 // priority order: System, Social, Inventory, World, Flavour
 
 // Social commands - talk, ask, give, etc
-const socialCommands = () => {
+const socialCommands = (cmd) => {
   // give items to npcs
   if (startsWithVerb(cmd, verbGroups.give)) {
     const itemId = resolveItemFromText(cmd);
@@ -2661,7 +2661,7 @@ const socialCommands = () => {
       return true;
     }
   }
-  // order items from the cafe 
+  // order items from the cafe (2 ways, maybe adjust later)
   else if (hasWord(cmd, "order")) {
     
     if (player.location === "cafe") {
@@ -2670,7 +2670,7 @@ const socialCommands = () => {
     } else {
       appendMessage("There's nobody to order anything from here. Try asking the barista in the cafe.");
     }
-    return;
+    return true;
     
   } else if ((hasWord(cmd, "coffee") || hasWord(cmd, "tea") || hasWord(cmd, "cake") || hasWord(cmd, "juice") || hasWord(cmd, "soda")) && (!cmd.includes("drink ") && !cmd.includes("eat "))) {
     if (player.location === "cafe") {
@@ -2679,13 +2679,14 @@ const socialCommands = () => {
     } else {
       appendMessage("You can't order anything here. Try the cafe.");
     }
+    return true;
   }
   
   return false;
 };
 
 // Inventory & Item commands - take, drop, build, etc
-const itemCommands = () => {
+const itemCommands = (cmd) => {
   // eat items
   if (cmd.startsWith("eat ")) {
       const food = cmd
@@ -2782,7 +2783,10 @@ const itemCommands = () => {
 };
 
 // World interaction commands - pull lever, move shelf, search, etc
-const worldCommands = () => {
+const worldCommands = (cmd) => {
+  // flag these commands as handled
+  let handled = false;
+  
   // player moves through the map
   if ((cmd.startsWith("go ") || cmd.startsWith("head")) && !cmd.includes("to")) {
     const dir = cmd
@@ -2794,19 +2798,22 @@ const worldCommands = () => {
     } else {
       appendMessage("Go where?");
     }
+    handled = true;
   } 
   // press button for teleport ending
   else if (cmd.includes("press") && (cmd.includes("button") || cmd.includes("crystal") || cmd.includes("pedestal"))) {
     teleportEnding();
-    return true;
+    handled = true;
   }
   // pull the lever in the observatory
   else if (cmd.includes("lever") && flags.leverPlaced) {
     pullLever();
+    handled = true;
   } 
   // move the shelves in the cleaners store
   else if (cmd.includes("move") && (cmd.includes("shelf") || cmd.includes("shelves"))) {
     moveShelf();
+    handled = true;
   }
   // player or puppy waits somewhere
   else if (hasWord(cmd, "wait")) {
@@ -2815,64 +2822,81 @@ const worldCommands = () => {
     } else {
       playerWait();
     }
+    handled = true;
   }
   // search the room
   else if (hasWord(cmd, "search")) {
     lookForItem();
+    handled = true;
   } 
   // player tells the puppy to dig
   else if (hasWord(cmd, "dig")) {
     dig();
+    handled = true;
   } 
   
-  return false;
+  return handled;
 };
 
 // Flavour interactions - sit, poke, use telescope, etc
-const flavourCommands = () => {
+const flavourCommands = (cmd) => {
+  // flag these commands as handled
+  let handled = false;
+
   // print room description
   if (cmd.includes("look around")) {
     describeRoom(false);
+    handled = true;
   }
   // player pees
   else if (hasWord(cmd, "pee") || hasWord(cmd, "toilet") || hasWord(cmd, "cubicle")) {
     pee();
+    handled = true;
   } 
   // player washes hands
   else if (cmd.includes("wash") && cmd.includes("hands")) {
     washHands();
+    handled = true;
   } 
   // print inventory to output
   else if (cmd.includes("inventory") || cmd.includes("bag")) {
     showInventory();
+    handled = true;
   } 
   // print discovered notes to output
   else if (cmd.includes("note")) {
     showNotes();
+    handled = true;
   } 
   // player sits somewhere (may reveal secrets)
   else if (hasWord(cmd, "sit")) {
     handleSit();
+    handled = true;
   } 
   // player jumps (may reveal secrets)
   else if (hasWord(cmd, "jump") || hasWord(cmd, "leap")) {
     handleJump();
+    handled = true;
   } 
   // player examines the room (may reveal secrets)
   else if (hasWord(cmd, "examine")) {
     handleExamine();
+    handled = true;
   } 
   // pick some flowers in the garden
   else if (hasWord(cmd, "pick") && cmd.includes("flower")) {
     pickFlowers();
+    handled = true;
   } 
   // player pokes things
   else if (hasWord(cmd, "poke") || hasWord(cmd, "prod")) {
     handlePoke();
+    handled = true;
   } 
   // player can use the observatory telescope
   else if (cmd.includes("telescope")) {
     useTelescope();
+    handled = true;
   } 
   // player can interact with the bathroom mirror
   else if (cmd.includes("mirror")) {
@@ -2881,9 +2905,15 @@ const flavourCommands = () => {
     } else {
       appendMessage("There's no mirror here.");
     }
+    handled = true;
+  }
+  // game says hi
+  else if (cmd === "hello" || cmd === "hi") {
+    appendMessage("Hello!");
+    handled = true;
   }
 
-  return false;
+  return handled;
 };
 
 // refactored handleCommand()
@@ -2942,14 +2972,22 @@ function handleCommand(cmdInput) {
     movePlayerTo(destination);
     return true;
   }
+  
+  // prints a basic command list to the game screen
+  if (cmd === "help" || cmd === "commands" || cmd === "command list") {
+    showHelp();
+    appendMessage("Type a command or use the compass to move.")
+    return true;
+  }
+  
   // calls social commands
-  if (socialCommands()) return;
+  if (socialCommands(cmd)) return true;
   // calls item commands
-  if (itemCommands()) return;
+  if (itemCommands(cmd)) return true;
   // calls world commands
-  if (worldCommands()) return;
+  if (worldCommands(cmd)) return true;
   //calls flavour commands
-  if (flavourCommands()) return;
+  if (flavourCommands(cmd)) return true;
   
   // default message
   appendMessage("Sorry, you can't do that :( ");
