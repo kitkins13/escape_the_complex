@@ -371,11 +371,15 @@ function handleExamine() {
   
   else if (loc === "hidden store") {
     appendMessage("You take a better look at the boxes stacked on the towering shelves. Most are plain and boring, but a faint glimmer of metal catches your eye. There's a tiny key tucked between two of the boxes.");
-  }
+  } 
   
   else if (loc === "red corridor") {
     appendMessage("Looking too closely at this garish shade of red is making your eyes hurt. There's nothing of interest here, other than the two doors to the east and north.");
   } 
+  
+  else if (loc === "glass corridor") {
+    appendMessage("The light is dazzling as it streams through the glass walls, but when you get used to the glare, you spot a sign on the wall. It reads: 'Sitting on your fellow visitors is not permitted.'");
+  }
   
   else {
     appendMessage("There's nothing interesting enough to examine here.");
@@ -452,10 +456,12 @@ function useTelescope(){
       "the Orion Nebula.",
       "Jupiter.",
       "Rigel.",
+      "the Moon.",
       "Venus.",
       "the Pleiades.",
       "the Crab Nebula.",
       "the ISS passing overhead.",
+      "a... um... was that a flying saucer?",
     ];
     const skyThing = skyThings[Math.floor(Math.random() * skyThings.length)];
     appendMessage(`You gaze through the big telescope, and after a few minutes you tentatively identify ${skyThing}`);
@@ -468,8 +474,10 @@ function useTelescope(){
 function mirrorInteractions(input) {
   if (input.includes("admire") || input.includes("check")) {
     appendMessage("You spend a few minutes admiring yourself in the mirror. Looking good!");
-  } else if (input.includes("make faces") || input.includes("tongue") || input.includes("funny")) {
+  } else if (input.includes("faces") || input.includes("tongue") || input.includes("funny")) {
     appendMessage("You spend a few minutes pulling faces in the mirror. It's fun!");
+  } else {
+    appendMessage("You look in the mirror for a moment. It's you!");
   }
 }
 
@@ -509,6 +517,11 @@ function showNotes() {
   found.forEach(n => {
     appendMessage("\n" + notes[n] + "\n");
   });
+}
+
+// show basic commands
+function showHelp() {
+  appendMessage("Basic Commands:\nlook around - reprints the current room description\ngo <direction> - move (north, south, etc.)\njump - jump, you might find a secret\nbag - show inventory\nsearch - search the current room for items\nexamine - examine the current room more closely\npoke - poke things in the current room, use with caution\ntake/drop/use <item> - pick up/drop/use an item\ngive <item> to <npc> - give an item to the named NPC\ntalk to <npc> - talk to an NPC\nask <npc> for help\nbuild <item> - build in the workshop\nwait - pass some time without action");
 }
 
 // array for locked doors - NEEDS FIXING
@@ -871,7 +884,11 @@ function talkTo(npcName) {
     } else {
       appendMessage("The puppy seems a little uncertain of you. Maybe if you had a toy he'd be more interested?");
     }
+    
+    return;
   }
+  
+  // need to get a 'that person isn't here' line to work!
   
 }
 
@@ -1311,26 +1328,27 @@ function tellNpcAboutExit(npcName) {
     return;
   }
   
-  if (exits.teleporter && reactions.teleporter && (exitPreference === "teleport" || !flags.exitUnlocked)) {
+  if (exits.teleporter && reactions.teleporter) {
     appendMessage(reactions.teleporter[0]);
     return;
-  }
+  } // figure out how to make this condition work: (exitPreference === "teleport" || !flags.exitUnlocked)
 
-  if (exits.glass && reactions.glass && (exitPreference === "glass" || !flags.teleporterReady)) {
+  if (exits.glass && reactions.glass) {
     appendMessage(reactions.glass[0]);
     return;
-  }
+  } // also this (exitPreference === "glass" || !flags.teleporterReady)
 
   appendMessage("They listen, but don’t seem to have much to say about it.");
 }
 
+// post exit-unlocking actions
 // moves customers to the cafe once exit is unlocked
 function spawnCafeCustomers() {
   flags.customersPresent = true;
   
   if (player.location === "cafe"){
     appendMessage("You hear footsteps outside in the blue corridor. As you turn towards the sound, the door gently swings open, revealing a couple of curious strangers. They must have wandered in through the glass corridor exit you unlocked.");
-    appendMessage("The barista smiles at the newcomers, happy to have new customers after so long tending an empty cafe.");
+    appendMessage("The barista smiles at the newcomers, happy to have customers after so long tending an empty cafe.");
   }
 }
 
@@ -1339,47 +1357,65 @@ function spawnVisitors() {
   flags.visitorsAllowed = true;
   
   if (player.location === "art gallery" || player.location === "fossil exhibit" || player.location === "observatory") {
-    appendMessage("As you enter, you see a few new people wandering the room. They must have come in through the glass corridor exit you unlocked.");
+    appendMessage("You hear some echoing footsteps in the room, and turn to see a few new people wandering in. They must have come in through the glass corridor exit you unlocked.");
   }
 }
 
+// caretaker moves to glass corridor
+
+
+// scientist moves to teleport room
+
+
+// wait functions
 // player can wait somewhere
 function playerWait() {
+  const idleMessages = [
+    "You take a moment to yourself, doing nothing in particular.",
+    "You wait around, staring into space for a moment.",
+    "You're not sure what you're waiting for, but you wait anyway.",
+    "You space out for a moment.",
+  ];
   
+  const text = Math.floor(Math.random() * idleMessages.length);
+  appendMessage(idleMessages[text]);
 }
 
 // tell the puppy to wait somewhere
 function puppyWait() {
-  const following = npcs.puppy.following;
-  
-  if (following) {
-    appendMessage("You tell the puppy to wait here. He barks, and sits obediently.");
-    following = false;
-    npcs.puppy.location = player.location;
-  } else {
-    appendMessage("The puppy isn't following you right now.");
+  if (!npcs.puppy.following) {
+    if (npcs.puppy.location === player.location) {
+      appendMessage("The puppy is already waiting here, contentedly chewing on the toy you gave him.");
+    } else {
+      appendMessage("The puppy isn't here right now.");
+    }
+    return;
   }
+  
+  appendMessage("You tell the puppy to wait here. He barks, and sits obediently, wagging his tail.");
+  npcs.puppy.following = false;
+  npcs.puppy.location = player.location;
 }
 
 // tell the puppy to follow again
 function puppyFollowAgain() {
-  const following = npcs.puppy.following;
-  const friend = flags.befriendedPuppy;
-  const puppyLoc = npcs.puppy.location;
+  if (!flags.befriendedPuppy) {
+    appendMessage("The puppy seems a little unsure of you. Try giving him a dog toy to make friends!");
+    return;
+  }
   
-  if (puppyLoc !== player.location) {
+  if (npcs.puppy.location !== player.location) {
     appendMessage("You're not near the puppy right now. Head back to where you left him.");
     return;
   }
   
-  if (!following && friend) {
-    appendMessage("You tell the puppy to follow you again. He trots over to you, carrying the toy you gave him earlier.");
-    following = true;
-  } else if (!friend) {
-    appendMessage("The puppy seems a little unsure of you. Try giving him a dog toy to make friends!");
-  } else {
-    appendMessage("The puppy is already following you.");
+  if (npcs.puppy.following) {
+    appendMessage("The puppy is already by your side.");
+    return;
   }
+
+  appendMessage("You tell the puppy to follow you again. He trots over to you, carrying the toy you gave him earlier.");
+  npcs.puppy.following = true;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -2048,6 +2084,7 @@ const verbGroups = {
 
 // verb parsing helper
 function startsWithVerb(cmd, verbs) {
+  if (typeof cmd !== "string") return false;
   return verbs.some(v => cmd.startsWith(v + " "));
 }
 
@@ -2387,9 +2424,12 @@ function playerState() {
 	}
 	
 	// tells the player how many notes they have
+	const notesFound = player.notesFound;
 	if (player.notesFound > 0) {
 	  appendMessage(`You have found ${notesFound} notes.`);
 	}
+	
+	// add condition for keys found
 }
 
 // enables timer for customer & visitor arrivals once glass corridor exit is open
@@ -2532,9 +2572,353 @@ function goDirection(dir) {
 
 }
 
-// command handler
+// helper to check for short words hiding in other words - should prevent parser confusions eg. dig/digger, sit/visitor
+function hasWord(cmd, word) {
+  return new RegExp(`\\b${word}\\b`).test(cmd);
+}
+
+// new command handler & priority groups
+// priority order: System, Social, Inventory, World, Flavour
+
+// Social commands - talk, ask, give, etc
+const socialCommands = (cmd) => {
+  // give items to npcs
+  if (startsWithVerb(cmd, verbGroups.give)) {
+    const itemId = resolveItemFromText(cmd);
+    const npcId = resolveNpcFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Give what?");
+      return true;
+    }
+
+    if (!npcId) {
+      appendMessage("Give it to whom?");
+      return true;
+    }
+
+    giveItem(itemId, npcId);
+    return true;
+  } 
+  // talk to npcs
+  else if (cmd.startsWith("talk ") || cmd.startsWith("chat ")) {
+    const cleaned = cmd
+      .replace(/^chat\s+/, "")
+      .replace(/^talk\s+/, "")
+      .replace(/^with\s+/, "")
+      .replace(/^to\s+/, "")
+      .replace(/^the\s+/, "")
+      .replace(/^a\s+/, "")
+      .replace(/^an\s+/, "");
+    
+    const npcId = resolveNpcFromText(cleaned);
+    
+    if (!npcId) {
+      appendMessage("They're not here.");
+      return true;
+    }
+    
+    const npc = npcId.split(" ")[0].trim();
+    
+    if (npc === "barista" || npc === "caretaker" || npc === "scientist" || npc === "puppy" || npc === "customer" || npc === "visitor") {
+      talkTo(npc);
+      return true;
+    }
+
+  } 
+  // ask npcs for hints
+  else if (cmd.startsWith("ask ")) {
+    const cleaned = cmd
+      .replace(/^ask\s+/, "")
+      .replace(/^the\s+/, "");
+      
+    const npcId = resolveNpcFromText(cleaned);
+
+    if (!npcId) {
+      appendMessage("There's nobody here to help you. Check another room.");
+      return true;
+    }
+
+    const npc = npcId.split(" ")[0].trim();
+
+    if (npc === "barista" || npc === "caretaker" || npc === "scientist") {
+      getHint(npc);
+      return true;
+    }
+    
+  } 
+  // tell npcs about exits found
+  else if ((cmd.includes("tell") || cmd.includes("say")) && (cmd.includes("exit") || cmd.includes("way out") || cmd.includes("door") || cmd.includes("teleporter"))) {
+    const npc = resolveNpcFromText(cmd);
+    
+    if (!npcId) {
+      appendMessage("There's nobody here to tell about the exit. Check another room.");
+      return true;
+    }
+    
+    if (npc) {
+      tellNpcAboutExit(npc);
+      return true;
+    }
+  }
+  // order items from the cafe (2 ways, maybe adjust later)
+  else if (hasWord(cmd, "order")) {
+    
+    if (player.location === "cafe") {
+      appendMessage("The barista says: 'What can I get you, lovie?'");
+      npcs.barista.waitingForOrder = true;
+    } else {
+      appendMessage("There's nobody to order anything from here. Try asking the barista in the cafe.");
+    }
+    return true;
+    
+  } else if ((hasWord(cmd, "coffee") || hasWord(cmd, "tea") || hasWord(cmd, "cake") || hasWord(cmd, "juice") || hasWord(cmd, "soda")) && (!cmd.includes("drink ") && !cmd.includes("eat "))) {
+    if (player.location === "cafe") {
+      handleBaristaOrder(cmd);
+      return true;
+    } else {
+      appendMessage("You can't order anything here. Try the cafe.");
+    }
+    return true;
+  }
+  
+  return false;
+};
+
+// Inventory & Item commands - take, drop, build, etc
+const itemCommands = (cmd) => {
+  // eat items
+  if (cmd.startsWith("eat ")) {
+      const food = cmd
+      .replace(/^eat\s+/, "")
+      .replace(/^the\s+/, "")
+      .replace(/^a\s+/, "");
+      
+      if (!food) {
+        appendMessage("Eat what?");
+      } else {
+       consume(food); 
+      }
+      return true;
+  }
+  // drink items
+  else if (cmd.startsWith("drink ")) {
+      const drink = cmd
+      .replace(/^drink\s+/, "")
+      .replace(/^the\s+/, "")
+      .replace(/^a\s+/, "");
+            
+      if (!drink) {
+        appendMessage("Drink what?");
+      } else {
+       consume(drink); 
+      }
+      return true;
+  } 
+  // build items
+  else if (startsWithVerb(cmd, verbGroups.build)) {
+    const itemId = resolveItemFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Build what?");
+      return true;
+    }
+
+    build(itemId);
+    return true;
+  } 
+  // unlock doors
+  else if (startsWithVerb(cmd, verbGroups.unlock)) {
+    handleUnlock(cmd);
+    return true;
+  } 
+  // take items
+  else if (startsWithVerb(cmd, verbGroups.take)) {
+    const itemId = resolveItemFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Take what?");
+      return true;
+    }
+
+    takeItem(itemId);
+    return true;
+  } 
+  // drop items
+  else if (startsWithVerb(cmd, verbGroups.drop)) {
+    const itemId = resolveItemFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Drop what?");
+      return true;
+    }
+
+    dropItem(itemId);
+    return true;
+  } 
+  // use items
+  else if (startsWithVerb(cmd, verbGroups.use) && !cmd.includes("telescope")) {
+    const itemId = resolveItemFromText(cmd);
+
+    if (!itemId) {
+      appendMessage("Use what?");
+      return true;
+    }
+
+    if (itemId === "bookshelf") {
+      placeBookshelf();
+      return true;
+    }
+
+    if (itemId === "birdhouse") {
+      placeBirdhouse();
+      return true;
+    }
+
+    useItem(itemId);
+    return true;
+  }
+  
+  return false;
+};
+
+// World interaction commands - pull lever, move shelf, search, etc
+const worldCommands = (cmd) => {
+  // flag these commands as handled
+  let handled = false;
+  
+  // player moves through the map
+  if ((cmd.startsWith("go ") || cmd.startsWith("head")) && !cmd.includes("to")) {
+    const dir = cmd
+      .replace(/^head\s+/, "")
+      .replace(/^go\s+/, "");
+    
+    if (dir) {
+      goDirection(dir);
+    } else {
+      appendMessage("Go where?");
+    }
+    handled = true;
+  } 
+  // press button for teleport ending
+  else if (cmd.includes("press") && (cmd.includes("button") || cmd.includes("crystal") || cmd.includes("pedestal"))) {
+    teleportEnding();
+    handled = true;
+  }
+  // pull the lever in the observatory
+  else if (cmd.includes("lever") && flags.leverPlaced) {
+    pullLever();
+    handled = true;
+  } 
+  // move the shelves in the cleaners store
+  else if (cmd.includes("move") && (cmd.includes("shelf") || cmd.includes("shelves"))) {
+    moveShelf();
+    handled = true;
+  }
+  // player or puppy waits somewhere
+  else if (hasWord(cmd, "wait")) {
+    if (cmd.includes("puppy") || cmd.includes("digger")) {
+      puppyWait();
+    } else {
+      playerWait();
+    }
+    handled = true;
+  }
+  // search the room
+  else if (hasWord(cmd, "search")) {
+    lookForItem();
+    handled = true;
+  } 
+  // player tells the puppy to dig
+  else if (hasWord(cmd, "dig")) {
+    dig();
+    handled = true;
+  } 
+  
+  return handled;
+};
+
+// Flavour interactions - sit, poke, use telescope, etc
+const flavourCommands = (cmd) => {
+  // flag these commands as handled
+  let handled = false;
+
+  // print room description
+  if (cmd.includes("look around")) {
+    describeRoom(false);
+    handled = true;
+  }
+  // player pees
+  else if (hasWord(cmd, "pee") || hasWord(cmd, "toilet") || hasWord(cmd, "cubicle")) {
+    pee();
+    handled = true;
+  } 
+  // player washes hands
+  else if (cmd.includes("wash") && cmd.includes("hands")) {
+    washHands();
+    handled = true;
+  } 
+  // print inventory to output
+  else if (cmd.includes("inventory") || cmd.includes("bag")) {
+    showInventory();
+    handled = true;
+  } 
+  // print discovered notes to output
+  else if (cmd.includes("note")) {
+    showNotes();
+    handled = true;
+  } 
+  // player sits somewhere (may reveal secrets)
+  else if (hasWord(cmd, "sit")) {
+    handleSit();
+    handled = true;
+  } 
+  // player jumps (may reveal secrets)
+  else if (hasWord(cmd, "jump") || hasWord(cmd, "leap")) {
+    handleJump();
+    handled = true;
+  } 
+  // player examines the room (may reveal secrets)
+  else if (hasWord(cmd, "examine")) {
+    handleExamine();
+    handled = true;
+  } 
+  // pick some flowers in the garden
+  else if (hasWord(cmd, "pick") && cmd.includes("flower")) {
+    pickFlowers();
+    handled = true;
+  } 
+  // player pokes things
+  else if (hasWord(cmd, "poke") || hasWord(cmd, "prod")) {
+    handlePoke();
+    handled = true;
+  } 
+  // player can use the observatory telescope
+  else if (cmd.includes("telescope")) {
+    useTelescope();
+    handled = true;
+  } 
+  // player can interact with the bathroom mirror
+  else if (cmd.includes("mirror")) {
+    if (player.location === "bathroom") {
+      mirrorInteractions(cmd);
+    } else {
+      appendMessage("There's no mirror here.");
+    }
+    handled = true;
+  }
+  // game says hi
+  else if (cmd === "hello" || cmd === "hi") {
+    appendMessage("Hello!");
+    handled = true;
+  }
+
+  return handled;
+};
+
+// refactored handleCommand()
 function handleCommand(cmdInput) {
-  const cmd = cmdInput.trim().toLowerCase();
+  const cmd = cmdInput.toLowerCase().trim();
 
   // Print user input into the game log
   appendMessage(`> ${cmd}`, "command");
@@ -2589,210 +2973,26 @@ function handleCommand(cmdInput) {
     return true;
   }
   
-  // main command parser
-  if ((cmd.startsWith("go ") || cmd.startsWith("head")) && !cmd.includes("to")) {
-    const dir = cmd
-      .replace(/^head\s+/, "")
-      .replace(/^go\s+/, "");
-    
-    if (dir) {
-      goDirection(dir);
-    } else {
-      appendMessage("Go where?");
-    }
-  } else if (cmd.includes("look around")) {
-    describeRoom(false);
-  } else if (cmd.includes("order")) {
-    
-    if (player.location === "cafe") {
-      appendMessage("The barista says: 'What can I get you, lovie?'");
-      npcs.barista.waitingForOrder = true;
-    } else {
-      appendMessage("There's nobody to order anything from here. Try asking the barista in the cafe.");
-    }
-    return;
-    
-  } else if ((cmd.includes("coffee") || cmd.includes("tea") || cmd.includes("cake") || cmd.includes("juice") || cmd.includes("soda")) && (!cmd.includes("drink ") && !cmd.includes("eat "))) {
-    if (player.location === "cafe") {
-      handleBaristaOrder(cmd);
-      return true;
-    } else {
-      appendMessage("You can't order anything here. Try the cafe.");
-    }
-  } else if (cmd.includes("eat ")) {
-      const food = cmd
-      .replace(/^eat\s+/, "")
-      .replace(/^the\s+/, "")
-      .replace(/^a\s+/, "");
-      
-      if (!food) {
-        appendMessage("Eat what?");
-      } else {
-       consume(food); 
-      }
-  } else if (cmd.includes("drink ")) {
-      const drink = cmd
-      .replace(/^drink\s+/, "")
-      .replace(/^the\s+/, "")
-      .replace(/^a\s+/, "");
-            
-      if (!drink) {
-        appendMessage("Drink what?");
-      } else {
-       consume(drink); 
-      }
-  } else if (startsWithVerb(cmd, verbGroups.build)) {
-    const itemId = resolveItemFromText(cmd);
-
-    if (!itemId) {
-      appendMessage("Build what?");
-      return true;
-    }
-
-    build(itemId);
+  // prints a basic command list to the game screen
+  if (cmd === "help" || cmd === "commands" || cmd === "command list") {
+    showHelp();
+    appendMessage("Type a command or use the compass to move.")
     return true;
-  } else if (startsWithVerb(cmd, verbGroups.unlock)) {
-    handleUnlock(cmd);
-    return;
-  } else if (startsWithVerb(cmd, verbGroups.take)) {
-    const itemId = resolveItemFromText(cmd);
-
-    if (!itemId) {
-      appendMessage("Take what?");
-      return true;
-    }
-
-    takeItem(itemId);
-    return true;
-  } else if (startsWithVerb(cmd, verbGroups.drop)) {
-    const itemId = resolveItemFromText(cmd);
-
-    if (!itemId) {
-      appendMessage("Drop what?");
-      return true;
-    }
-
-    dropItem(itemId);
-    return true;
-  } else if (startsWithVerb(cmd, verbGroups.use)) {
-    const itemId = resolveItemFromText(cmd);
-
-    if (!itemId) {
-      appendMessage("Use what?");
-      return true;
-    }
-
-    if (itemId === "bookshelf") {
-      placeBookshelf();
-      return true;
-    }
-
-    if (itemId === "birdhouse") {
-      placeBirdhouse();
-      return true;
-    }
-
-    useItem(itemId);
-    return true;
-  } else if (startsWithVerb(cmd, verbGroups.give)) {
-    const itemId = resolveItemFromText(cmd);
-    const npcId = resolveNpcFromText(cmd);
-
-    if (!itemId) {
-      appendMessage("Give what?");
-      return true;
-    }
-
-    if (!npcId) {
-      appendMessage("Give it to whom?");
-      return true;
-    }
-
-    giveItem(itemId, npcId);
-    return true;
-  } else if (cmd.startsWith("talk ") || cmd.startsWith("chat ")) {
-    const cleaned = cmd
-      .replace(/^chat\s+/, "")
-      .replace(/^talk\s+/, "")
-      .replace(/^with\s+/, "")
-      .replace(/^to\s+/, "")
-      .replace(/^the\s+/, "")
-      .replace(/^a\s+/, "");
-    
-    const npcId = resolveNpcFromText(cleaned);
-    
-    const npc = npcId.split(" ")[0].trim();
-    
-    if (npc === "barista" || npc === "caretaker" || npc === "scientist" || npc === "puppy" || npc === "customer" || npc === "visitor") {
-      talkTo(npc);
-      return true;
-    }
-    
-    appendMessage("That person isn't here.");
-  } else if (cmd.startsWith("ask ")) {
-    const cleaned = cmd
-      .replace(/^ask\s+/, "")
-      .replace(/^the\s+/, "");
-      
-    const npcId = resolveNpcFromText(cleaned);
-
-    const npc = npcId.split(" ")[0].trim();
-
-    if (npc === "barista" || npc === "caretaker" || npc === "scientist") {
-      getHint(npc);
-      return true;
-    }
-    appendMessage("There's nobody here to help you. Check another room.");
-    return true;
-  } else if (cmd.includes("press") && (cmd.includes("button") || cmd.includes("crystal") || cmd.includes("pedestal"))) {
-    teleportEnding();
-    return true;
-  } else if ((cmd.includes("tell") || cmd.includes("say")) && (cmd.includes("exit") || cmd.includes("way out") || cmd.includes("door") || cmd.includes("teleporter"))) {
-    const npc = resolveNpcFromText(cmd);
-    if (npc) {
-      tellNpcAboutExit(npc);
-      return true;
-    }
-  } else if (cmd.includes("pee")) {
-    pee();
-  } else if (cmd.includes("wash hands")) {
-    washHands();
-  } else if (cmd.includes("inventory") || cmd.includes("bag")) {
-    showInventory();
-  } else if (cmd.includes("note")) {
-    showNotes();
-  } else if (cmd.includes("lever") && flags.leverPlaced) {
-    pullLever();
-  } else if (cmd.includes("move") && (cmd.includes("shelf") || cmd.includes("shelves"))) {
-    moveShelf();
-  } else if (cmd.includes("search") && !cmd.includes("researcher")) {
-    lookForItem();
-  } else if (cmd.includes("dig")) {
-    dig();
-  } else if (cmd.includes("sit")) {
-    handleSit();
-  } else if (cmd.includes("jump") || cmd.includes("leap") || cmd.includes("boing")) {
-    handleJump();
-  } else if (cmd.includes("examine")) {
-    handleExamine();
-  } else if (cmd.includes("pick") || cmd.includes("flower")) {
-    pickFlowers();
-  } else if (cmd.includes("poke") || cmd.includes("prod")) {
-    handlePoke();
-  } else if (cmd.includes("telescope")) {
-    useTelescope();
-  } else if (cmd.includes("mirror")) {
-    if (player.location === "bathroom") {
-      mirrorInteractions(cmd);
-    } else {
-      appendMessage("There's no mirror here.");
-    }
-  } else if (cmd === "help" || cmd === "commands" || cmd === "command list") {
-    toggleHelp(true);
-  } else {
-    appendMessage("You can't do that.");
   }
   
+  // calls social commands
+  if (socialCommands(cmd)) return true;
+  // calls item commands
+  if (itemCommands(cmd)) return true;
+  // calls world commands
+  if (worldCommands(cmd)) return true;
+  //calls flavour commands
+  if (flavourCommands(cmd)) return true;
+  
+  // default message
+  appendMessage("Sorry, you can't do that :( ");
+  // print player status notices
+  playerState();
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~
