@@ -116,6 +116,16 @@ a:hover {
   color: var(--text);
 }
 
+p.clickable {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin: 5px;
+}
+
+p.clickable:hover {
+  color: var(--text);
+}
+
 #mobileMenu {
   position: fixed;
   bottom: 70px;
@@ -448,7 +458,7 @@ body::after {
 
 @media screen and (max-width: 768px) { /* for small screens */
   .output {
-    max-height: 300px;
+    /*max-height: 300px;*/
     margin-bottom: 0.5rem;
     line-height: 1.1;
     font-size: 0.9rem;
