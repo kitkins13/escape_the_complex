@@ -325,7 +325,7 @@ function handleExamine() {
   } 
   
   else if (loc === "observatory") {
-    if (!flags.placedLever && !inventory.includes("lever") {
+    if (!flags.placedLever && !inventory.includes("lever")) {
       appendMessage("You go and take a better look at those mechanisms. Most seem to operate the big telescope, but one isn't connected to anything you can see. It's missing its lever... maybe the caretaker knows something about it?");
     } else if (!flags.placedLever) {
       appendMessage("You go and take a better look at those mechanisms. Most seem to operate the big telescope, but one isn't connected to anything you can see. It's missing its lever... maybe the one the caretaker gave you would fit?");
