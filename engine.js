@@ -40,7 +40,7 @@ const mapLayout = {
   // red corridor spans 2 tiles vertically
   "red corridor":      { x: 2, y: 3, w: 1, h: 2 },
 
-  "cleaners' store":   { x: 3, y: 4, w: 1, h: 1 },
+  "cleaners store":   { x: 3, y: 4, w: 1, h: 1 },
   "hidden store":      { x: 4, y: 4, w: 1, h: 1 },
 
   "art gallery":       { x: 2, y: 2, w: 1, h: 1 },
@@ -259,7 +259,7 @@ function handleJump() {
     }
   } 
   
-  else if (loc === "cleaners' store" || loc === "secret lab") {
+  else if (loc === "cleaners store" || loc === "secret lab") {
     appendMessage("You can't jump here, the ceiling is too low.\n");
   } 
   
@@ -359,7 +359,7 @@ function handleExamine() {
     appendMessage("Several design sketches are strewn across the workbench. Most are beyond you, but a few look interesting: a simple birdhouse, a tall bookshelf, and a handcart. You could probably make those, looking at the careful detail put into the drawings.");
   } 
   
-  else if (loc === "cleaners' store") {
+  else if (loc === "cleaners store") {
     appendMessage("You take a closer look at those shelves, intrigued by the scattered, flaky rust. You can just make out a thin crack in the wall behind them, and a rusted up keyhole mostly hidden by the edge of one shelf.");
   } 
   
@@ -523,7 +523,7 @@ function showNotes() {
 
 // show basic commands
 function showHelp() {
-  appendMessage("Basic Commands:\nlook around - reprints the current room description\ngo <direction> - move (north, south, etc.)\njump - jump, you might find a secret\nbag - show inventory\nsearch - search the current room for items\nexamine - examine the current room more closely\npoke - poke things in the current room, use with caution\ntake/drop/use <item> - pick up/drop/use an item\ngive <item> to <npc> - give an item to the named NPC\ntalk to <npc> - talk to an NPC\nask <npc> for help\nbuild <item> - build in the workshop\nwait - pass some time without action");
+  appendMessage("Basic Commands:\nlook around - reprints the current room description\ngo <direction> - move (north, south, etc.)\njump - jump, you might find a secret\nbag - show inventory\nsearch - search the current room for items\nexamine - examine the current room more closely\npoke - poke things in the current room, use with caution\ntake/drop/use <item> - pick up/drop/use an item\ngive <item> to <npc> - give an item to an NPC\ntalk to <npc> - talk to an NPC\nask <npc> for help - get a hint from an NPC\nbuild <item> - build in the workshop\nwait - pass some time without action\n\n");
 }
 
 // array for locked doors - NEEDS FIXING
@@ -536,20 +536,29 @@ const unlockables = {
       appendMessage("You unlock the garden door. It swings open with a soft creak.");
       flags.gardenOpen = true;
       discoveredRooms.add("garden");
-      // change blue corridor and cafe descriptions here
+      // update blue corridor and cafe descriptions
+      const corridorB = rooms["blue corridor"];
+      const cafe = rooms["cafe"];
+      
+      //corridorB.description.dynamic = "";
+      corridorB.description.doorList = "There are doors to the south west, south, south east, north east, and north.";
+      //cafe.description.dynamic = "";
+      cafe.description.doorList = "The door to the west leads back to the blue corridor. Grimy windows and a glass door line the south wall, leading out to the garden.";
       
     },
     fail: "The garden door is locked."
   },
   "storeroom door": {
     aliases: ["storeroom door", "hidden door", "secret door", "stockroom door", "door"],
-    rooms: ["cleaners' store"],
+    rooms: ["cleaners store"],
     key: "ironKey",
     success: () => {
       appendMessage("You unlock the hidden door behind the shelves. ");
       discoveredRooms.add("hidden store");
-      // change cleaners' store description here
+      // update cleaners store description
+      const storeroom = rooms["cleaners store"];
       
+      storeroom.description.doorList = "A door to the west goes back to the red corridor, and the east door opens into the previously hidden storeroom.";
     },
     fail: "The door remains locked."
   }
@@ -593,7 +602,14 @@ function playWithPuppy() {
     flags.befriendedPuppy = true;
     npcs.puppy.following = true;
     inventory = inventory.filter(i => i !== "dogToy");
-    // change yard description here
+    // update yard description
+    const yard = rooms["yard"];
+    
+    if (inventory.includes("toolbox") || flags.givenToolbox) {
+      yard.description.dynamic = "A few planks of wood lean crookedly against the north wall. There's also a half-finished doghouse in one corner, with a small wooden plaque that says 'Digger'. ";
+    } else {
+      yard.description.dynamic = "A worn toolbox is half hidden under a few planks of wood against the north wall. There's also a half-finished doghouse in one corner, with a small wooden plaque that says 'Digger'. ";
+    }
     
     return true;
   }
@@ -613,7 +629,14 @@ function petPuppy() {
     flags.befriendedPuppy = true;
     npcs.puppy.following = true;
     inventory = inventory.filter(i => i !== "dogToy");
-    // change yard description here
+    // update yard description
+    const yard = rooms["yard"];
+    
+    if (inventory.includes("toolbox") || flags.givenToolbox) {
+      yard.description.dynamic = "A few planks of wood lean crookedly against the north wall. There's also a half-finished doghouse in one corner, with a small wooden plaque that says 'Digger'. ";
+    } else {
+      yard.description.dynamic = "A worn toolbox is half hidden under a few planks of wood against the north wall. There's also a half-finished doghouse in one corner, with a small wooden plaque that says 'Digger'. ";
+    }
     
     return true;
   }
@@ -643,6 +666,9 @@ const npcs = {
     gardenCommentSaid: false,
     labCommentSaid: false,
     preferredExit: "glass",
+    target: null,
+    exitRoute: [],
+    routeIndex: 0
   },
   barista: {
     name: "barista",
@@ -662,6 +688,9 @@ const npcs = {
     shelfCommentSaid: false,
     labCommentSaid: false,
     preferredExit: "teleport",
+    target: null,
+    exitRoute: [],
+    routeIndex: 0
   },
   puppy: {
     name: "puppy",
@@ -714,7 +743,10 @@ function handleCaretakerTalk() {
   if (!npcs.caretaker.met) {
     dialogue.caretaker.firstMeet.forEach(line => appendMessage(line));
     npcs.caretaker.met = true;
-    // change blue corridor description here
+    // update blue corridor description
+    const corridorB = rooms["blue corridor"];
+    
+    corridorB.description.dynamic = "The caretaker is tending to the plants, and they smile at you as you enter the room. ";
     
     return;
   }
@@ -743,7 +775,11 @@ function handleScientistTalk() {
   if (!npcs.scientist.met) {
     dialogue.scientist.firstMeet.forEach(line => appendMessage(line));
     npcs.scientist.met = true;
-    // change fossil exhibit description here
+    // update fossil exhibit description
+    const fossilExhibit = rooms["fossil exhibit"];
+    
+    fossilExhibit.description.dynamic = "The scientist is still in his corner, muttering to himself quietly as he pores over papers and books. He glances up and nods as you enter the room before returning to his studies. ";
+    
     return;
   }
 
@@ -771,7 +807,11 @@ function handleBaristaTalk() {
   if (!npcs.barista.met) {
     dialogue.barista.firstMeet.forEach(line => appendMessage(line));
     npcs.barista.met = true;
-    // change cafe description here
+    // update cafe description
+    const cafe = rooms["cafe"];
+    
+    cafe.description.dynamic = "The barista is cleaning some of the equipment behind the counter. She looks over as you enter and smiles, ready to chat or make you a drink. ";
+    
     return;
   }
 
@@ -836,7 +876,13 @@ function caretakerHints() {
   if (!npcs.caretaker.met) {
     dialogue.caretaker.firstMeet.forEach(line => appendMessage(line));
     npcs.caretaker.met = true;
-    // change blue corridor description here
+    // update blue corridor description
+    
+    const corridorB = rooms["blue corridor"];
+    
+    corridorB.description.dynamic = "The caretaker is tending to the plants as you enter. They greet you with a smile and nod before returning to their work. ";
+    
+    return;
   }
   
   // Check priority conditions
@@ -861,7 +907,10 @@ function scientistHints() {
   if (!npcs.scientist.met) {
     dialogue.scientist.firstMeet.forEach(line => appendMessage(line));
     npcs.scientist.met = true;
-    // change fossil exhibit description here
+    // update fossil exhibit description
+    const fossilExhibit = rooms["fossil exhibit"];
+    
+    fossilExhibit.description.dynamic = "The scientist is still in his corner, muttering to himself quietly as he pores over papers and books. He glances up and nods as you enter the room before returning to his studies. ";
   }
   
   // Check priority conditions
@@ -886,7 +935,10 @@ function baristaHints() {
   if (!npcs.barista.met) {
     dialogue.barista.firstMeet.forEach(line => appendMessage(line));
     npcs.barista.met = true;
-    // change cafe description here
+    // update cafe description
+    const cafe = rooms["cafe"];
+    
+    cafe.description.dynamic = "The barista is keeping herself busy rearranging the mugs on the counter as you enter. She looks over as the door opens, and smiles brightly. ";
   }
   
   // Check priority conditions
@@ -1348,6 +1400,7 @@ function getExitStatus() {
 // manages NPCs exit reactions
 function tellNpcAboutExit(npcName) {
   const exits = getExitStatus();
+  const npc = npcName;
 
   if (!exits.glass && !exits.teleporter) {
     appendMessage("You don’t actually know of a way out yet.");
@@ -1380,12 +1433,12 @@ function tellNpcAboutExit(npcName) {
     return;
   }
   
-  if (exits.teleporter && reactions.teleporter) {
+  if (exits.teleporter && reactions.teleporter && (exitPreference === "teleport" || !flags.exitUnlocked)) {
     appendMessage(reactions.teleporter[0]);
     return;
   } // figure out how to make this condition work: (exitPreference === "teleport" || !flags.exitUnlocked)
 
-  if (exits.glass && reactions.glass) {
+  if (exits.glass && reactions.glass && (exitPreference === "glass" || !flags.teleporterReady)) {
     appendMessage(reactions.glass[0]);
     return;
   } // also this (exitPreference === "glass" || !flags.teleporterReady)
@@ -1403,25 +1456,58 @@ function spawnCafeCustomers() {
     appendMessage("The barista smiles at the newcomers, happy to have customers after so long tending an empty cafe.");
   }
 
-  // change cafe description here
+  // update cafe description
+  const cafe = rooms["cafe"];
+  
+  cafe.description.dynamic = "The cafe is much livelier with a few customers sitting at the tables. The barista seems happier, and you can hear some faint, pleasant yet unidentifiable music coming from a hidden speaker. Far from the abandoned and empty place you first entered, this is somewhere you could happily spend an hour relaxing. ";
 }
 
 // adds visitors in art gallery, fossil exhibit and observatory after exit is unlocked
 function spawnVisitors() {
   flags.visitorsAllowed = true;
   
-  if (player.location === "art gallery" || player.location === "fossil exhibit" || player.location === "observatory") {
+  if (player.location === "art gallery" || player.location === "fossil exhibit" || player.location === "observatory" || player.location === "gift shop") {
     appendMessage("You hear some echoing footsteps in the room, and turn to see a few new people wandering in. They must have come in through the glass corridor exit you unlocked.");
   }
 
-  // change fossil exhibit, art gallery and observatory descriptions here
+  // update fossil exhibit, art gallery, gift shop and observatory dynamic descriptions
+  const fossilExhibit = rooms["fossil exhibit"];
+  const artGallery = rooms["art gallery"];
+  const observatory = rooms["observatory"];
+  const giftShop = rooms["gift shop"];
+  
+  if (!flags.bookshelfPlaced) {
+    fossilExhibit.description.dynamic = "People are clustered around the larger, more impressive fossils. A few are reading the signs scattered around, and others are simply wandering between the displays. The scientist looks slightly annoyed as he tries to keep his books from being kicked. Maybe he'd appreciate a bookshelf to keep them safe... ";
+  } else {
+    fossilExhibit.description.dynamic = "People are clustered around the larger, more impressive fossils. A few are reading the signs scattered around, and others are simply wandering between the displays. The scientist seems harried, but is managing to keep his little corner clear. You're glad you made him that bookshelf before these visitors arrived. ";
+  }
+  
+  artGallery.description.dynamic = "With the arrival of new visitors, this gallery seems less unnerving. Even the portraits seem happier. The gentle lighting and soft murmur of people have turned this into a relaxing place to spend time. ";
+  
+  observatory.description.dynamic = "A handful of visitors now occupy the observatory. The telescopes squeak, their moving parts protesting the use after however long they remained stationary. ";
+  
+  giftShop.description.dynamic = "The once dusty and forgotten gift shop seems cleaner now. A couple of visitors wander between the shelves, looking at the trinkets and souvenirs. The automated check out has powered up, the screen showing a cheerful 'WELCOME!' to potential customers. ";
 }
 
-// caretaker moves to glass corridor
+/* NPCs start to move towards their preferred exits - NOT FINISHED YET!
 
+const exitRoutes = {
+  scientistToTeleporter: [
+    "fossil exhibit",
+    "secret room"
+  ],
 
-// scientist moves to teleport room
+  caretakerToDoor: [
+    "blue corridor",
+    "art gallery",
+    "red corridor",
+    "fossil exhibit",
+    "white room",
+    "glass corridor"
+  ]
+};
 
+*/
 
 // wait functions
 // player can wait somewhere
@@ -1555,10 +1641,11 @@ function placeBookshelf() {
   appendMessage("You place the tall bookshelf against the wall next to the scientist. He gives you a grateful nod.");
   appendMessage("As you stand back, you hear a click to the south. Part of the wall slides open, revealing a hidden doorway.");
 
-  // change fossil exhibit description here
+  // update fossil exhibit description
+  const fossilExhibit = rooms["fossil exhibit"];
   
-  // new room description: "The books that were once scattered over the floor in disarray now sit neatly on the shelf you built. From the new door to the south, a faint glow suggests something worth investigating. "
-  // new doorList: "The gift shop is to the east. The door to the west leads back to the white room, and the north exit leads to the red corridor."
+  fossilExhibit.description.dynamic = "The books that were once scattered over the floor in disarray now sit neatly on the shelf you built. From the new door to the south, a faint glow suggests something worth investigating. ";
+  fossilExhibit.description.doorList = "The gift shop is to the east. The door to the west leads back to the white room, and the north exit leads to the red corridor.";
 
   // open the secret exit
   rooms["fossil exhibit"].exits.south = "secret room";
@@ -1591,7 +1678,10 @@ function placeBirdhouse() {
   appendMessage("You place the birdhouse in a nice corner of the garden. It seems like it belongs there.");
   appendMessage("A bird lands on the perch almost immediately, dropping a small, shiny black metal object. You pick it up, thinking anything could be useful here.");
 
-  // change garden description here
+  // update garden description
+  const garden = rooms["garden"];
+  
+  garden.description.dynamic = "The birdhouse you built looks rather pretty now it's in place. A small bird is perched on the roof, preening its feathers. ";
 
   // add battery to inventory
   inventory.push("battery");
@@ -1627,7 +1717,11 @@ function pullLever() {
     flags.discoveredLab = true;
     autoSave("Unlocked the secret lab");
 
-    // change observatory description here
+    // update observatory description
+    const observatory = rooms["observatory"];
+    
+    observatory.description.dynamic = "The mechanisms along the west wall are a little less dusty now, and the lever you placed shines like new. You wonder if the caretaker has been in and cleaned the place up a little. ";
+    observatory.description.doorList = "A door to the south east leads back to the blue corridor, and the now open door to the south west leads to the hidden lab.";
     
     // unlocks the secret lab exit
     const obs = rooms["observatory"];
@@ -1643,9 +1737,9 @@ function pullLever() {
   }
 }
 
-// player moves the shelves in the cleaners' store
+// player moves the shelves in the cleaners store
 function moveShelf() {
-  if (player.location !== "cleaners' store") {
+  if (player.location !== "cleaners store") {
     appendMessage("There are no shelves here to move.");
     return;
   }
@@ -1667,7 +1761,11 @@ function moveShelf() {
 
   appendMessage("You push the shelf aside, revealing a hidden door with a rusty iron keyhole. The key you found in the garden looks like it fits.");
   flags.shelvesMoved = true;
-  // change cleaners' store description here
+  // update cleaners store description
+  const storeroom = rooms["cleaners store"];
+  
+  storeroom.description.dynamic = "The shelves that once sat along the east wall now stick out at an angle, making the small room awkward to move around in. The door behind them is much more obvious now. You wonder how long it was hidden back there before you thought to move the shelves. ";
+  storeroom.description.doorList = "A door to the west leads back to the red corridor, and the locked door to the east is waiting for a key.";
 
 }
 
@@ -1717,7 +1815,10 @@ const items = {
         appendMessage("You put the lever back in the mechanism, hearing a satisfying click as it finds its place.");
         inventory = inventory.filter(i => i !== "lever");
         flags.leverPlaced = true;
-        // change observatory description here
+        // update observatory description
+        const obs = rooms["observatory"];
+        
+        obs.description.dynamic = "On the west wall among the other old mechanisms, the lever you placed shines in the light from above, waiting to be pulled. ";
       } else if (flags.leverPlaced && !flags.discoveredLab) {
         appendMessage("You already put the lever where it belongs, time to pull it and see what happens.");
       } else {
@@ -1963,7 +2064,9 @@ const items = {
       // opens the glass corridor exit
       const whrm = rooms["white room"];
       whrm.exits["north"] = "glass corridor";
-      // change white room description here
+      // update white room description
+      whrm.description.dynamic = "The once blank white walls now sparkle with a variety of colours, reflected through the new door to the north. It has a rather mesmerising effect. ";
+      whrm.description.doorList = "The door to the east leads into the fossil exhibit. The north door leads into a corridor with glass walls.";
     }
   },
   brassKey: {
@@ -1983,7 +2086,12 @@ const items = {
       const gard2 = rooms["cafe"];
       gard2.exits["south"] = "garden";
       flags.gardenOpen = true;
-      // change blue corridor and cafe descriptions here
+      // new blue corridor description
+      gard1.description.dynamic = "The caretaker is taking a break, perched on one of the benches to eat a sandwich. They nod in greeting as you enter. ";
+      gard1.description.doorList = "There are doors to the south west, south, north east, and north. The south east door is now unlocked, and leads to the garden.";
+      // new cafe description
+      gard2.description.dynamic = "The windows lining the south wall look a little cleaner already, letting more light into the cafe. Little patches of sunlight dance across the polished tables, and behind the counter the coffee machine shines. ";
+      gard2.description.doorList = "The west door leads back to the blue corridor, and the now unlocked south door leads to the garden.";
     }
   },
   ironKey: {
@@ -2001,9 +2109,11 @@ const items = {
       } else {
         appendMessage("The key turns with a squeak and a clunk, but the secret door opens.");
         // opens the hidden store exit
-        const store = rooms["cleaners' store"];
+        const store = rooms["cleaners store"];
         store.exits["east"] = "hidden store";
-        // change cleaners' store description here
+        // new description
+        store.description.dynamic = "The shelves that were once along the east wall now stick out at an angle, making the small room seem even smaller. The once hidden door is now open and accessible. ";
+        store.description.doorList = "A door to the west leads back to the red corridor, and the east door leads to an extra storeroom.";
       }
     }
   },
@@ -2039,12 +2149,16 @@ const items = {
         appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits complete. Please insert power source to activate teleportation system.'");
         inventory = inventory.filter(i => i !== "teleGem");
         flags.teleGemPlaced = true;
-        // change secret room description here
+        // update secret room description
+        const gemChange = rooms["secret room"];
+        gemChange.description.dynamic = "The rainbow of gems is complete, sparkling in the strange light emitting from the glowing circuits. ";
       } else if (player.location === "secret room" && flags.batteryPlaced) {
         appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits activated. Please press the central crystal to continue.'");
         flags.teleGemPlaced = true;
         flags.teleporterReady = true;
-        // change secret room description here
+        // update secret room description
+        const gemChange = rooms["secret room"];
+        gemChange.description.dynamic = "Gems of all colours glitter atop their pedestals, and the power pack you found nestles in place beneath the central one. The entire room glows softly with an unearthly light, awaiting your input. ";
         return;
       } else {
         appendMessage("You can't use that here.");
@@ -2065,12 +2179,17 @@ const items = {
         appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the crystals light up with a soft glow, and a synthetic voice says: 'Power source connected. Please complete the crystal circuit to activate teleportation system.'");
         inventory = inventory.filter(i => i !== "battery");
         flags.batteryPlaced = true;
-        // change secret room description here
+        // update secret room description 
+        const batteryChange = rooms["secret room"];
+        batteryChange.description.dynamic = "The once dull black battery now shines with a faint light, reflecting the glow of the surrounding circuits. ";
+        
       } else if (player.location === "secret room" && flags.teleGemPlaced) {
       appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the floor lights up with a soft glow, and a synthetic voice says: 'Power source connected. Please press the central crystal to continue.'");
         flags.batteryPlaced = true;
         flags.teleporterReady = true;
-        // change secret room description here
+        // update secret room description 
+        const batteryChange = rooms["secret room"];
+        batteryChange.description.dynamic = "Gems of all colours glitter atop their pedestals, and the power pack you found nestles in place beneath the central one. The entire room glows softly with an unearthly light, awaiting your input. ";
         return;
       } else {
         appendMessage("You can't use that here.");
@@ -2235,7 +2354,13 @@ function takeItem(nameOrId) {
     flags.carryingToolbox = true;
     flags.usingCart = true;
     appendMessage("You load the heavy toolbox onto the cart. You can now move it around easily.");
-    // change yard description here
+    // update yard description
+    const yard = rooms["yard"];
+    if (!npcs.puppy.befriended) {
+      yard.description.dynamic = "The planks that once sheltered the toolbox now rest flat on the floor. The puppy in the corner watches you with his head tilted curiously. ";
+    } else {
+      yard.description.dynamic = "The planks that once sheltered the toolbox now rest flat on the floor. A half-finished doghouse in the corner bears a brass plaque with the name 'Digger'. ";
+    }
   }
 
   if (found.id === "bookshelf") {
@@ -2559,14 +2684,14 @@ function br() {
 // load rooms JSON
 async function loadRooms() {
   try {
-    const res = await fetch("./rooms_complete.json");
+    const res = await fetch("./dynamic_rooms.json");
     const data = await res.json();
     data.forEach(room => {
       rooms[room.id] = room;
     });
     return true;
   } catch (err) {
-    appendMessage("⚠️ Could not load rooms_complete.json");
+    appendMessage("⚠️ Could not load dynamic_rooms.json");
     console.error(err);
     return false;
   }
@@ -2580,7 +2705,7 @@ function getRoomDescription(room) {
   return text;
 }
 
-// show current room
+/*/ OLD - show current room
 function describeRoom(showIntro = true) {
   const room = rooms[currentRoom];
   if (!room) {
@@ -2598,6 +2723,35 @@ function describeRoom(showIntro = true) {
     appendMessage("There are no visible exits.");
   }
 
+}*/
+
+// new describeRoom for dynamic room updates
+function describeRoom(showIntro = true) {
+  const room = rooms[currentRoom];
+  if (!room) {
+    appendMessage("You're lost in the void. (Room not found!)");
+    return;
+  }
+
+  if (showIntro && room.intro) {
+    appendMessage(room.intro);
+  }
+
+  // NEW: dynamic room description
+  if (room.description && typeof room.description === "object") {
+    appendMessage(getRoomDescription(room));
+  }
+  // FALLBACK: old rooms
+  else if (typeof room.description === "string") {
+    appendMessage(room.description);
+  }
+
+  const exits = Object.keys(room.exits || {});
+  if (exits.length > 0) {
+    appendMessage("Exits: " + exits.join(", "));
+  } else {
+    appendMessage("There are no visible exits.");
+  }
 }
 
 // move between rooms
@@ -2721,6 +2875,8 @@ const socialCommands = (cmd) => {
       talkTo(npc);
       return true;
     }
+    
+    appendMessage("?");
 
   } 
   // ask npcs for hints
@@ -2758,20 +2914,8 @@ const socialCommands = (cmd) => {
       return true;
     }
   }
-  // order items from the cafe (2 ways, maybe adjust later)
-  /*else if (hasWord(cmd, "order")) {
-    
-    if (player.location === "cafe") {
-      appendMessage("The barista says: 'What can I get you, lovie?'");
-      npcs.barista.waitingForOrder = true;
-    } else {
-      appendMessage("There's nobody to order anything from here. Try asking the barista in the cafe.");
-    }
-    return true;
-    
-  }*/ 
-  
-  else if ((hasWord(cmd, "coffee") || hasWord(cmd, "tea") || hasWord(cmd, "cake") || hasWord(cmd, "juice") || hasWord(cmd, "soda")) && (!cmd.includes("drink ") && !cmd.includes("eat "))) {
+  // order items from the cafe
+  else if ((hasWord(cmd, "coffee") || hasWord(cmd, "tea") || hasWord(cmd, "cake") || hasWord(cmd, "pastry") || hasWord(cmd, "juice") || hasWord(cmd, "soda") || hasWord(cmd, "water")) && (!cmd.includes("drink ") && !cmd.includes("eat "))) {
     if (player.location === "cafe") {
       handleBaristaOrder(cmd);
       return true;
@@ -3012,7 +3156,7 @@ const flavourCommands = (cmd) => {
     handled = true;
   }
   // game says hi
-  else if (cmd === "hello" || cmd === "hi") {
+  else if (cmd.startsWith("hello") || cmd.startsWith("hi")) {
     appendMessage("Hello!");
     handled = true;
   }
@@ -3039,9 +3183,7 @@ function handleCommand(cmdInput) {
   
   // allows the game to track environment changes
   advanceWorldState();
-  
-  
-  
+
   // restarts the game after winning/losing, or if players somehow break everything
   if (cmd === "restart") {
     location.reload();
@@ -3092,7 +3234,7 @@ function handleCommand(cmdInput) {
   // prints a basic command list to the game screen
   if (cmd === "help" || cmd === "commands" || cmd === "command list") {
     showHelp();
-    appendMessage("Type a command or use the compass to move.")
+    appendMessage("Type a command or use the compass to move.");
     return true;
   }
   
@@ -3106,7 +3248,7 @@ function handleCommand(cmdInput) {
   if (flavourCommands(cmd)) return true;
   
   // default message
-  appendMessage("Sorry, you can't do that :( ");
+  appendMessage("Sorry, you can't do that :(");
 
 }
 
@@ -3335,7 +3477,7 @@ function revealDoors() {
   
   // hidden store exit
   if (flags.shelvesMoved) {
-    const room = rooms["cleaners' store"];
+    const room = rooms["cleaners store"];
     room.exits["east"] = "hidden store";
   }
 }
