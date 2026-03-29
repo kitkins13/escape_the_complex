@@ -254,6 +254,7 @@ function handleJump() {
       const wr = rooms["white room"];
       wr.exits["east"] = "fossil exhibit";
       flags.wrExitOpen = true;
+	  wr.description.dynamic = "Now that you know where it is, the button to open the hidden door is obvious among the carvings around the wall. No need to press it again, though. The door is open. ";
     } else {
       appendMessage("You jump again, but nothing else happens.\n");
     }
