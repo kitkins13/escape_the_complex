@@ -147,7 +147,7 @@
       "static": "A cheerful barista smiles at you from behind the counter. There are some canned drinks and pre-packaged snacks left on a shelf, and a small first aid box on the wall. ",
       "dynamic": "This would probably be a cozy, bustling little cafe if it didn't feel so abandoned. The tables and chairs are highly polished, as if expecting customers any minute, but there's nobody here except you and the barista. ",
       "doorList": "The door to the west leads back to the blue corridor. Grimy windows and a locked glass door line the south wall, and you can just about see a garden through them."
-    }"",
+    },
     "exits": {
       "west": "blue corridor"
     }
@@ -229,7 +229,7 @@
       "static": "The room is quite small, with a high ceiling. Six narrow pedestals ring one wider stand in the centre. ",
       "dynamic": "All but one has a sparkling coloured gem on top. Looking at the colours of the rest, you guess the empty pedestal is supposed to hold a green gem. ",
       "doorList": "The only door is to the north, leading back to the fossil exhibit."
-    }", ",
+    },
     "exits": {
       "north": "fossil exhibit"
     }
