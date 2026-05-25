@@ -1,4 +1,5 @@
-// obtainable items
+// for use with Escape the Complex v1.1 - in-game items and give/use logic
+// obtainable items array
 const items = {
   lever: {
     id: "lever",
@@ -26,7 +27,7 @@ const items = {
       }
     }
   },
-  keyring: {
+  keyring: { // does nothing yet, may re-implement its use for holding keys from the original PHP code
     id: "keyring",
     name: "keyring",
     aliases: ["keyring", "keychain"],
@@ -46,7 +47,7 @@ const items = {
     droppable: false,
     usable: false,
     giveableTo: "puppy",
-    onGive: () => {
+    onGive: () => { // give logic
       appendMessage("The puppy barks excitedly and chews on the toy for a moment. Looks like you gained a new friend!");
       flags.befriendedPuppy = true;
       npcs.puppy.following = true;
@@ -62,7 +63,7 @@ const items = {
     droppable: true,
     usable: false,
     giveableTo: "scientist",
-    onGive: () => {
+    onGive: () => { // give logic
       appendMessage("The scientist says: 'Thank you, I was looking for one of these. Here, I've been trying to work out where this goes, but you might have better luck.'");
       inventory.push("teleGem");
       appendMessage("The scientist hands you a strange green gem. It seems to be glowing.");
@@ -79,7 +80,7 @@ const items = {
     droppable: true,
     usable: false,
     giveableTo: "caretaker",
-    onGive: () => {
+    onGive: () => { // give logic
       appendMessage("The caretaker beams. 'Oh, you found my old toolbox! Thank you!'");
       flags.givenToolbox = true;
       flags.carryingToolbox = false;
@@ -108,7 +109,7 @@ const items = {
     id: "birdhouse",
     name: "birdhouse",
     aliases: ["birdhouse", "bird house", "nest box", "perch"],
-    description: "A simple freestanding wooden birdhouse, it might look nice in a garden.",
+    description: "A simple freestanding wooden birdhouse, might look nice in a garden.",
     location: "null",
     pickupable: true,
     droppable: true
@@ -123,7 +124,7 @@ const items = {
     droppable: true,
     usable: false,
     giveableTo: "barista",
-    onGive: () => {
+    onGive: () => { // give logic
       appendMessage("The barista blushes. 'Oh, these are beautiful! Here, have some cake on the house, lovie!'");
       flags.givenFlowers = true;
       inventory.push("cake");
@@ -139,7 +140,7 @@ const items = {
     droppable: false,
     usable: false,
     consumable: true,
-    onConsume: () => {
+    onConsume: () => { // consume logic
       appendMessage("You tuck into the slice of cake. It's as delicious as it looks, and somehow the barista guessed your favourite flavour!");
       inventory = inventory.filter(i => i !== "cake");
     }
@@ -154,7 +155,7 @@ const items = {
     droppable: false,
     usable: false,
     consumable: true,
-    onConsume: () => {
+    onConsume: () => { // consume logic
       appendMessage("You drink the coffee, enjoying the robust flavour and energising caffeine.");
       inventory = inventory.filter(i => i !== "coffee");
     }
@@ -169,7 +170,7 @@ const items = {
     droppable: false,
     usable: false,
     consumable: true,
-    onConsume: () => {
+    onConsume: () => { // consume logic
       appendMessage("You drink the tea, savouring the soothing scent.");
       inventory = inventory.filter(i => i !== "tea");
     }
@@ -184,7 +185,7 @@ const items = {
     droppable: false,
     usable: false,
     consumable: true,
-    onConsume: () => {
+    onConsume: () => { // consume logic
       appendMessage("You drink the juice, relishing the citrusy zing on your tongue.");
       inventory = inventory.filter(i => i !== "juice");
     }
@@ -199,7 +200,7 @@ const items = {
     droppable: false,
     usable: false,
     consumable: true,
-    onConsume: () => {
+    onConsume: () => { // consume logic
       appendMessage("You drink the soda, smiling as the bubbles tickle your nose.");
       inventory = inventory.filter(i => i !== "soda");
     }
@@ -207,14 +208,14 @@ const items = {
   water: {
     id: "water",
     name: "water",
-    aliases: ["water", "aqua"],
+    aliases: ["water", "aqua", "h2o"],
     description: "A cool glass of fresh water.",
     location: "null",
     pickupable: false,
     droppable: false,
     usable: false,
     consumable: true,
-    onConsume: () => {
+    onConsume: () => { // consume logic
       appendMessage("You drink the water, enjoying the clean and refreshing feeling.");
       inventory = inventory.filter(i => i !== "water");
     }
@@ -229,7 +230,7 @@ const items = {
     droppable: true,
     usable: false,
     consumable: true,
-    onConsume: () => {
+    onConsume: () => { // consume logic
       appendMessage("You open the can and drink the contents. It doesn't taste like anything, but it quenches some thirst.");
       inventory = inventory.filter(i => i !== "drink");
     }
@@ -244,7 +245,7 @@ const items = {
     droppable: true,
     usable: false,
     consumable: true,
-    onConsume: () => {
+    onConsume: () => { // consume logic
       appendMessage("You unwrap the bar and tuck in. It's dry and tasteless, but gives your stomach something to do.");
       inventory = inventory.filter(i => i !== "snack");
     }
@@ -258,7 +259,7 @@ const items = {
     pickupable: true,
     droppable: false,
     usable: true,
-    onUse: () => {
+    onUse: () => { // use logic
       appendMessage("You carefully fit the small key into the tiny keyhole and turn it. A part of the north wall slides open, revealing an almost blinding light.");
       flags.exitUnlocked = true;
       // opens the glass corridor exit
@@ -275,7 +276,7 @@ const items = {
     pickupable: true,
     droppable: false,
     usable: true,
-    onUse: () => {
+    onUse: () => { // use logic
       // opens the garden doors
       appendMessage("You unlock the door and push it open with a slight creak. Looks like there's a garden through there.");
       const gard1 = rooms["blue corridor"];
@@ -294,13 +295,13 @@ const items = {
     pickupable: true,
     droppable: false,
     usable: true,
-    onUse: () => {
+    onUse: () => { // use logic
       if (!flags.shelvesMoved) {
         appendMessage("You can't quite get at the keyhole. Try moving those shelves out of the way first.'");
       } else {
         appendMessage("The key turns with a squeak and a clunk, but the secret door opens.");
         // opens the hidden store exit
-        const store = rooms["cleaners' store"];
+        const store = rooms["cleaners store"];
         store.exits["east"] = "hidden store";
       }
     }
@@ -314,7 +315,7 @@ const items = {
     pickupable: true,
     droppable: true,
     usable: true,
-    onUse: () => {
+    onUse: () => { // use logic
       if (!player.isInjured) {
         appendMessage("Best not to waste the supplies.");
       } else {
@@ -332,7 +333,7 @@ const items = {
     pickupable: true,
     droppable: true,
     usable: true,
-    onUse: () => {
+    onUse: () => { // use logic
       if (player.location === "secret room" && !flags.batteryPlaced) {
         appendMessage("As you place the gem into its setting, you hear a soft electronic hum. The floor glows with an intricate pattern, and a synthetic voice says: 'Teleportation circuits complete. Please insert power source to activate teleportation system.'");
         inventory = inventory.filter(i => i !== "teleGem");
@@ -356,13 +357,14 @@ const items = {
     pickupable: true,
     droppable: true,
     usable: true,
-    onUse: () => {
+    onUse: () => { // use logic
       if (player.location === "secret room" && !flags.teleGemPlaced) {
         appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the crystals light up with a soft glow, and a synthetic voice says: 'Power source connected. Please complete the crystal circuit to activate teleportation system.'");
         inventory = inventory.filter(i => i !== "battery");
         flags.batteryPlaced = true;
       } else if (player.location === "secret room" && flags.teleGemPlaced) {
       appendMessage("You look around the room and find a slot near the base of the central pedestal. As you connect the object, the floor lights up with a soft glow, and a synthetic voice says: 'Power source connected. Please press the central crystal to continue.'");
+        inventory = inventory.filter(i => i !== "battery");
         flags.batteryPlaced = true;
         flags.teleporterReady = true;
         return;
